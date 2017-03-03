@@ -1,14 +1,26 @@
 {
-  "scripts": {},
+  "scripts": {
+    "clean-build": "rm -rf ./lib && npm run prepublish",
+    "prepublish": "babel src --out-dir lib --ignore spec.js,test.js",
+    "start": "npm run prepublish -- --watch",
+    "test": "cross-env NODE_ENV=test mocha --recursive --compilers js:babel-core/register"
+  },
   "name": "datavan",
   "version": "1.0.0",
   "description": "Define your collections layer over redux state, with mixins to fetch, submit changes to your server",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "jsnext:main": "./lib/index.js",
+  "directories": {
+    "lib": "./lib"
+  },
   "dependencies": {
     "fast-stable-stringify": "^0.1.1",
     "fuse.js": "^2.6.1",
     "immutability-helper": "^2.1.1",
     "js-cookie": "^2.1.3",
     "lodash": "^4.16.4",
+    "react-redux": "^5.0.3",
     "redux": "^3.6.0",
     "reselect": "^2.5.4",
     "sift": "^3.2.6"

@@ -1,6 +1,6 @@
 import should from 'should'
 
-import {defineCollections} from '.'
+import {defineCollections, composeClass} from '.'
 import SearchableCollection from './SearchableCollection'
 import fetcher from './fetcher'
 
@@ -10,26 +10,31 @@ describe('fetcher', function() {
   it('basic', async () => {
     let calledSearch = 0, calledFind = 0, calledGet = 0
     const createStore = defineCollections({
-      users: fetcher({
-        searchEngineConfig: {
-          // shouldSort: true,
-          // tokenize: true,
-          // threshold: 0,
-          keys: ['name'],
+      users: composeClass(
+        {
+          searchEngineConfig: {
+            // shouldSort: true,
+            // tokenize: true,
+            // threshold: 0,
+            keys: ['name'],
+          },
         },
-        search(text) {
-          ++calledSearch
-          return Promise.resolve([{_id: 'u3', name: text + ' Simon'}])
-        },
-        find() {
-          ++calledFind
-          return Promise.resolve([{_id: 'u2', name: this.name + ' Eric'}])
-        },
-        get(id) {
-          ++calledGet
-          return Promise.resolve({_id: 'u1', name: `${id} name`})
-        },
-      })(SearchableCollection),
+        fetcher({
+          search(text) {
+            ++calledSearch
+            return Promise.resolve([{_id: 'u3', name: text + ' Simon'}])
+          },
+          find() {
+            ++calledFind
+            return Promise.resolve([{_id: 'u2', name: this.name + ' Eric'}])
+          },
+          get(id) {
+            ++calledGet
+            return Promise.resolve({_id: 'u1', name: `${id} name`})
+          },
+        }),
+        SearchableCollection,
+      ),
     })
     const store = createStore()
 
