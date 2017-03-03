@@ -3,7 +3,7 @@ import should from 'should'
 import React from 'react'
 import {mount, render} from 'enzyme'
 
-import './dev-tools/test-setup'
+import './dev-tools/setup.test'
 import {defineCollections} from '.'
 import fetcher from './fetcher'
 import KeyValueStore from './KeyValueStore'
