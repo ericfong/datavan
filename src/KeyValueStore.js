@@ -2,13 +2,17 @@ import _ from 'lodash'
 
 
 export default class KeyValueStore {
-  // plain wrapper for getStoreState/mutateStoreState (which assigned by host store)
-  // consider as final internal functions before go to main store
+  preloadStoreState(preloadedState) {
+    preloadedState[this.name] = _.mapValues(preloadedState[this.name], doc => this.cast(doc))
+  }
+
+  // plain wrapper for _store.getState/_store.mutateState (which assigned by host store)
+  // final internal functions before go to main store
   getState() {
-    return this.getStoreState()[this.name]
+    return this._store.getState()[this.name]
   }
   mutateState(mutation) {
-    this.mutateStoreState({ [this.name]: mutation })
+    this._store.mutateState({ [this.name]: mutation })
   }
 
 
@@ -29,5 +33,9 @@ export default class KeyValueStore {
   set(id, value) {
     if (typeof id === 'object') this.setState(id)
     else this.setState({ [id]: value })
+  }
+
+  cast(v) {
+    return v
   }
 }

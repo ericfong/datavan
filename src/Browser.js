@@ -1,5 +1,5 @@
 import KeyValueStore from './KeyValueStore'
-import {genGetSetters} from './classUtil'
+import {genGetSetters} from './util/classUtil'
 
 
 export default class Browser extends KeyValueStore {

@@ -1,8 +1,7 @@
 import should from 'should'
-import {Collection} from '.'
+import {Collection} from '..'
 import {composeClass, isClass} from './classUtil'
-import fetcher from './fetcher'
-import submitter from './submitter'
+import Fetcher from '../Fetcher'
 
 describe('classUtil', function() {
   it('composeClass', async () => {
@@ -10,8 +9,8 @@ describe('classUtil', function() {
       {
         idField: 'id',
       },
-      fetcher(),
-      null && submitter(),
+      Fetcher,
+      null,
       Collection,
     )
     should( isClass(Class) ).true()

@@ -3,9 +3,9 @@ import should from 'should'
 import React from 'react'
 import {mount, render} from 'enzyme'
 
-import './dev-tools/setup.test'
-import {defineCollections} from '.'
-import fetcher from './fetcher'
+import './dev-tools/test-setup'
+import {defineCollections, composeClass} from '.'
+import Fetcher from './Fetcher'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
 import connect, {Provider} from './connect'
@@ -14,11 +14,15 @@ import connect, {Provider} from './connect'
 describe('connect', function() {
   it('server rendering', async () => {
     const createStore = defineCollections({
-      users: fetcher({
-        get(id) {
-          return Promise.resolve({_id: id, name: _.toUpper(id), friendId: 'u1'})
+      users: composeClass(
+        {
+          getFetch(id) {
+            return Promise.resolve({_id: id, name: _.toUpper(id), friendId: 'u1'})
+          },
         },
-      })(Collection),
+        Fetcher,
+        Collection,
+      ),
     })
     const store = createStore()
 

@@ -1,20 +1,43 @@
 import _ from 'lodash'
 import should from 'should'
 
-import createMemoize from './memoizeUtil'
+import {stateMemoizeTable} from './memoizeUtil'
 
 
 describe('memoizeUtil', function() {
+  it('no duplicated cache', async () => {
+    const stateArr = [1,2,3]
+    const c = {
+      find: stateMemoizeTable((stateArray, query, option) => {
+        let arr = _.isEmpty(query) ? stateArray : [...stateArr]
+        if (option && option.sort) {
+          arr = [...stateArr]
+        }
+        return arr
+      }, () => {
+        return [stateArr]
+      }, (query, option) => {
+        return [query, _.pick(option, 'sort')]
+      }),
+    }
+
+    expect( c.find() === stateArr ).toBe(true)
+    expect( c.find({}, {}) === stateArr ).toBe(true)
+    expect( c.find({}, {hi: 1}) === stateArr ).toBe(true)
+    expect( _.uniq(_.values(c.find.memory)) ).toHaveLength(1)
+  })
+
+
   it('basic', async () => {
     let runTime = 0
     const obj = {
-      find: createMemoize((query, option) => {
+      find: stateMemoizeTable((query, option) => {
         ++runTime
         return ['Super Long List']
       }),
 
       list: [1,2,3,4,5,6,7,8,9,0],
-      find2: createMemoize((list, query, option) => {
+      find2: stateMemoizeTable((list, query, option) => {
         ++runTime
         return _.filter(list, item => item % query.mod)
       }, () => {

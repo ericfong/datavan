@@ -3,24 +3,25 @@ import should from 'should'
 
 import {defineCollections, composeClass} from '.'
 import Collection from './Collection'
-import submitter from './submitter'
-import fetcher from './fetcher'
+import Stage from './Stage'
+import Fetcher from './Fetcher'
 
 
-describe('submitter', function() {
+describe('Stage', function() {
   it('basic', async () => {
     const createStore = defineCollections({
       users: composeClass(
-        {idField: 'id'},
-        fetcher({
-          find() {
+        {
+          idField: 'id',
+          findFetch() {
             return Promise.resolve([{id: 'u2', name: this.name + ' Eric'}])
           },
-          get() {
+          getFetch() {
             return Promise.resolve({id: 'u1', name: 'John'})
           },
-        }),
-        submitter(),
+        },
+        Fetcher,
+        Stage,
         Collection,
       ),
     })

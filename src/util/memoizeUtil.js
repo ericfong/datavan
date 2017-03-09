@@ -16,7 +16,7 @@ export function calcCacheKey(args, keyGetter = defaultKeyGetter) {
   return typeof rawKey === 'object' ? jsonStableStringfy(rawKey) : rawKey
 }
 
-export default function createMemoize(func, statesGetter = defaultStatesGetter, keyGetter, equalityCheck = defaultEqualityCheck) {
+export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyGetter, equalityCheck = defaultEqualityCheck) {
   let lastStates = null
   const isEqualToLastState = (value, index) => equalityCheck(value, lastStates[index])
   function memoizedFunc(...args) {

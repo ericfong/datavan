@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {createStore, compose} from 'redux'
 import mutate from 'immutability-helper'
 
-import {isClass} from './classUtil'
+import {isClass} from './util/classUtil'
 
 
 const MUTATE = 'MUTATE'
@@ -60,10 +60,13 @@ function assignDependencies(source, slices) {
   })
 }
 
-export function collectionsEnhancer(definitions) {
-  return _createStore => (reducer, preloadedState = {}, enhancer) => {
-    const {enhancers, ...collectionDefinitions} = definitions
 
+export function collectionsEnhancer(definitions) {
+  const {enhancers, ...collectionDefinitions} = definitions
+
+  const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
+
+    // create collections and preloadStoreState
     const collections = _.mapValues(collectionDefinitions, (definition, name) => {
       const collection = createCollection(definition, name)
 
@@ -78,11 +81,13 @@ export function collectionsEnhancer(definitions) {
       return collection
     })
 
+
     // createStore
     const _reducer = reducer ? compose(dbReducer, reducer) : dbReducer
-    const _enhancers = _.uniq(_.compact([].concat(enhancers, [enhancer])))
-    const _enhancer = _enhancers.length > 0 ? compose(..._enhancers) : undefined
-    const baseStore = _createStore(_reducer, preloadedState, _enhancer)
+    // const _enhancers = _.uniq(_.compact([].concat(enhancers, [enhancer])))
+    // const _enhancer = _enhancers.length > 0 ? compose(..._enhancers) : undefined
+    const baseStore = _createStore(_reducer, preloadedState, enhancer)
+
 
     function dispatch(action) {
       // HACK to return whole store object for connect to get connections
@@ -115,14 +120,16 @@ export function collectionsEnhancer(definitions) {
       .then(() => getPromise())
     }
 
+    // only expose few funcs, so collections will be less depend on store
+    const _store = {
+      getContext,
+      // setContext,
+      getState: baseStore.getState,
+      mutateState: mutateStoreState,
+    }
     _.each(collections, collection => {
       // inject store callback functions into slice
-      Object.assign(collection, {
-        getContext,
-        setContext,
-        getStoreState: baseStore.getState,
-        mutateStoreState,
-      })
+      collection._store = _store
       assignDependencies(collection, collections)
     })
 
@@ -164,6 +171,9 @@ export function collectionsEnhancer(definitions) {
 
     return newStore
   }
+
+  // run defined enhancers before preloadStoreState
+  return enhancers && enhancers.length > 0 ? compose(...enhancers, ourEnhancer) : ourEnhancer
 }
 
 

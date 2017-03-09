@@ -1,22 +1,25 @@
 import _ from 'lodash'
-import {defaultMemoize as memoize} from 'reselect'
+import {defaultMemoize as reselectMemoize} from 'reselect'
 import Fuse from 'fuse.js'
 
 import Collection from './Collection'
-import createMemoize from './memoizeUtil'
+import {stateMemoizeTable} from './util/memoizeUtil'
 
 
 export default class SearchableCollection extends Collection {
 
   // function being memoize should not use any this and should be defined one
-  _getSearchEngine = memoize(function(stateArray, searchEngineConfig) {
+  _getSearchEngine = reselectMemoize(function(stateArray, searchEngineConfig) {
+    if (searchEngineConfig && searchEngineConfig.createEngine) {
+      return searchEngineConfig.createEngine(stateArray, searchEngineConfig)
+    }
     return new Fuse(stateArray, searchEngineConfig)
   })
   getSearchEngine() {
     return this._getSearchEngine(this.getStateArray(), this.searchEngineConfig)
   }
 
-  _search = createMemoize(
+  _search = stateMemoizeTable(
     // runner
     (searchEngine, searchEngineConfig, keyword, option) => {
       let arr = searchEngine.search(keyword)

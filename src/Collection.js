@@ -1,10 +1,9 @@
 import _ from 'lodash'
-import {defaultMemoize as memoize} from 'reselect'
+import {defaultMemoize as reselectMemoize} from 'reselect'
 import sift from 'sift'
-// import Mingo from 'mingo'
 
 import KeyValueStore from './KeyValueStore'
-import createMemoize from './memoizeUtil'
+import {stateMemoizeTable} from './util/memoizeUtil'
 
 
 function mongoToLodash(sort) {
@@ -18,31 +17,14 @@ function mongoToLodash(sort) {
 }
 
 
-// export const QUERY_KEY_PREFIX = '?'
-
-
 export default class Collection extends KeyValueStore {
-  // _findCursor(query, option) {
-  //   const cursor = Mingo.find(_.values(this._getStore()), query)
-  //   if (option) {
-  //     if (option.sort) cursor.sort(option.sort)
-  //     if (option.limit) cursor.limit(option.limit)
-  //     if (option.skip) cursor.skip(option.skip)
-  //   }
-  //   return cursor
-  // }
-
-  // getQueryCacheId(query) {
-  //   return QUERY_KEY_PREFIX + jsonStableStringfy(query)
-  // }
-
-  _getStateArray = memoize(state => _.values(state))
+  _getStateArray = reselectMemoize(state => _.values(state))
   getStateArray() {
     return this._getStateArray(this.getState())
   }
 
   // internal _find, won't trigger re-fetch from backend
-  _find = createMemoize((stateArray, query, option) => {
+  _find = stateMemoizeTable((stateArray, query, option) => {
     let arr = _.isEmpty(query) ? stateArray : _.filter(stateArray, sift(query))
     if (option) {
       if (option.sort) {

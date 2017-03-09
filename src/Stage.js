@@ -1,24 +1,27 @@
 import _ from 'lodash'
-import {defaultMemoize as memoize} from 'reselect'
+import {defaultMemoize as reselectMemoize} from 'reselect'
 import mutate from 'immutability-helper'
 
-export default ({suffix = '_staging'} = {}) => Base => {
-  return class Staging extends Base {
+export default Base => {
+  return class Submitter extends Base {
+    stageSuffix = '_staging'
+
     preloadStoreState(preloadedState) {
-      if (!preloadedState[this.name + suffix]) {
-        preloadedState[this.name + suffix] = {}
+      if (super.preloadStoreState) super.preloadStoreState(preloadedState)
+      if (!preloadedState[this.name + this.stageSuffix]) {
+        preloadedState[this.name + this.stageSuffix] = {}
       }
     }
 
     getStagingState() {
-      return this.getStoreState()[this.name + suffix]
+      return this._store.getState()[this.name + this.stageSuffix]
     }
 
-    _getState = memoize((state, stagingState) => {
+    _getState = reselectMemoize((state, stagingState) => {
       return {...state, ...stagingState}
     })
     getState() {
-      return this._getState(super.getState(), this.getStoreState()[this.name + suffix])
+      return this._getState(super.getState(), this._store.getState()[this.name + this.stageSuffix])
     }
 
     mutate(mutation) {
@@ -37,8 +40,8 @@ export default ({suffix = '_staging'} = {}) => Base => {
           $set: mutate(combinedDoc, docMutation),
         }
       })
-      this.mutateStoreState({
-        [this.name + suffix]: ownMutation,
+      this._store.mutateState({
+        [this.name + this.stageSuffix]: ownMutation,
       })
     }
 
@@ -46,7 +49,8 @@ export default ({suffix = '_staging'} = {}) => Base => {
       const idField = this.idField
       // import new docs from server to the real collection
       const serverMutation = {}
-      _.each(docs, doc => {
+      _.each(docs, _doc => {
+        const doc = this.cast(_doc)
         serverMutation[doc[idField]] = { $set: doc }
       })
       const storeMutation = {
@@ -56,12 +60,12 @@ export default ({suffix = '_staging'} = {}) => Base => {
       // clean snapshotState
       if (snapshotState) {
         // TODO check snapshotState is not mutated during post
-        storeMutation[this.name + suffix] = { $unset: _.keys(snapshotState) }
+        storeMutation[this.name + this.stageSuffix] = { $unset: _.keys(snapshotState) }
       }
 
       // real mutate
       // console.log('>>>', serverMutation, stagingMutation)
-      this.mutateStoreState(storeMutation)
+      this._store.mutateState(storeMutation)
     }
 
     submit(submitter) {

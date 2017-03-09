@@ -1,10 +1,38 @@
+import _ from 'lodash'
 import should from 'should'
 
 import {defineCollections, composeClass} from '.'
 import SearchableCollection from './SearchableCollection'
-import fetcher from './fetcher'
+import Fetcher from './Fetcher'
 
 global.__DEV__ = true
+
+test('batch get failback to find', async () => {
+  const createStore = defineCollections({
+    users: composeClass(
+      {
+        findFetch(query) {
+          return Promise.resolve(_.map(query._id.$in, _id => {
+            return {_id, name: 'Echo-' + _id}
+          }))
+        },
+      },
+      Fetcher,
+      SearchableCollection,
+    ),
+  })
+  const db = createStore()
+
+  db.users.get('1')
+  const p1 = db.users.get('2', {load: 'load'})
+  const p2 = db.users.get('3', {load: 'reload'})
+  await db.users.getPromise()
+  expect( db.users.get('1') ).toEqual({_id: '1', name: 'Echo-1'})
+  expect( await Promise.all([p1, p2]) ).toEqual([
+    {_id: '2', name: 'Echo-2'},
+    {_id: '3', name: 'Echo-3'},
+  ])
+})
 
 describe('fetcher', function() {
   it('basic', async () => {
@@ -18,21 +46,20 @@ describe('fetcher', function() {
             // threshold: 0,
             keys: ['name'],
           },
-        },
-        fetcher({
-          search(text) {
+          searchFetch(text) {
             ++calledSearch
             return Promise.resolve([{_id: 'u3', name: text + ' Simon'}])
           },
-          find() {
+          findFetch() {
             ++calledFind
             return Promise.resolve([{_id: 'u2', name: this.name + ' Eric'}])
           },
-          get(id) {
+          getFetch(id) {
             ++calledGet
             return Promise.resolve({_id: 'u1', name: `${id} name`})
           },
-        }),
+        },
+        Fetcher,
         SearchableCollection,
       ),
     })

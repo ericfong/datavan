@@ -15,8 +15,6 @@ export default class LocalStorage extends KeyValueStore {
   }
 
   setState(values) {
-    super.setState(values)
-
     _.each(values, (v, k) => {
       if (v === null || v === undefined) {
         return localStorage.removeItem(k)
@@ -24,5 +22,7 @@ export default class LocalStorage extends KeyValueStore {
         return localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
       }
     })
+
+    super.setState(values)
   }
 }
