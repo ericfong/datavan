@@ -3,7 +3,8 @@
     "clean-build": "rm -rf ./lib && npm run prepublish",
     "prepublish": "babel src --out-dir lib --ignore spec.js,test.js",
     "start": "npm run prepublish -- --watch",
-    "test": "cross-env NODE_ENV=test mocha --recursive --compilers js:babel-core/register src/**/*.test.js"
+    "mocha": "cross-env NODE_ENV=test mocha --recursive --compilers js:babel-core/register src/**/*.test.js",
+    "test": "cross-env NODE_PATH=src jest"
   },
   "name": "datavan",
   "version": "1.0.1",
@@ -14,6 +15,21 @@
   "directories": {
     "lib": "./lib"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/bower_components/",
+      "/lib/",
+      "/tmp/"
+    ]
+  },
+  "moduleRoots": [
+    "src"
+  ],
   "dependencies": {
     "fast-stable-stringify": "^0.1.1",
     "fuse.js": "^2.6.1",

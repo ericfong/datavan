@@ -35,6 +35,7 @@
     "browser": true,
     "es6": true,
     "node": true,
+    "jest": true,
     "mocha": true,
   },
   "parser": "babel-eslint",
