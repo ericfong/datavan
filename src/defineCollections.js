@@ -97,7 +97,7 @@ export function collectionsEnhancer(definitions) {
       }
       return baseStore.dispatch(action)
     }
-    function mutateStoreState(mutation) {
+    function mutateState(mutation) {
       dispatch({type: MUTATE, mutation})
     }
 
@@ -125,7 +125,7 @@ export function collectionsEnhancer(definitions) {
       getContext,
       // setContext,
       getState: baseStore.getState,
-      mutateState: mutateStoreState,
+      mutateState,
     }
     _.each(collections, collection => {
       // inject store callback functions into slice
@@ -146,6 +146,8 @@ export function collectionsEnhancer(definitions) {
       setContext,
       getPromise,
 
+      mutateState,
+
       serverRender(renderCallback) {
         setContext({duringServerPreload: true})
         const output = renderCallback()
@@ -162,6 +164,19 @@ export function collectionsEnhancer(definitions) {
 
         setContext({duringServerPreload: false})
         return output
+      },
+
+      invalidate() {
+        const newState = {...baseStore.getState()}
+        _.each(collections, (coll, name) => {
+          if (coll.invalidate) {
+            coll.invalidate()
+            // TODO combine Fetcher * Stage to Remote
+            newState[name] = {}
+          }
+        })
+        // force the root state change
+        mutateState({$set: newState})
       },
     }
 

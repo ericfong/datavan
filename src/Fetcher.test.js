@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import should from 'should'
 
-import {defineCollections, composeClass} from '.'
-import SearchableCollection from './SearchableCollection'
+import {defineCollections, composeClass, Searchable} from '.'
+import Collection from './Collection'
 import Fetcher from './Fetcher'
 
 global.__DEV__ = true
@@ -18,7 +18,7 @@ test('batch get failback to find', async () => {
         },
       },
       Fetcher,
-      SearchableCollection,
+      Collection,
     ),
   })
   const db = createStore()
@@ -40,27 +40,23 @@ describe('fetcher', function() {
     const createStore = defineCollections({
       users: composeClass(
         {
-          searchEngineConfig: {
-            // shouldSort: true,
-            // tokenize: true,
-            // threshold: 0,
-            keys: ['name'],
-          },
-          searchFetch(text) {
-            ++calledSearch
-            return Promise.resolve([{_id: 'u3', name: text + ' Simon'}])
-          },
-          findFetch() {
+          findFetch(query) {
+            if (query) {
+              if (query.$search) {
+                ++calledSearch
+                return Promise.resolve([{_id: 'u3', name: query.$search + ' Simon'}])
+              } else if (query._id) {
+                ++calledGet
+                return Promise.resolve([{_id: 'u1', name: `${query._id.$in} name`}])
+              }
+            }
             ++calledFind
             return Promise.resolve([{_id: 'u2', name: this.name + ' Eric'}])
           },
-          getFetch(id) {
-            ++calledGet
-            return Promise.resolve({_id: 'u1', name: `${id} name`})
-          },
         },
         Fetcher,
-        SearchableCollection,
+        Searchable,
+        Collection,
       ),
     })
     const store = createStore()
@@ -85,6 +81,7 @@ describe('fetcher', function() {
 
     // load something missing
     store.users.get('u4')
+    await store.getPromise()
     should( calledGet ).equal(2)
 
     // load local won't affect
@@ -95,7 +92,7 @@ describe('fetcher', function() {
     should( calledFind ).equal(1)
     should( calledGet ).equal(2)
     should( store.users.getState() ).deepEqual({
-      u1: {_id: 'u1', name: 'u1 name'},
+      u1: {_id: 'u1', name: 'u4 name'},
       u2: {_id: 'u2', name: 'users Eric'},
       u3: {_id: 'u3', name: 'hi Simon'},
     })

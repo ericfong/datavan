@@ -17,6 +17,10 @@ function mongoToLodash(sort) {
 }
 
 
+function pickProcessableOption(option) {
+  return _.pick(option, 'sort', 'limit', 'skip', 'keyBy', 'groupBy')
+}
+
 export default class Collection extends KeyValueStore {
   _getStateArray = reselectMemoize(state => _.values(state))
   getStateArray() {
@@ -24,8 +28,26 @@ export default class Collection extends KeyValueStore {
   }
 
   // internal _find, won't trigger re-fetch from backend
-  _find = stateMemoizeTable((stateArray, query, option) => {
-    let arr = _.isEmpty(query) ? stateArray : _.filter(stateArray, sift(query))
+  _find = stateMemoizeTable(
+    // runner
+    (state, query, option) => {
+      if (_.isEmpty(query)) {
+        return this._postFind(_.values(state), option)
+      }
+
+      const result = this._findImplementation && this._findImplementation(state, query, option)
+      if (result !== undefined) {
+        return result
+      }
+
+      return this._postFind(_.filter(state, sift(query)), option)
+    },
+    // get state
+    () => [this.getState()],
+    // get memoize key
+    (query, option) => [query, pickProcessableOption(option)],
+  )
+  _postFind(arr, option) {
     if (option) {
       if (option.sort) {
         const [fields, orders] = mongoToLodash(option.sort)
@@ -34,7 +56,6 @@ export default class Collection extends KeyValueStore {
       if (option.skip || option.limit) {
         arr = _.slice(arr, option.skip || 0, option.limit)
       }
-
       // convert to other object
       if (option.keyBy) {
         arr = _.keyBy(arr, option.keyBy)
@@ -43,14 +64,17 @@ export default class Collection extends KeyValueStore {
       }
     }
     return arr
-  }, () => [this.getStateArray()])
-
+  }
   find(query, option) {
     return this._find(query, option)
   }
 
   findOne(query, option) {
     return this.find(query, {...option, limit: 1})[0]
+  }
+
+  search($search, option) {
+    return this.find({$search}, option)
   }
 
   count(query) {

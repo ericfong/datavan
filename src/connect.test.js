@@ -16,8 +16,12 @@ describe('connect', function() {
     const createStore = defineCollections({
       users: composeClass(
         {
-          getFetch(id) {
-            return Promise.resolve({_id: id, name: _.toUpper(id), friendId: 'u1'})
+          findFetch(query) {
+            if (query && query._id) {
+              const id = _.first(query._id.$in)
+              return Promise.resolve([{_id: id, name: _.toUpper(id), friendId: 'u1'}])
+            }
+            return Promise.resolve([])
           },
         },
         Fetcher,

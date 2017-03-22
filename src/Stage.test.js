@@ -13,11 +13,11 @@ describe('Stage', function() {
       users: composeClass(
         {
           idField: 'id',
-          findFetch() {
+          findFetch(query) {
+            if (query && query.id) {
+              return Promise.resolve([{id: 'u1', name: 'John'}])
+            }
             return Promise.resolve([{id: 'u2', name: this.name + ' Eric'}])
-          },
-          getFetch() {
-            return Promise.resolve({id: 'u1', name: 'John'})
           },
         },
         Fetcher,

@@ -9,10 +9,11 @@ export propertiesMixin from './propertiesMixin'
 
 export KeyValueStore from './KeyValueStore'
 export Collection from './Collection'
-export SearchableCollection from './SearchableCollection'
 
 export Fetcher from './Fetcher'
 export Stage from './Stage'
+export remoteCollection from './remoteCollection'
+export Searchable from './Searchable'
 
 export Browser from './Browser'
 export LocalStorage from './LocalStorage'
