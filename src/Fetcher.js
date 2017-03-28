@@ -30,15 +30,15 @@ export default Base => {
     }
 
     _getFetchViaFind = batcher(argsArr => {
-      const ids = _.uniq(_.map(argsArr, 0))
+      const allIds = _.map(argsArr, 0)
+      const ids = _.uniq(allIds)
       // how to handle array of options?
       // TODO cannot reuse findFetchKey and checkLoad
-      return Promise.resolve(
-        this.find({ [this.idField]: {$in: ids} }, {load: 'load'})
-      )
+      const p = this.find({ [this.idField]: {$in: ids} }, {load: 'load'})
+      return Promise.resolve(p)
       .then(rets => {
         const retTable = _.keyBy(rets, this.idField)
-        return _.map(argsArr, ([id]) => retTable[id])
+        return _.map(allIds, id => retTable[id])
       })
     })
 
