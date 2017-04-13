@@ -1,9 +1,8 @@
 import _ from 'lodash'
-// import invariant from 'invariant'
 
-import debouncePromise from './util/debouncePromise'
 import {calcCacheKey} from './util/memoizeUtil'
 import batcher from './util/batcher'
+import {normalizePromise} from './util/promiseUtil'
 
 
 export default Base => {
@@ -11,6 +10,7 @@ export default Base => {
     // flush that into iso data?
     _fetchPromises = {}
     _fetchTimes = {}
+    findFetchIsAsync = false
 
     find(query, option) {
       if (this.findFetch) {
@@ -33,19 +33,24 @@ export default Base => {
       const allIds = _.map(argsArr, 0)
       const ids = _.uniq(allIds)
       // how to handle array of options?
-      // TODO cannot reuse findFetchKey and checkLoad
       const p = this.find({ [this.idField]: {$in: ids} }, {load: 'load'})
-      return Promise.resolve(p)
+      return normalizePromise(p)
       .then(rets => {
         const retTable = _.keyBy(rets, this.idField)
         return _.map(allIds, id => retTable[id])
       })
     })
+    _fetchOneViaFind(id, option) {
+      return normalizePromise(this.find({ [this.idField]: id }, {...option, load: 'load'}))
+      .then(rets => _.first(rets))
+    }
+    getFetchViaFind(id, option) {
+      return this.findFetchIsAsync ? this._fetchOneViaFind(id, option) : this._getFetchViaFind(id, option)
+    }
 
     get(id, option) {
       if (id && !this.isLocalId(id)) {
-        // const fetcherFunc = this.getFetch || (this.findFetch && this._getFetchViaFind)
-        const fetcherFunc = this.findFetch && this._getFetchViaFind
+        const fetcherFunc = this.findFetch && this.getFetchViaFind
         if (fetcherFunc) {
           return checkLoad(this, id, option, {
             baseFunc: super.get,
@@ -63,6 +68,10 @@ export default Base => {
       const superPromise = super.getPromise && super.getPromise()
       if (superPromise) promises.push(superPromise)
       return promises.length > 0 ? Promise.all(promises) : null
+    }
+
+    isFetching() {
+      return !_.isEmpty(this._fetchPromises)
     }
 
     invalidate() {
@@ -113,9 +122,29 @@ function shouldReload(collection, cacheKey, option) {
   return {returnPromise: mode === 'load'}
 }
 
+
+function debouncePromise(promiseTable, uniqKey, next, thenCallback) {
+  const oldPromise = promiseTable[uniqKey]
+  if (oldPromise) return oldPromise
+
+  const p = normalizePromise(next)
+  .then(ret => {
+    delete promiseTable[uniqKey]
+    return ret
+  })
+  .catch(err => {
+    delete promiseTable[uniqKey]
+    if (__DEV__) console.error(err)
+    return Promise.reject(err)
+  })
+  .then(thenCallback)
+
+  return promiseTable[uniqKey] = p
+}
+
+
 function doReload(collection, query, option, {fetcherFunc, cacheKey, responseType}) {
-  const _fetchPromises = collection._fetchPromises
-  return debouncePromise(_fetchPromises, cacheKey,
+  return debouncePromise(collection._fetchPromises, cacheKey,
     () => fetcherFunc.call(collection, query, option),
     ret => {
       collection._fetchTimes[cacheKey] = new Date()
@@ -123,19 +152,25 @@ function doReload(collection, query, option, {fetcherFunc, cacheKey, responseTyp
       const idField = collection.idField
 
       if (responseType === 'collection') {
-        const mutation = {}
-        _.each(ret, _doc => {
-          const doc = collection.cast(_doc)
-          const id = doc[idField]
-          collection._fetchTimes[id] = new Date()
-          mutation[id] = { $set: doc }
-        })
-        collection.mutateState(mutation)
+        if (_.isEmpty(ret)) {
+          // force state change to ensure connect known isFetching state changed
+          // TODO better to dispatch a event ?
+          collection._store.mutateState({ [collection.name]: { $set: {...collection.getState()} } })
+        } else {
+          const mutation = {}
+          _.each(ret, _doc => {
+            const doc = collection.cast(_doc)
+            const id = doc[idField]
+            collection._fetchTimes[id] = new Date()
+            mutation[id] = { $set: doc }
+          })
+          collection._store.mutateState({ [collection.name]: mutation })
+        }
       } else {
         // TODO may not have this anymore
         const doc = collection.cast(ret)
         const id = doc[idField]
-        collection.mutateState({ [id]: { $set: doc } })
+        collection._store.mutateState({ [collection.name]: { [id]: { $set: doc } } })
       }
 
       return ret

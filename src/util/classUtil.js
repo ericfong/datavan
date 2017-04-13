@@ -108,16 +108,6 @@ export function genGetSetters(properties) {
     }
   })
   return obj
-  // Object.defineProperty(obj, id, {
-  //   get: function(option) {
-  //     if (!skipGetter) throw new Error('Unsupported')
-  //     return this.get(id, option)
-  //   },
-  //   set: function(value) {
-  //     if (!skipSetter) throw new Error('Unsupported')
-  //     return this.setAll({ [id]: value })
-  //   },
-  // })
 }
 
 

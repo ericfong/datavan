@@ -86,7 +86,12 @@ export default class Collection extends KeyValueStore {
   }
 
   isLocalId(docId) {
-    return docId && docId.startsWith('tmp-')
+    return docId && _.startsWith(docId, 'tmp-')
+  }
+
+  set(id, value) {
+    if (typeof id === 'object') super.set(id[this.idField], id)
+    else super.set(id, value)
   }
 
   idField = '_id'

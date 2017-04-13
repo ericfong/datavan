@@ -6,23 +6,18 @@ export default class KeyValueStore {
     preloadedState[this.name] = _.mapValues(preloadedState[this.name], doc => this.cast(doc))
   }
 
-  // plain wrapper for _store.getState/_store.mutateState (which assigned by host store)
-  // final internal functions before go to main store
+  // plain wrapper for _store.getState
   getState() {
     return this._store.getState()[this.name]
   }
-  mutateState(mutation) {
-    this._store.mutateState({ [this.name]: mutation })
-  }
-
 
   get(id) {
     return this.getState()[id]
   }
 
-  // Override point: all mutates should go through this point
+  // Override point: all user mutates should go through this point
   mutate(mutation) {
-    this.mutateState(mutation)
+    this._store.mutateState({ [this.name]: mutation })
   }
 
   setState(values) {
@@ -31,8 +26,7 @@ export default class KeyValueStore {
   }
 
   set(id, value) {
-    if (typeof id === 'object') this.setState(id)
-    else this.setState({ [id]: value })
+    this.mutate({ [id]: {$set: value} })
   }
 
   cast(v) {

@@ -83,7 +83,7 @@ export function collectionsEnhancer(definitions) {
 
 
     // createStore
-    const _reducer = reducer ? compose(dbReducer, reducer) : dbReducer
+    const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
     // const _enhancers = _.uniq(_.compact([].concat(enhancers, [enhancer])))
     // const _enhancer = _enhancers.length > 0 ? compose(..._enhancers) : undefined
     const baseStore = _createStore(_reducer, preloadedState, enhancer)
@@ -192,6 +192,6 @@ export function collectionsEnhancer(definitions) {
 }
 
 
-export default function prepareCollections(definitions) {
+export default function defineCollections(definitions) {
   return collectionsEnhancer(definitions)(createStore)
 }
