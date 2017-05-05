@@ -1,4 +1,4 @@
-import jsonStableStringfy from 'json-stable-stringify'
+import jsonStableStringfy from 'fast-stable-stringify'
 
 
 function defaultStatesGetter() {
