@@ -153,7 +153,7 @@ function doReload(collection, query, option, {fetcherFunc, cacheKey, responseTyp
 
       if (responseType === 'collection') {
         if (_.isEmpty(ret)) {
-          // force state change to ensure connect known isFetching state changed
+          // force state change to ensure component known loading is done, but just load nothing
           // TODO better to dispatch a event ?
           collection._store.mutateState({ [collection.name]: { $set: {...collection.getState()} } })
         } else {
@@ -166,7 +166,7 @@ function doReload(collection, query, option, {fetcherFunc, cacheKey, responseTyp
           })
           collection._store.mutateState({ [collection.name]: mutation })
         }
-      } else {
+      } else if (ret) {
         // TODO may not have this anymore
         const doc = collection.cast(ret)
         const id = doc[idField]

@@ -47,7 +47,11 @@ describe('fetcher', function() {
                 return Promise.resolve([{_id: 'u3', name: query.$search + ' Simon'}])
               } else if (query._id) {
                 ++calledGet
-                return Promise.resolve([{_id: 'u1', name: `${query._id.$in} name`}])
+                const id = _.first(query._id.$in)
+                if (id === 'not_exists') {
+                  return Promise.resolve([])
+                }
+                return Promise.resolve([{_id: id, name: `${id} name`}])
               }
             }
             ++calledFind
@@ -80,7 +84,7 @@ describe('fetcher', function() {
     should( calledGet ).equal(1)
 
     // load something missing
-    store.users.get('u4')
+    store.users.get('not_exists')
     await store.getPromise()
     should( calledGet ).equal(2)
 
@@ -92,7 +96,7 @@ describe('fetcher', function() {
     should( calledFind ).equal(1)
     should( calledGet ).equal(2)
     should( store.users.getState() ).deepEqual({
-      u1: {_id: 'u1', name: 'u4 name'},
+      u1: {_id: 'u1', name: 'u1 name'},
       u2: {_id: 'u2', name: 'users Eric'},
       u3: {_id: 'u3', name: 'hi Simon'},
     })

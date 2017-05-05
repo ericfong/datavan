@@ -26,7 +26,9 @@ export default class KeyValueStore {
   }
 
   set(id, value) {
-    this.mutate({ [id]: {$set: value} })
+    // TODO comment out for LocalStorage.js, should migrate that use remote data source style?
+    // this.mutate({ [id]: {$set: value} })
+    this.setState({ [id]: value })
   }
 
   cast(v) {

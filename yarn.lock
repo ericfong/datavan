@@ -3527,6 +3527,12 @@ sax@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.2.tgz#fd8631a23bc7826bef5d871bdb87378c95647828"
 
+search-text-tokenizer@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/search-text-tokenizer/-/search-text-tokenizer-2.1.1.tgz#90b030afc06837affd24c41634dcc23b8b5749ef"
+  dependencies:
+    lodash "^4.0.0"
+
 "semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@~5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"

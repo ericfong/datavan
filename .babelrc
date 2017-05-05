@@ -7,5 +7,13 @@
   "plugins": [
     "transform-runtime",
     "dev-expression",
-  ]
+  ],
+  "env": {
+    "production": {
+      "presets": [
+        ["latest", {"es2015": {"modules": false}}],
+        "stage-0"
+      ],
+    },
+  }
 }
