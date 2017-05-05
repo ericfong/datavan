@@ -3,7 +3,7 @@ import {defaultMemoize as reselectMemoize} from 'reselect'
 import mutate from 'immutability-helper'
 
 export default Base => {
-  return class Submitter extends Base {
+  return class Stage extends Base {
     stageSuffix = '_staging'
 
     preloadStoreState(preloadedState) {

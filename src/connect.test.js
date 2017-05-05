@@ -4,7 +4,7 @@ import React from 'react'
 import {mount, render} from 'enzyme'
 
 import './dev-tools/test-setup'
-import {defineCollections, composeClass} from '.'
+import {defineStore, composeClass} from '.'
 import Fetcher from './Fetcher'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
@@ -13,7 +13,7 @@ import connect, {Provider} from './connect'
 
 describe('connect', function() {
   it('server rendering', async () => {
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: composeClass(
         {
           findFetch(query) {
@@ -54,7 +54,7 @@ describe('connect', function() {
     const isoData = JSON.parse(json)
 
     // client side
-    const createBrowserStore = defineCollections({
+    const createBrowserStore = defineStore({
       users: Collection,
     })
     const browserDb = createBrowserStore(null, isoData)
@@ -65,7 +65,7 @@ describe('connect', function() {
 
 
   it('basic', async () => {
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: KeyValueStore,
     })
     const store = createStore()
@@ -100,7 +100,7 @@ describe('connect', function() {
 
 
   it('same state', async () => {
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: KeyValueStore,
     })
     const store = createStore()

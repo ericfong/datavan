@@ -1,12 +1,12 @@
 import should from 'should'
 import mutate from 'immutability-helper'
 
-import {defineCollections} from '.'
+import {defineStore} from '.'
 import KeyValueStore from './KeyValueStore'
 
-describe('defineCollections', function() {
+describe('defineStore', function() {
   it('get & set', async () => {
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: KeyValueStore,
     })
     const db = createStore()
@@ -32,13 +32,13 @@ describe('defineCollections', function() {
         },
       },
     }
-    const createStore = defineCollections(definitions)
+    const createStore = defineStore(definitions)
     const db = createStore()
     should(typeof db.transfers.get === 'function').true()
     should(typeof db.transfers.draft === 'function').true()
     should( db.transfers.get() ).equal('users x I am first layer draft')
 
-    const createStore2 = defineCollections({
+    const createStore2 = defineStore({
       ...definitions,
       transfers2: {
         getRequires: () => ['transfers'],

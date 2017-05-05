@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import should from 'should'
 
-import {defineCollections, composeClass, Searchable} from '.'
+import {defineStore, composeClass, Searchable} from '.'
 import Collection from './Collection'
 import Fetcher from './Fetcher'
 
 global.__DEV__ = true
 
 test('batch get failback to find', async () => {
-  const createStore = defineCollections({
+  const createStore = defineStore({
     users: composeClass(
       {
         findFetch(query) {
@@ -37,7 +37,7 @@ test('batch get failback to find', async () => {
 describe('fetcher', function() {
   it('basic', async () => {
     let calledSearch = 0, calledFind = 0, calledGet = 0
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: composeClass(
         {
           findFetch(query) {

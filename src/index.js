@@ -7,7 +7,7 @@ import {composeClass, genGetSetters, mixinAccessor} from './util/classUtil'
 import Searchable from './Searchable'
 
 
-export defineCollections, {collectionsEnhancer} from './defineCollections'
+export defineStore, {collectionsEnhancer} from './defineStore'
 export connect, {Provider} from './connect'
 export {composeClass, genGetSetters, mixinAccessor, KeyValueStore, Collection, Stage, Fetcher, Searchable}
 
@@ -16,7 +16,7 @@ export LocalStorage from './LocalStorage'
 export Cookie from './Cookie'
 
 
-export function remoteCollection(...args) {
+export function defineCollection(...args) {
   return composeClass(
     ...args,
     Fetcher,
@@ -26,6 +26,12 @@ export function remoteCollection(...args) {
 }
 
 
-export function keyValues(conf) {
-  return mixinAccessor(conf)(KeyValueStore)
+export function defineKeyValues(conf) {
+  return composeClass(
+    mixinAccessor(conf),
+    Fetcher,
+    Stage,
+    Collection,
+    // KeyValueStore,
+  )
 }

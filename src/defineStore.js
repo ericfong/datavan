@@ -3,6 +3,7 @@ import {createStore, compose} from 'redux'
 import mutate from 'immutability-helper'
 
 import {isClass} from './util/classUtil'
+// import {composeClass} from './util/classUtil'
 
 
 const MUTATE = 'MUTATE'
@@ -31,6 +32,9 @@ function createCollection(definition, name) {
   } else if (typeof definition === 'function') {
     // factory
     newObj = definition()
+  // } else if (Array.isArray(definition)) {
+  //   // assume if type of definition is array, it is a array of class mixins
+  //   newObj = new (composeClass(definition))
   } else {
     newObj = Object.create(definition)
   }

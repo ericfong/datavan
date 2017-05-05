@@ -4,7 +4,7 @@ import {whenMapDispatchToPropsIsMissing} from 'react-redux/lib/connect/mapDispat
 import {getDependsOnOwnProps} from 'react-redux/lib/connect/wrapMapToProps'
 import verifyPlainObject from 'react-redux/lib/utils/verifyPlainObject'
 
-import {CONNECT_GET_STORE} from './defineCollections'
+import {CONNECT_GET_STORE} from './defineStore'
 
 export {Provider} from 'react-redux'
 

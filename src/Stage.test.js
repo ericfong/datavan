@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import should from 'should'
 
-import {defineCollections, composeClass} from '.'
+import {defineStore, composeClass} from '.'
 import Collection from './Collection'
 import Stage from './Stage'
 import Fetcher from './Fetcher'
@@ -9,7 +9,7 @@ import Fetcher from './Fetcher'
 
 describe('Stage', function() {
   it('basic', async () => {
-    const createStore = defineCollections({
+    const createStore = defineStore({
       users: composeClass(
         {
           idField: 'id',

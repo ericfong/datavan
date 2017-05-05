@@ -1,6 +1,6 @@
 import should from 'should'
 
-import {defineCollections} from '.'
+import {defineStore} from '.'
 import LocalStorage from './LocalStorage'
 
 global.localStorage = {
@@ -13,7 +13,7 @@ global.localStorage = {
 }
 
 it('basic', async () => {
-  const createStore = defineCollections({
+  const createStore = defineStore({
     users: LocalStorage,
   })
   const db1 = createStore()
