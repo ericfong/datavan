@@ -8,8 +8,20 @@ import {CONNECT_GET_STORE} from './defineStore'
 
 export {Provider} from 'react-redux'
 
-function toReduxMapToProps(ourMapToPropsFunc, store) {
+function toReduxMapToProps(ourMapToPropsFunc, store, methodName) {
   const collections = store.collections
+  if (methodName === 'mapStateToProps') {
+    return function mapToProps(stateOrDispatch, ownProps) {
+      store.setContext({duringMapState: true})
+
+      // inject 'db' or 'dv' to children props ???
+      const props = ourMapToPropsFunc(collections, ownProps, stateOrDispatch)
+
+      store.setContext({duringMapState: false})
+      return props
+    }
+  }
+
   return function mapToProps(stateOrDispatch, ownProps) {
     return ourMapToPropsFunc(collections, ownProps, stateOrDispatch)
   }
@@ -32,7 +44,7 @@ function wrapMapToPropsFunc(_mapToProps, methodName) {
     if (process.env.NODE_ENV !== 'production' && !store) {
       throw new Error('Cannot found hacking attachment of store in dispatch function')
     }
-    const mapToProps = toReduxMapToProps(_mapToProps, store)
+    const mapToProps = toReduxMapToProps(_mapToProps, store, methodName)
 
 
     proxy.mapToProps = function detectFactoryAndVerify(stateOrDispatch, ownProps) {
