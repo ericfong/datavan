@@ -1,16 +1,14 @@
-import should from 'should'
-
 /* globals document */
-import {jsdom} from 'jsdom'
+import {JSDOM } from 'jsdom'
 
-const exposedProperties = ['window', 'navigator', 'document']
+const jsdom = new JSDOM('')
 
-global.document = jsdom('')
-global.window = document.defaultView
-Object.keys(document.defaultView).forEach((property) => {
+global.window = jsdom.window
+global.document = jsdom.window.document
+
+Object.keys(jsdom.window).forEach((property) => {
   if (typeof global[property] === 'undefined') {
-    exposedProperties.push(property)
-    global[property] = document.defaultView[property]
+    global[property] = jsdom.window[property]
   }
 })
 
