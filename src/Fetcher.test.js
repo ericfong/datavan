@@ -8,6 +8,34 @@ global.__DEV__ = true
 
 const getQueryIds = query => Array.isArray(query._id.$in) ? query._id.$in : [query._id]
 
+test('sync get', async () => {
+  const createStore = defineStore({
+    users: composeClass(
+      {
+        findFetch(query) {
+          const ids = getQueryIds(query)
+          const ret = _.map(ids, _id => ({_id, name: `Echo-${_id}`}))
+          return ret
+        },
+      },
+      Fetcher,
+      Collection,
+    ),
+  })
+  const db = createStore()
+
+  expect( db.users.get('1') ).toEqual({_id: '1', name: 'Echo-1'})
+  expect( db.users.get('2') ).toEqual({_id: '2', name: 'Echo-2'})
+  expect( db.users.getPromise() ).toBe(null)
+
+  _.each(db.users, (val, key) => {
+    if (key !== '_store' && (Array.isArray(val) || typeof val === 'object')) {
+      // console.log(key, val)
+      expect( _.isEmpty(val) ).toBe(true)
+    }
+  })
+})
+
 test('batch get failback to find', async () => {
   const createStore = defineStore({
     users: composeClass(
