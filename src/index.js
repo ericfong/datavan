@@ -32,6 +32,5 @@ export function defineKeyValues(conf) {
     Fetcher,
     Stage,
     Collection,
-    // KeyValueStore,
   )
 }

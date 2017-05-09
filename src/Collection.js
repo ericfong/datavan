@@ -1,9 +1,11 @@
 import _ from 'lodash'
+import stringfy from 'fast-stable-stringify'
 import {defaultMemoize as reselectMemoize} from 'reselect'
 import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
 import {stateMemoizeTable} from './util/memoizeUtil'
+import {then} from './util/promiseUtil'
 
 
 function mongoToLodash(sort) {
@@ -16,10 +18,10 @@ function mongoToLodash(sort) {
   return [fields, orders]
 }
 
-
-function pickProcessableOption(option) {
-  return _.pick(option, 'sort', 'limit', 'skip', 'keyBy', 'groupBy')
+export function calcFetchCacheKey(query, option) {
+  return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy')])
 }
+
 
 export default class Collection extends KeyValueStore {
   _getStateArray = reselectMemoize(state => _.values(state))
@@ -45,8 +47,9 @@ export default class Collection extends KeyValueStore {
     // get state
     () => [this.getState()],
     // get memoize key
-    (query, option) => [query, pickProcessableOption(option)],
+    calcFetchCacheKey,
   )
+
   _postFind(arr, option) {
     if (option) {
       if (option.sort) {
@@ -70,7 +73,7 @@ export default class Collection extends KeyValueStore {
   }
 
   findOne(query, option) {
-    return this.find(query, {...option, limit: 1})[0]
+    return then(this.find(query, {...option, limit: 1}), list => list[0])
   }
 
   search($search, option) {
