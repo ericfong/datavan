@@ -1,31 +1,28 @@
-import jsonStableStringfy from 'fast-stable-stringify'
+import stringfy from 'fast-stable-stringify'
 
 
 function defaultStatesGetter() {
   return []
 }
 function defaultKeyGetter(firstArg) {
-  return firstArg
+  return typeof rawKey === 'object' ? stringfy(firstArg) : firstArg
 }
 function defaultEqualityCheck(a, b) {
   return a === b
 }
 
-export function calcCacheKey(args, keyGetter = defaultKeyGetter) {
-  const rawKey = keyGetter(...args)
-  return typeof rawKey === 'object' ? jsonStableStringfy(rawKey) : rawKey
-}
-
-export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyGetter, equalityCheck = defaultEqualityCheck) {
+export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyGetter = defaultKeyGetter, equalityCheck = defaultEqualityCheck) {
   let lastStates = null
   const isEqualToLastState = (value, index) => equalityCheck(value, lastStates[index])
   function memoizedFunc(...args) {
-    let memory = memoizedFunc.memory
     // states based on this / config or other context
     let states = statesGetter()
-    if (!Array.isArray(states)) {
-      states = [states]
-    }
+    if (!Array.isArray(states)) states = [states]
+
+    // key based on args and should be serizeable
+    const cacheKey = keyGetter(...args)
+
+    let memory = memoizedFunc.memory
     if (
       lastStates === null ||
       lastStates.length !== states.length ||
@@ -36,8 +33,6 @@ export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyG
     }
     lastStates = states
 
-    // key based on args and should be serizeable
-    const cacheKey = calcCacheKey(args, keyGetter)
     let lastResult = memory[cacheKey]
     if (!lastResult) {
       lastResult = memory[cacheKey] = func(...states, ...args)

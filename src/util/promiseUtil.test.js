@@ -1,29 +1,30 @@
-import should from 'should'
-import {normalizePromise} from './promiseUtil'
+import {then} from './promiseUtil'
 
-describe('normalizePromise', function() {
+describe('promiseUtil', function() {
 
   it('Native Promise will not sync', async () => {
     let value = null
 
     Promise.resolve('A')
     .then(val => value = val)
-    should(value).not.equal('A')
+    expect(value !== 'A').toBe(true)
 
     new Promise(resolve => resolve('B'))
     .then(val => value = val)
-    should(value).not.equal('B')
+    expect(value !== 'B').toBe(true)
   })
 
-  it('NormalizedPromise will sync', async () => {
-    let value = null
+  it('SyncResultPromise will sync', async () => {
+    let middleResult = null
 
-    normalizePromise(() => 'A')
-    .then(val => value = val)
-    should(value).equal('A')
+    const finalResult = then('A', val => {
+      middleResult = val
+      return val
+    })
 
-    const p2 = normalizePromise(() => 'B')
-    should(p2.isNormalizedPromise).be.true()
-    should(p2.value).equal('B')
+    // check that then run in sync
+    expect(middleResult).toBe('A')
+    // check that then run in sync
+    expect(finalResult).toBe('A')
   })
 })
