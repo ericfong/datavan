@@ -82,7 +82,7 @@ export default Base => {
       let findingKey = cacheKey
       if (this._fetchIsAsync) {
         // is loading (promise exists but not deleted)
-        if (!findingKey) findingKey = this.calcFetchKey(query, option)
+        if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
         const oldPromise = this._fetchPromises[findingKey]
         if (oldPromise) return oldPromise
       }
@@ -93,19 +93,17 @@ export default Base => {
       const fetchIsAsync = (this._fetchIsAsync = isThenable(result))
       if (fetchIsAsync) {
         // uniq promise
-        if (!findingKey) findingKey = this.calcFetchKey(query, option)
+        if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
         const promiseTable = this._fetchPromises
         promiseTable[findingKey] = result
         result
           .then(ret => {
-            // console.log('_doReload result', ret, findingKey)
+            const now = new Date()
+            this._fetchTimes[findingKey] = now
             delete promiseTable[findingKey]
 
             const mutation = this.importAll(ret)
-
             // store fetchTimes
-            const now = new Date()
-            this._fetchTimes[findingKey] = now
             if (mutation) {
               _.keys(mutation).forEach(id => {
                 this._fetchTimes[id] = now
