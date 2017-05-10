@@ -21,10 +21,11 @@ function reduceCollectionChanges(oldTable, changes, changingCtx) {
     const newValue = changes[key]
     const oldValue = newTable[key]
     if (oldValue !== newValue) {
-      if (oldValue !== undefined && newValue === undefined) {
+      if (newValue === undefined) {
         delete newTable[key]
+      } else {
+        newTable[key] = newValue
       }
-      newTable[key] = newValue
       changingCtx.isChanged = true
     }
   }
@@ -41,6 +42,7 @@ function dbReducer(state, action) {
     for (const collName in allChanges) {
       newState[collName] = reduceCollectionChanges(state[collName], allChanges[collName], changingCtx)
     }
+    // console.log('dbReducer \n', state, '\n allChanges \n', allChanges, '\n>>>\n', newState)
 
     return changingCtx.isChanged ? newState : state
   }

@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { defaultMemoize as reselectMemoize } from 'reselect'
-import mutateHelper from 'immutability-helper'
+import { then } from './util/promiseUtil'
 
 export default Base => {
-  return class Stage extends Base {
+  return class Submitter extends Base {
     // NOTE expecting functions
     // onSubmit() {}
 
@@ -34,31 +34,41 @@ export default Base => {
       if (this.onSubmit) this.submit()
     }
 
-    submit(submitter = this.onSubmit) {
+    submit(onSubmit = this.onSubmit) {
       const snapshotState = this.getStagingState()
-      return Promise.resolve(submitter(snapshotState))
-        .then(docs => {
-          const storeMutation = {
-            [this.name]: this.importAll(docs),
+      return then(
+        onSubmit(snapshotState),
+        docs => {
+          if (docs) {
+            const feedbackMutation = {}
+
+            // import docs changes
+            const importChanges = this.importAll(docs, true)
+            if (importChanges) {
+              feedbackMutation[this.name] = importChanges
+            }
+
+            // clean snapshotState
+            if (snapshotState) {
+              // TODO check snapshotState is not mutated during post
+              feedbackMutation[this.name + this.stageSuffix] = _.mapValues(snapshotState, () => undefined)
+            }
+
+            // console.log('submit result', docs, feedbackMutation)
+            this._store.mutateState(feedbackMutation)
           }
 
-          // clean snapshotState
-          if (snapshotState) {
-            // TODO check snapshotState is not mutated during post
-            storeMutation[this.name + this.stageSuffix] = { $unset: _.keys(snapshotState) }
-          }
-
-          this._store.mutateState(storeMutation)
           return docs
-        })
-        .catch(err => {
+        },
+        err => {
           // ECONNREFUSED = Cannot reach server
           // Not Found = api is too old
           if (!(err.code === 'ECONNREFUSED' || err.message === 'Not Found' || err.response)) {
             console.error(err)
           }
           return err instanceof Error ? err : new Error(err)
-        })
+        }
+      )
     }
   }
 }
