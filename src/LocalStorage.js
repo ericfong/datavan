@@ -1,28 +1,30 @@
 import _ from 'lodash'
 
-import KeyValueStore from './KeyValueStore'
+import SubmittingCollection from './SubmittingCollection'
 
-// FIXME use onFetch onSubmit
+function parseJson(val) {
+  try {
+    return JSON.parse(val)
+  } catch (err) {
+    return val
+  }
+}
 
-export default class LocalStorage extends KeyValueStore {
-  get(id) {
-    const val = localStorage.getItem(id)
-    try {
-      return JSON.parse(val)
-    } catch (err) {
-      return val
-    }
+export default class LocalStorage extends SubmittingCollection {
+  onFetch(query) {
+    const idField = this.idField
+    const id = query[idField]
+    const val = parseJson(localStorage.getItem(id))
+    return { [id]: val }
   }
 
-  setAll(values) {
-    _.each(values, (v, k) => {
+  onSubmit(changes) {
+    _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
         return localStorage.removeItem(k)
       } else {
         return localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
       }
     })
-
-    super.setAll(values)
   }
 }

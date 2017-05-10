@@ -1,8 +1,6 @@
 import _ from 'lodash'
 
-import { defineStore, composeClass, Searchable } from '.'
-import Collection from './Collection'
-import Fetcher from './Fetcher'
+import { defineStore, defineCollection, Searchable } from '.'
 
 global.__DEV__ = true
 
@@ -10,17 +8,13 @@ const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [qu
 
 test('sync get', async () => {
   const createStore = defineStore({
-    users: composeClass(
-      {
-        onFetch(query) {
-          const ids = getQueryIds(query)
-          const ret = _.map(ids, _id => ({ _id, name: `Echo-${_id}` }))
-          return ret
-        },
+    users: defineCollection({
+      onFetch(query) {
+        const ids = getQueryIds(query)
+        const ret = _.map(ids, _id => ({ _id, name: `Echo-${_id}` }))
+        return ret
       },
-      Fetcher,
-      Collection
-    ),
+    }),
   })
   const db = createStore()
 
@@ -38,21 +32,17 @@ test('sync get', async () => {
 
 test('batch get failback to find', async () => {
   const createStore = defineStore({
-    users: composeClass(
-      {
-        onFetch(query) {
-          const ids = getQueryIds(query)
-          return Promise.resolve(
-            _.map(ids, _id => {
-              // console.log('onFetch done', {_id, name: 'Echo-' + _id})
-              return { _id, name: 'Echo-' + _id }
-            })
-          )
-        },
+    users: defineCollection({
+      onFetch(query) {
+        const ids = getQueryIds(query)
+        return Promise.resolve(
+          _.map(ids, _id => {
+            // console.log('onFetch done', {_id, name: 'Echo-' + _id})
+            return { _id, name: 'Echo-' + _id }
+          })
+        )
       },
-      Fetcher,
-      Collection
-    ),
+    }),
   })
   const db = createStore()
   db.setContext({ duringMapState: false })
@@ -68,7 +58,7 @@ test('batch get failback to find', async () => {
 test('basic', async () => {
   let calledSearch = 0, calledFind = 0, calledGet = 0
   const createStore = defineStore({
-    users: composeClass(
+    users: defineCollection(
       {
         onFetch(query) {
           // console.log('onFetch', query)
@@ -94,9 +84,7 @@ test('basic', async () => {
           return Promise.resolve([{ _id: 'u2', name: this.name + ' Eric' }])
         },
       },
-      Fetcher,
-      Searchable,
-      Collection
+      Searchable
     ),
   })
   const store = createStore()

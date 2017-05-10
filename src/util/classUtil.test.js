@@ -1,7 +1,7 @@
 import should from 'should'
-import {Collection} from '..'
-import {composeClass, isClass} from './classUtil'
-import Fetcher from '../Fetcher'
+import { Collection } from '..'
+import { composeClass, isClass } from './classUtil'
+import FetchingCollection from '../FetchingCollection'
 
 describe('classUtil', function() {
   it('composeClass', async () => {
@@ -9,10 +9,10 @@ describe('classUtil', function() {
       {
         idField: 'id',
       },
-      Fetcher,
+      FetchingCollection,
       null,
-      Collection,
+      Collection
     )
-    should( isClass(Class) ).true()
+    should(isClass(Class)).true()
   })
 })

@@ -3,8 +3,7 @@ import React from 'react'
 import { mount, render } from 'enzyme'
 
 import './dev-tools/test-setup'
-import { defineStore, composeClass } from '.'
-import Fetcher from './Fetcher'
+import { defineStore, defineCollection } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
 import connect, { Provider } from './connect'
@@ -13,24 +12,20 @@ const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [qu
 
 test('server rendering', async () => {
   const createStore = defineStore({
-    users: composeClass(
-      {
-        onFetch(query) {
-          if (query && query._id) {
-            const ids = getQueryIds(query)
-            return Promise.resolve(
-              _.map(ids, _id => {
-                // console.log('onFetch done', {_id, name: 'Echo-' + _id})
-                return { _id, name: _.toUpper(_id), friendId: 'u1' }
-              })
-            )
-          }
-          return Promise.resolve([])
-        },
+    users: defineCollection({
+      onFetch(query) {
+        if (query && query._id) {
+          const ids = getQueryIds(query)
+          return Promise.resolve(
+            _.map(ids, _id => {
+              // console.log('onFetch done', {_id, name: 'Echo-' + _id})
+              return { _id, name: _.toUpper(_id), friendId: 'u1' }
+            })
+          )
+        }
+        return Promise.resolve([])
       },
-      Fetcher,
-      Collection
-    ),
+    }),
   })
   const store = createStore()
 

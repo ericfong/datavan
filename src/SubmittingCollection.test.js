@@ -1,30 +1,23 @@
 import _ from 'lodash'
 
-import { defineStore, composeClass } from '.'
-import Collection from './Collection'
-import Submitter from './Submitter'
-import Fetcher from './Fetcher'
+import { defineStore, defineCollection } from '.'
 
 test('onSubmit', async () => {
   let lastSubmit
   const createStore = defineStore({
-    users: composeClass(
-      {
-        onSubmit(changes) {
-          // console.log('>>', changes)
-          lastSubmit = changes
-        },
-        onFetch(query) {
-          if (query && query.id) {
-            return Promise.resolve([{ id: 'u1', name: 'John' }])
-          }
-          return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
-        },
+    users: defineCollection({
+      onSubmit(changes) {
+        // console.log('>>', changes)
+        lastSubmit = changes
+        return false
       },
-      Submitter,
-      Fetcher,
-      Collection
-    ),
+      onFetch(query) {
+        if (query && query.id) {
+          return Promise.resolve([{ id: 'u1', name: 'John' }])
+        }
+        return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
+      },
+    }),
   })
   const db = createStore()
 
@@ -52,20 +45,15 @@ test('onSubmit', async () => {
 
 test('basic', async () => {
   const createStore = defineStore({
-    users: composeClass(
-      {
-        idField: 'id',
-        onFetch(query) {
-          if (query && query.id) {
-            return Promise.resolve([{ id: 'u1', name: 'John' }])
-          }
-          return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
-        },
+    users: defineCollection({
+      idField: 'id',
+      onFetch(query) {
+        if (query && query.id) {
+          return Promise.resolve([{ id: 'u1', name: 'John' }])
+        }
+        return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
       },
-      Submitter,
-      Fetcher,
-      Collection
-    ),
+    }),
   })
   const db = createStore()
 

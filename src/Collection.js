@@ -152,10 +152,12 @@ export default class Collection extends KeyValueStore {
 
     const idField = this.idField
     const mutation = {}
-    _.each(docs, _doc => {
-      const doc = this.cast(_doc)
-      const id = doc[idField]
-      mutation[id] = doc
+    _.each(docs, (_doc, key) => {
+      if (_doc) {
+        const doc = this.cast(_doc)
+        const id = doc[idField] || key
+        mutation[id] = doc
+      }
     })
 
     // for Stage restore
