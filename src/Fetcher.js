@@ -1,23 +1,30 @@
 import _ from 'lodash'
 
-import {isThenable, then} from './util/promiseUtil'
-import {calcFetchCacheKey} from './Collection'
+import { isThenable, then } from './util/promiseUtil'
+import { calcFindKey } from './Collection'
 
 export default Base => {
   return class Fetcher extends Base {
-    // TODO housekeep cache and fetchTimes
+    // NOTE expecting functions
+    // onFetch() {}
+    // calcFetchKey() {}
+
     _fetchTimes = {}
     _fetchPromises = {}
     _fetchIsAsync = false
 
+    calcFetchKey(query, option) {
+      return calcFindKey(query, option)
+    }
+
     find(query, option = {}) {
-      if (this.findFetch) {
-        const cacheKey = calcFetchCacheKey(query, option)
+      if (this.onFetch) {
+        const cacheKey = this.calcFetchKey(query, option)
         const match = this._shouldReload(cacheKey, option.load)
         if (match) {
           const result = this._doReload(query, option, cacheKey)
 
-          const {duringMapState} = this._store.getContext()
+          const { duringMapState } = this._store.getContext()
           // console.log('find duringMapState', !duringMapState, result, super.find(query, option))
           if (!duringMapState && (option.load === 'reload' || option.load === 'load')) {
             // TODO compare local and remote result, drop if backend is removed
@@ -30,7 +37,7 @@ export default Base => {
 
     get(id, option = {}) {
       // NOTE need to use findOne if want to return promise or preload
-      if (this.findFetch && id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
+      if (this.onFetch && id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
         if (this._fetchIsAsync) {
           // Async (batch ids in here)
           this._fetchIdArray.push(id)
@@ -48,13 +55,13 @@ export default Base => {
 
       const promises = _.values(this._fetchPromises)
       this._fetchByIdsPromise = Promise.all(promises)
-      .then(() => {
-        if (this._fetchIdArray.length > 0) {
-          return this._doReload({ [this.idField]: { $in: this._fetchIdArray } })
-        }
-      })
-      .then(() => this._fetchByIdsPromise = null)
-      .catch(() => this._fetchByIdsPromise = null)
+        .then(() => {
+          if (this._fetchIdArray.length > 0) {
+            return this._doReload({ [this.idField]: { $in: this._fetchIdArray } })
+          }
+        })
+        .then(() => (this._fetchByIdsPromise = null))
+        .catch(() => (this._fetchByIdsPromise = null))
     }
 
     _shouldReload(cacheKey, mode) {
@@ -75,72 +82,51 @@ export default Base => {
       let findingKey = cacheKey
       if (this._fetchIsAsync) {
         // is loading (promise exists but not deleted)
-        if (!findingKey) findingKey = calcFetchCacheKey(query, option)
+        if (!findingKey) findingKey = this.calcFetchKey(query, option)
         const oldPromise = this._fetchPromises[findingKey]
         if (oldPromise) return oldPromise
       }
 
-      // NOTE should be able to handle Both Async and Sync findFetch
-      const result = this.findFetch(query, option)
+      // NOTE should be able to handle Both Async and Sync onFetch
+      const result = this.onFetch(query, option)
 
-      const fetchIsAsync = this._fetchIsAsync = isThenable(result)
+      const fetchIsAsync = (this._fetchIsAsync = isThenable(result))
       if (fetchIsAsync) {
         // uniq promise
-        if (!findingKey) findingKey = calcFetchCacheKey(query, option)
+        if (!findingKey) findingKey = this.calcFetchKey(query, option)
         const promiseTable = this._fetchPromises
         promiseTable[findingKey] = result
-        result.then(ret => {
-          // console.log('_doReload result', ret, findingKey)
-          delete promiseTable[findingKey]
+        result
+          .then(ret => {
+            // console.log('_doReload result', ret, findingKey)
+            delete promiseTable[findingKey]
 
-          const mutation = this._processFetchResult(ret)
+            const mutation = this.importAll(ret)
 
-          // store fetchTimes
-          const now = new Date()
-          this._fetchTimes[findingKey] = now
-          if (mutation) {
-            _.keys(mutation).forEach(id => {
-              this._fetchTimes[id] = now
-            })
-          }
+            // store fetchTimes
+            const now = new Date()
+            this._fetchTimes[findingKey] = now
+            if (mutation) {
+              _.keys(mutation).forEach(id => {
+                this._fetchTimes[id] = now
+              })
+            }
 
-          // TODO compare local and remote result, drop if backend is removed
-          // should return the processed ret array instead?
-          return ret
-        })
-        .catch(err => {
-          delete promiseTable[findingKey]
-          if (__DEV__) console.error(err)
-          return Promise.reject(err)
-        })
+            // TODO compare local and remote result, drop if backend is removed
+            // should return the processed ret array instead?
+            return ret
+          })
+          .catch(err => {
+            delete promiseTable[findingKey]
+            if (__DEV__) console.error(err)
+            return Promise.reject(err)
+          })
       } else {
         // Async fetch result
-        this._processFetchResult(result)
+        this.importAll(result)
       }
 
       return result
-    }
-
-    _processFetchResult(ret) {
-      if (_.isEmpty(ret)) {
-        // force state change to ensure component known loading is done, but just load nothing
-        // TODO better to dispatch a event ?
-        this._store.mutateState({ [this.name]: { $set: {...this.getState()} } })
-        return null
-      }
-
-      const idField = this.idField
-      const mutation = {}
-      _.each(ret, _doc => {
-        const doc = this.cast(_doc)
-        const id = doc[idField]
-        mutation[id] = { $set: doc }
-      })
-      this._store.mutateState({ [this.name]: mutation })
-
-      // console.log('_processFetchResult', ret, mutation)
-      // should return the processed ret array? or object of docs?
-      return mutation
     }
 
     getPromise() {

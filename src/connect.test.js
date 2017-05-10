@@ -1,46 +1,48 @@
 import _ from 'lodash'
 import React from 'react'
-import {mount, render} from 'enzyme'
+import { mount, render } from 'enzyme'
 
 import './dev-tools/test-setup'
-import {defineStore, composeClass} from '.'
+import { defineStore, composeClass } from '.'
 import Fetcher from './Fetcher'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
-import connect, {Provider} from './connect'
+import connect, { Provider } from './connect'
 
-const getQueryIds = query => Array.isArray(query._id.$in) ? query._id.$in : [query._id]
+const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [query._id])
 
 test('server rendering', async () => {
   const createStore = defineStore({
     users: composeClass(
       {
-        findFetch(query) {
+        onFetch(query) {
           if (query && query._id) {
             const ids = getQueryIds(query)
-            return Promise.resolve(_.map(ids, _id => {
-              // console.log('findFetch done', {_id, name: 'Echo-' + _id})
-              return {_id, name: _.toUpper(_id), friendId: 'u1'}
-            }))
+            return Promise.resolve(
+              _.map(ids, _id => {
+                // console.log('onFetch done', {_id, name: 'Echo-' + _id})
+                return { _id, name: _.toUpper(_id), friendId: 'u1' }
+              })
+            )
           }
           return Promise.resolve([])
         },
       },
       Fetcher,
-      Collection,
+      Collection
     ),
   })
   const store = createStore()
 
   const UserComp = connect((db, props) => ({
-    user: db.users.findOne({_id: props.userId}, {load: 'preload'}),
+    user: db.users.findOne({ _id: props.userId }, { load: 'preload' }),
   }))(props => {
     const user = props.user || {}
     return <span>{user.name}</span>
   })
 
   const FriendComp = connect(db => ({
-    user: db.users.findOne({_id: 'u2'}, {load: 'preload'}),
+    user: db.users.findOne({ _id: 'u2' }, { load: 'preload' }),
   }))(props => {
     const user = props.user || {}
     return <span>{user.name} is <UserComp userId={user.friendId} /> friend</span>
@@ -66,7 +68,6 @@ test('server rendering', async () => {
   expect(browserWrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
 })
 
-
 it('basic', async () => {
   const createStore = defineStore({
     users: KeyValueStore,
@@ -74,17 +75,20 @@ it('basic', async () => {
   const store = createStore()
 
   let lastClickValue
-  const UserComp = connect(store => {
-    return {
-      user1: store.users.get('u1'),
+  const UserComp = connect(
+    store => {
+      return {
+        user1: store.users.get('u1'),
+      }
+    },
+    store => {
+      return {
+        onClick() {
+          lastClickValue = store.users.get('u1')
+        },
+      }
     }
-  }, store => {
-    return {
-      onClick() {
-        lastClickValue = store.users.get('u1')
-      },
-    }
-  })(props => {
+  )(props => {
     props.onClick()
     return <span>{props.user1}</span>
   })
@@ -97,10 +101,9 @@ it('basic', async () => {
     </Provider>
   )
 
-  expect( wrapper.html() ).toBe('<span>user 1 name!!</span>')
-  expect( lastClickValue ).toBe('user 1 name!!')
+  expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
+  expect(lastClickValue).toBe('user 1 name!!')
 })
-
 
 it('same state', async () => {
   const createStore = defineStore({
@@ -111,7 +114,7 @@ it('same state', async () => {
 
   let runTime = 0
   const UserComp = connect(store => {
-    runTime ++
+    runTime++
     return {
       user1: store.users.get('u1'),
     }
@@ -123,14 +126,14 @@ it('same state', async () => {
       <UserComp />
     </Provider>
   )
-  expect( wrapper.html() ).toBe('<span>user 1 name!!</span>')
-  expect( runTime ).toBe(1)
+  expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
+  expect(runTime).toBe(1)
 
   // same value
   store.users.set('u1', 'user 1 name!!')
-  expect( runTime ).toBe(1)
+  expect(runTime).toBe(1)
 
   // diff value
   store.users.set('u1', 'Changed')
-  expect( runTime ).toBe(2)
+  expect(runTime).toBe(2)
 })

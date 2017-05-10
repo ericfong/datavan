@@ -1,12 +1,11 @@
 import _ from 'lodash'
 import stringfy from 'fast-stable-stringify'
-import {defaultMemoize as reselectMemoize} from 'reselect'
+import { defaultMemoize as reselectMemoize } from 'reselect'
 import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
-import {stateMemoizeTable} from './util/memoizeUtil'
-import {then} from './util/promiseUtil'
-
+import { stateMemoizeTable } from './util/memoizeUtil'
+import { then } from './util/promiseUtil'
 
 function mongoToLodash(sort) {
   const fields = []
@@ -18,10 +17,9 @@ function mongoToLodash(sort) {
   return [fields, orders]
 }
 
-export function calcFetchCacheKey(query, option) {
+export function calcFindKey(query, option) {
   return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy')])
 }
-
 
 export default class Collection extends KeyValueStore {
   _getStateArray = reselectMemoize(state => _.values(state))
@@ -47,7 +45,7 @@ export default class Collection extends KeyValueStore {
     // get state
     () => [this.getState()],
     // get memoize key
-    calcFetchCacheKey,
+    calcFindKey
   )
 
   _postFind(arr, option) {
@@ -73,11 +71,11 @@ export default class Collection extends KeyValueStore {
   }
 
   findOne(query, option) {
-    return then(this.find(query, {...option, limit: 1}), list => list[0])
+    return then(this.find(query, { ...option, limit: 1 }), list => list[0])
   }
 
   search($search, option) {
-    return this.find({$search}, option)
+    return this.find({ $search }, option)
   }
 
   count(query) {
@@ -93,14 +91,22 @@ export default class Collection extends KeyValueStore {
   }
 
   set(id, value) {
-    if (typeof id === 'object') super.set(id[this.idField], id)
-    else super.set(id, value)
+    if (typeof id === 'object') {
+      super.set(id[this.idField], this.insertCast(id))
+    } else {
+      super.set(id, this.insertCast(value))
+    }
   }
 
   idField = '_id'
 
-  insert(doc) {
+  insertCast(doc) {
+    return this.cast(doc)
+  }
+
+  insert(_doc) {
     const idField = this.idField
+    const doc = this.insertCast(_doc)
     if (!doc[idField]) {
       doc[idField] = this.genId()
     }
@@ -123,11 +129,40 @@ export default class Collection extends KeyValueStore {
 
   remove(query) {
     const idField = this.idField
-    const delTable = _.reduce(this._find(query), (ret, doc) => {
-      ret[doc[idField]] = undefined
-      return ret
-    }, {})
+    const delTable = _.reduce(
+      this._find(query),
+      (ret, doc) => {
+        ret[doc[idField]] = undefined
+        return ret
+      },
+      {}
+    )
     this.setState(delTable)
     return delTable
+  }
+
+  importAll(docs, skipMutate) {
+    if (_.isEmpty(docs)) {
+      // force state change to ensure component known loading is done, but just load nothing
+      // TODO better to dispatch a event ?
+      this._store.mutateState({ [this.name]: { $set: { ...this.getState() } } })
+      return null
+    }
+
+    const idField = this.idField
+    const mutation = {}
+    _.each(docs, _doc => {
+      const doc = this.cast(_doc)
+      const id = doc[idField]
+      mutation[id] = { $set: doc }
+    })
+
+    // for Stage restore
+    if (!skipMutate) {
+      this._store.mutateState({ [this.name]: mutation })
+    }
+
+    // should return the processed ret array? or object of docs?
+    return mutation
   }
 }

@@ -5,6 +5,7 @@
     "__DEV__": true
   },
   "rules": {
+    "max-len": ["warn", { "code": 160 }],
     "react/prop-types": 0,
     semi: [1, 'never'],
     "no-unused-vars": 1,
