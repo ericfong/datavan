@@ -1,20 +1,18 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-import KeyValueStore from './KeyValueStore'
+import SubmittingCollection from './SubmittingCollection'
 
-
-export default class Cookie extends KeyValueStore {
+// Cookie
+export default class Cookie extends SubmittingCollection {
   preloadStoreState(preloadedState) {
     if (global.window) {
       preloadedState[this.name] = jsCookie.get()
     }
   }
 
-  // do this in reducer?
-  setState(values) {
-    super.setState(values)
-    _.each(values, (v, k) => {
+  onSubmit(changes) {
+    _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
         return jsCookie.remove(k)
       } else {

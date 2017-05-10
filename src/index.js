@@ -11,7 +11,7 @@ export connect, { Provider } from './connect'
 export { composeClass, genGetSetters, mixinAccessor, KeyValueStore, Collection, SubmittingCollection, FetchingCollection, Searchable }
 
 export Browser from './Browser'
-// export LocalStorage from './LocalStorage'
+export LocalStorage, { SessionStorage } from './LocalStorage'
 export Cookie from './Cookie'
 
 export function defineCollection(...args) {

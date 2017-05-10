@@ -10,14 +10,16 @@ function parseJson(val) {
   }
 }
 
-export default class LocalStorage extends SubmittingCollection {
-  onFetch(query) {
+function syncFetcher(func) {
+  return function onFetch(query) {
     const idField = this.idField
     const id = query[idField]
-    const val = parseJson(localStorage.getItem(id))
-    return { [id]: val }
+    return { [id]: func(id) }
   }
+}
 
+// LocalStorage
+export default class LocalStorage extends SubmittingCollection {
   onSubmit(changes) {
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
@@ -28,3 +30,18 @@ export default class LocalStorage extends SubmittingCollection {
     })
   }
 }
+LocalStorage.prototype.onFetch = syncFetcher(id => parseJson(localStorage.getItem(id)))
+
+// SessionStorage
+export class SessionStorage extends SubmittingCollection {
+  onSubmit(changes) {
+    _.each(changes, (v, k) => {
+      if (v === null || v === undefined) {
+        return sessionStorage.removeItem(k)
+      } else {
+        return sessionStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
+      }
+    })
+  }
+}
+SessionStorage.prototype.onFetch = syncFetcher(id => parseJson(sessionStorage.getItem(id)))
