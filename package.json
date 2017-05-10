@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "clean-build": "rm -rf ./lib && npm run prepublish",
-    "prepublish": "babel src --out-dir lib --ignore spec.js,test.js",
-    "start": "npm run prepublish -- --watch",
+    "build": "babel src --out-dir lib --ignore spec.js,test.js",
+    "prepublish": "rm -rf ./lib && npm run build",
+    "start": "npm run build -- --watch",
     "mocha": "cross-env NODE_ENV=test mocha --recursive --compilers js:babel-core/register src/**/*.test.js",
     "test": "cross-env NODE_PATH=src jest"
   },
