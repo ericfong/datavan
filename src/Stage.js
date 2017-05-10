@@ -27,22 +27,10 @@ export default Base => {
       return this._getState(super.getState(), this.getStagingState())
     }
 
-    mutate(mutation) {
-      // mutate target doc and set the whole doc into staging
-      // NOTE will lost detial of each mutation when flush to server, but more simple data to handle
-      const ownMutation = _.mapValues(mutation, (docMutation, id) => {
-        if (docMutation.$set) {
-          return docMutation
-        }
-        const combinedDoc = this.getState()[id]
-        return {
-          $set: mutateHelper(combinedDoc, docMutation),
-        }
-      })
+    setAll(changes) {
       this._store.mutateState({
-        [this.name + this.stageSuffix]: ownMutation,
+        [this.name + this.stageSuffix]: changes,
       })
-
       if (this.onSubmit) this.submit()
     }
 

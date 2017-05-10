@@ -1,6 +1,4 @@
-import should from 'should'
-
-import {defineStore} from '.'
+import { defineStore } from '.'
 import LocalStorage from './LocalStorage'
 
 global.localStorage = {
@@ -18,14 +16,14 @@ it('basic', async () => {
   })
   const db1 = createStore()
 
-  should( db1.users.get('u1') ).equal(undefined)
+  expect(db1.users.get('u1')).toBe(undefined)
   db1.users.set('u1', 'hi')
-  should( db1.users.get('u1') ).equal('hi')
+  expect(db1.users.get('u1')).toBe('hi')
 
   // should access global localStorage
   const db2 = createStore()
-  should( db2.users.get('u1') ).equal('hi')
+  expect(db2.users.get('u1')).toBe('hi')
   db2.users.set('u1', 'world')
   // db1 should get new state sync
-  should( db1.users.get('u1') ).equal('world')
+  expect(db1.users.get('u1')).toBe('world')
 })

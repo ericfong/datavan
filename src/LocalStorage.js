@@ -2,10 +2,9 @@ import _ from 'lodash'
 
 import KeyValueStore from './KeyValueStore'
 
+// FIXME use onFetch onSubmit
 
 export default class LocalStorage extends KeyValueStore {
-
-  // TODO should not override get, but use cache OR preload data from remote source (in thise case, localStorage) ?
   get(id) {
     const val = localStorage.getItem(id)
     try {
@@ -15,7 +14,7 @@ export default class LocalStorage extends KeyValueStore {
     }
   }
 
-  setState(values) {
+  setAll(values) {
     _.each(values, (v, k) => {
       if (v === null || v === undefined) {
         return localStorage.removeItem(k)
@@ -24,6 +23,6 @@ export default class LocalStorage extends KeyValueStore {
       }
     })
 
-    super.setState(values)
+    super.setAll(values)
   }
 }

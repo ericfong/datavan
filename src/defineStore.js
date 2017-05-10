@@ -1,14 +1,12 @@
 import _ from 'lodash'
-import {createStore, compose} from 'redux'
+import { createStore, compose } from 'redux'
 import mutate from 'immutability-helper'
 
-import {isClass} from './util/classUtil'
+import { isClass } from './util/classUtil'
 // import {composeClass} from './util/classUtil'
-
 
 const MUTATE = 'MUTATE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
-
 
 mutate.extend('$unset', function(keysToRemove, original) {
   var copy = Object.assign({}, original)
@@ -16,10 +14,35 @@ mutate.extend('$unset', function(keysToRemove, original) {
   return copy
 })
 
+function reduceCollectionChanges(oldTable, changes, changingCtx) {
+  if (Object.keys(changes).length === 0) return oldTable
+  const newTable = Object.assign({}, oldTable)
+  for (const key in changes) {
+    const newValue = changes[key]
+    const oldValue = newTable[key]
+    if (oldValue !== newValue) {
+      if (oldValue !== undefined && newValue === undefined) {
+        delete newTable[key]
+      }
+      newTable[key] = newValue
+      changingCtx.isChanged = true
+    }
+  }
+  return newTable
+}
 
 function dbReducer(state, action) {
   if (action.type === MUTATE) {
-    return mutate(state, action.mutation)
+    const allChanges = action.mutation
+    if (Object.keys(allChanges).length === 0) return state
+    const changingCtx = { isChanged: false }
+
+    const newState = Object.assign({}, state)
+    for (const collName in allChanges) {
+      newState[collName] = reduceCollectionChanges(state[collName], allChanges[collName], changingCtx)
+    }
+
+    return changingCtx.isChanged ? newState : state
   }
   return state
 }
@@ -32,9 +55,9 @@ function createCollection(definition, name) {
   } else if (typeof definition === 'function') {
     // factory
     newObj = definition()
-  // } else if (Array.isArray(definition)) {
-  //   // assume if type of definition is array, it is a array of class mixins
-  //   newObj = new (composeClass(definition))
+    // } else if (Array.isArray(definition)) {
+    //   // assume if type of definition is array, it is a array of class mixins
+    //   newObj = new (composeClass(definition))
   } else {
     newObj = Object.create(definition)
   }
@@ -64,12 +87,10 @@ function assignDependencies(source, slices) {
   })
 }
 
-
 export function collectionsEnhancer(definitions) {
-  const {enhancers, ...collectionDefinitions} = definitions
+  const { enhancers, ...collectionDefinitions } = definitions
 
   const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
-
     // create collections and preloadStoreState
     const collections = _.mapValues(collectionDefinitions, (definition, name) => {
       const collection = createCollection(definition, name)
@@ -85,13 +106,11 @@ export function collectionsEnhancer(definitions) {
       return collection
     })
 
-
     // createStore
     const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
     // const _enhancers = _.uniq(_.compact([].concat(enhancers, [enhancer])))
     // const _enhancer = _enhancers.length > 0 ? compose(..._enhancers) : undefined
     const baseStore = _createStore(_reducer, preloadedState, enhancer)
-
 
     function dispatch(action) {
       // HACK to return whole store object for connect to get connections
@@ -102,7 +121,7 @@ export function collectionsEnhancer(definitions) {
       return baseStore.dispatch(action)
     }
     function mutateState(mutation) {
-      dispatch({type: MUTATE, mutation})
+      dispatch({ type: MUTATE, mutation })
     }
 
     // context
@@ -115,13 +134,13 @@ export function collectionsEnhancer(definitions) {
     }
 
     function getPromise() {
-      const promises = _.compact(_.map(collections, collection =>
-        collection.getPromise && collection.getPromise()
-      ))
+      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
       if (promises.length <= 0) return null
-      return Promise.all(promises)
-      // TODO timeout or have a limit for recursive wait for promise
-      .then(() => getPromise())
+      return (
+        Promise.all(promises)
+          // TODO timeout or have a limit for recursive wait for promise
+          .then(() => getPromise())
+      )
     }
 
     // only expose few funcs, so collections will be less depend on store
@@ -136,7 +155,6 @@ export function collectionsEnhancer(definitions) {
       collection._store = _store
       assignDependencies(collection, collections)
     })
-
 
     // new store object
     const newStore = {
@@ -153,25 +171,23 @@ export function collectionsEnhancer(definitions) {
       mutateState,
 
       serverRender(renderCallback) {
-        setContext({duringServerPreload: true})
+        setContext({ duringServerPreload: true })
         const output = renderCallback()
 
         // recursive renderCallback & promise.then (instead of recursive this.wait())
         const promise = this.getPromise()
         if (promise) {
-          return promise
-          .then(() => this.serverRender(renderCallback))
-          .catch(err => {
+          return promise.then(() => this.serverRender(renderCallback)).catch(err => {
             console.error(err)
           })
         }
 
-        setContext({duringServerPreload: false})
+        setContext({ duringServerPreload: false })
         return output
       },
 
       invalidate() {
-        const newState = {...baseStore.getState()}
+        const newState = { ...baseStore.getState() }
         _.each(collections, (coll, name) => {
           if (coll.invalidate) {
             coll.invalidate()
@@ -180,7 +196,7 @@ export function collectionsEnhancer(definitions) {
           }
         })
         // force the root state change
-        mutateState({$set: newState})
+        mutateState({ $set: newState })
       },
     }
 
@@ -194,7 +210,6 @@ export function collectionsEnhancer(definitions) {
   // run defined enhancers before preloadStoreState
   return enhancers && enhancers.length > 0 ? compose(...enhancers, ourEnhancer) : ourEnhancer
 }
-
 
 export default function defineCollections(definitions) {
   return collectionsEnhancer(definitions)(createStore)

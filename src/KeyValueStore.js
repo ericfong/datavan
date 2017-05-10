@@ -1,6 +1,5 @@
 import _ from 'lodash'
 
-
 export default class KeyValueStore {
   preloadStoreState(preloadedState) {
     preloadedState[this.name] = _.mapValues(preloadedState[this.name], doc => this.cast(doc))
@@ -16,19 +15,12 @@ export default class KeyValueStore {
   }
 
   // Override point: all user mutates should go through this point
-  mutate(mutation) {
-    this._store.mutateState({ [this.name]: mutation })
-  }
-
-  setState(values) {
-    const mutation = _.mapValues(values, v => ({$set: v}))
-    this.mutate(mutation)
+  setAll(changes) {
+    this._store.mutateState({ [this.name]: changes })
   }
 
   set(id, value) {
-    // TODO comment out for LocalStorage.js, should migrate that use remote data source style?
-    // this.mutate({ [id]: {$set: value} })
-    this.setState({ [id]: value })
+    this.setAll({ [id]: value })
   }
 
   cast(v) {

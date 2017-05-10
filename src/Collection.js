@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import stringfy from 'fast-stable-stringify'
+import mutateHelper from 'immutability-helper'
 import { defaultMemoize as reselectMemoize } from 'reselect'
 import sift from 'sift'
 
@@ -110,42 +111,42 @@ export default class Collection extends KeyValueStore {
     if (!doc[idField]) {
       doc[idField] = this.genId()
     }
-    this.setState({ [doc[idField]]: doc })
+    this.setAll({ [doc[idField]]: doc })
     return doc
   }
 
   update(query, update) {
-    // TODO detect update at least contain $set, $push, ... opertation ?
     // internal _find, won't trigger re-fetch from backend
-    const docs = this._find(query)
-    const mutation = {}
     const idField = this.idField
-    _.each(docs, doc => {
-      mutation[doc[idField]] = update
+    const changes = {}
+    _.each(this._find(query), doc => {
+      // TODO use mongo operators like $set, $push...
+      const newDoc = mutateHelper(doc, update)
+      // console.log('update', newDoc, doc, update)
+      changes[doc[idField]] = undefined
+      if (newDoc) {
+        changes[newDoc[idField]] = newDoc
+      }
     })
-    this.mutate(mutation)
-    return mutation
+    this.setAll(changes)
+    return changes
   }
 
   remove(query) {
     const idField = this.idField
-    const delTable = _.reduce(
-      this._find(query),
-      (ret, doc) => {
-        ret[doc[idField]] = undefined
-        return ret
-      },
-      {}
-    )
-    this.setState(delTable)
-    return delTable
+    const changes = {}
+    _.each(this._find(query), doc => {
+      changes[doc[idField]] = undefined
+    })
+    this.setAll(changes)
+    return changes
   }
 
   importAll(docs, skipMutate) {
     if (_.isEmpty(docs)) {
       // force state change to ensure component known loading is done, but just load nothing
       // TODO better to dispatch a event ?
-      this._store.mutateState({ [this.name]: { $set: { ...this.getState() } } })
+      this._store.mutateState({ [this.name]: { ...this.getState() } })
       return null
     }
 
@@ -154,7 +155,7 @@ export default class Collection extends KeyValueStore {
     _.each(docs, _doc => {
       const doc = this.cast(_doc)
       const id = doc[idField]
-      mutation[id] = { $set: doc }
+      mutation[id] = doc
     })
 
     // for Stage restore

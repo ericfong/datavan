@@ -32,7 +32,8 @@ describe('Stage', function() {
 
     // sideLoader will call find
     const car = db.users.findOne({ name: 'Car' })
-    db.users.update({ id: car.id }, { $set: { name: 'Car 2' } })
+    console.log(car.id)
+    db.users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
     const storeState = db.getState()
     expect(_.isEmpty(storeState.users)).toBe(true)
 
