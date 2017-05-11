@@ -152,7 +152,7 @@ export default class FetchingCollection extends Collection {
   }
 
   isFetching() {
-    return this._fetchByIdsPromise || !_.isEmpty(this._fetchPromises)
+    return !!this._fetchByIdsPromise || Object.keys(this._fetchPromises).length > 0
   }
 
   invalidate() {

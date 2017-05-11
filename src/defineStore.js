@@ -6,6 +6,7 @@ import { isClass } from './util/classUtil'
 // import {composeClass} from './util/classUtil'
 
 const MUTATE = 'MUTATE'
+const REPLACE = 'REPLACE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
 mutate.extend('$unset', function(keysToRemove, original) {
@@ -35,7 +36,7 @@ function reduceCollectionChanges(oldTable, changes, changingCtx) {
 function dbReducer(state, action) {
   if (action.type === MUTATE) {
     const allChanges = action.mutation
-    if (Object.keys(allChanges).length === 0) return state
+    if (!allChanges || Object.keys(allChanges).length === 0) return state
     const changingCtx = { isChanged: false }
 
     const newState = Object.assign({}, state)
@@ -45,6 +46,8 @@ function dbReducer(state, action) {
     // console.log('dbReducer \n', state, '\n allChanges \n', allChanges, '\n>>>\n', newState)
 
     return changingCtx.isChanged ? newState : state
+  } else if (action.type === REPLACE) {
+    return action.state
   }
   return state
 }
@@ -189,7 +192,7 @@ export function collectionsEnhancer(definitions) {
       },
 
       invalidate() {
-        const newState = { ...baseStore.getState() }
+        const newState = {}
         _.each(collections, (coll, name) => {
           if (coll.invalidate) {
             coll.invalidate()
@@ -198,7 +201,7 @@ export function collectionsEnhancer(definitions) {
           }
         })
         // force the root state change
-        mutateState({ $set: newState })
+        dispatch({ type: REPLACE, state: newState })
       },
     }
 

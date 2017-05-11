@@ -145,8 +145,7 @@ export default class Collection extends KeyValueStore {
   importAll(docs, skipMutate) {
     if (_.isEmpty(docs)) {
       // force state change to ensure component known loading is done, but just load nothing
-      // TODO better to dispatch a event ?
-      this._store.mutateState({ [this.name]: { ...this.getState() } })
+      this._store.mutateState()
       return null
     }
 
