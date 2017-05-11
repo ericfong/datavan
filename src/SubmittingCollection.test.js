@@ -39,6 +39,7 @@ test('onSubmit', async () => {
     return _.map(changes, doc => ({ ...doc, _id: `stored-${Math.random()}` }))
   }
   db.users.update({ name: 'Car 2' }, { $merge: { name: 'Car 3' } })
+  // console.log(db.users.getState())
   expect(_.map(db.users.getState(), 'name').sort()).toEqual(['Apple', 'Car 3'])
   expect(_.isEmpty(db.users.getStagingState())).toBe(true)
 })
@@ -62,17 +63,13 @@ test('basic', async () => {
   expect(_.map(db.users.getState(), 'name')).toEqual(['Apple', 'Car'])
   expect(_.map(db.users.getStagingState(), 'name')).toEqual(['Apple', 'Car'])
 
-  // sideLoader will call find
+  // find and update
   const car = db.users.findOne({ name: 'Car' })
   db.users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
-  const storeState = db.getState()
-  expect(_.isEmpty(storeState.users)).toBe(true)
-
-  expect(_.map(storeState.users_staging, 'name')).toEqual(['Apple', 'Car 2'])
   expect(_.map(db.users.getStagingState(), 'name')).toEqual(['Apple', 'Car 2'])
 
   // mix data from server
   db.users.get('u1')
   await db.getPromise()
-  expect(_.map(db.users.getState(), 'name')).toEqual(['users Eric', 'John', 'Apple', 'Car 2'])
+  expect(_.map(db.users.getState(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })

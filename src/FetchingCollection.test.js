@@ -34,10 +34,10 @@ test('batch get failback to find', async () => {
   const createStore = defineStore({
     users: defineCollection({
       onFetch(query) {
+        // console.log('onFetch', query)
         const ids = getQueryIds(query)
         return Promise.resolve(
           _.map(ids, _id => {
-            // console.log('onFetch done', {_id, name: 'Echo-' + _id})
             return { _id, name: 'Echo-' + _id }
           })
         )

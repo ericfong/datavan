@@ -21,9 +21,8 @@ export default class FetchingCollection extends Collection {
       const matcher = query[key]
       if (key === this.idField) {
         // if idField defined in query, must be truthly
-        if (!matcher || _.filter(_.compact(matcher.$in), id => !this.isLocalId(id)).length === 0) {
-          return false
-        }
+        if (!matcher) return false
+        if (matcher.$in && _.filter(_.compact(matcher.$in), id => !this.isLocalId(id)).length === 0) return false
       } else if (matcher && matcher.$in) {
         if (_.filter(matcher.$in, id => !this.isLocalId(id)).length === 0) {
           return false
@@ -117,12 +116,19 @@ export default class FetchingCollection extends Collection {
           this._fetchTimes[findingKey] = now
           delete promiseTable[findingKey]
 
-          const mutation = this.importAll(ret)
-          // store fetchTimes
-          if (mutation) {
-            _.keys(mutation).forEach(id => {
-              this._fetchTimes[id] = now
-            })
+          if (_.isEmpty(ret)) {
+            // force state change to ensure component known loading is done, but just load nothing
+            this._store.mutateState()
+          } else {
+            const changes = this.importAll(ret)
+            // skip setAll
+            this._setAll(changes)
+            // store fetchTimes
+            if (changes) {
+              _.keys(changes).forEach(id => {
+                this._fetchTimes[id] = now
+              })
+            }
           }
 
           // TODO compare local and remote result, drop if backend is removed
@@ -136,10 +142,32 @@ export default class FetchingCollection extends Collection {
         })
     } else {
       // Async fetch result
-      this.importAll(result)
+      // skip setAll
+      this._setAll(this.importAll(result))
     }
 
     return result
+  }
+
+  importAll(values) {
+    const changes = _.reduce(
+      values,
+      (accumulator, value, key) => {
+        if (value && this.isTidy(key)) {
+          const doc = this.cast(value)
+          const id = doc[this.idField] || key
+          accumulator[id] = doc
+        }
+        return accumulator
+      },
+      {}
+    )
+    // GC here
+    return changes
+  }
+
+  isTidy() {
+    return true
   }
 
   getPromise() {

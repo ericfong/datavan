@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { defaultMemoize as reselectMemoize } from 'reselect'
 
 import FetchingCollection from './FetchingCollection'
 import { then } from './util/promiseUtil'
@@ -8,31 +7,34 @@ export default class SubmittingCollection extends FetchingCollection {
   // NOTE expecting functions
   // onSubmit() {}
 
-  stageSuffix = '_staging'
+  submittingTarget = '_staging'
 
   preloadStoreState(preloadedState) {
     if (super.preloadStoreState) super.preloadStoreState(preloadedState)
-    if (!preloadedState[this.name + this.stageSuffix]) {
-      preloadedState[this.name + this.stageSuffix] = {}
+    if (!preloadedState[this.name + this.submittingTarget]) {
+      preloadedState[this.name + this.submittingTarget] = {}
     }
   }
 
   getStagingState() {
-    return this._store.getState()[this.name + this.stageSuffix]
-  }
-
-  _getState = reselectMemoize((state, stagingState) => {
-    return { ...state, ...stagingState }
-  })
-  getState() {
-    return this._getState(super.getState(), this.getStagingState())
+    return this._store.getState()[this.name + this.submittingTarget]
   }
 
   setAll(changes) {
-    this._store.mutateState({
-      [this.name + this.stageSuffix]: changes,
-    })
-    if (this.onSubmit) this.submit()
+    if (this.onFetch) {
+      this._store.mutateState({
+        [this.name]: changes,
+        // TODO check changes may be undefined
+        [this.name + this.submittingTarget]: changes,
+      })
+      if (this.onSubmit) this.submit()
+    } else {
+      super.setAll(changes)
+    }
+  }
+
+  isTidy(key) {
+    return !(key in this.getStagingState())
   }
 
   submit(onSubmit = this.onSubmit) {
@@ -42,20 +44,15 @@ export default class SubmittingCollection extends FetchingCollection {
       docs => {
         // if return === false, means DON'T clean up current staging state. Like throw exception
         if (docs !== false) {
+          // clean snapshotState TODO check NOT mutated during HTTP POST
+          const removes = _.mapValues(snapshotState, () => undefined)
           const feedbackMutation = {}
+          feedbackMutation[this.name + this.submittingTarget] = removes
+          const thisCollState = (feedbackMutation[this.name] = { ...removes })
 
+          // import docs changes
           if (docs) {
-            // import docs changes
-            const importChanges = this.importAll(docs, true)
-            if (importChanges) {
-              feedbackMutation[this.name] = importChanges
-            }
-          }
-
-          // clean snapshotState
-          if (snapshotState) {
-            // TODO check snapshotState is not mutated during post
-            feedbackMutation[this.name + this.stageSuffix] = _.mapValues(snapshotState, () => undefined)
+            Object.assign(thisCollState, this.importAll(docs))
           }
 
           // console.log('submit result', docs, feedbackMutation)

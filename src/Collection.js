@@ -141,30 +141,4 @@ export default class Collection extends KeyValueStore {
     this.setAll(changes)
     return changes
   }
-
-  importAll(docs, skipMutate) {
-    if (_.isEmpty(docs)) {
-      // force state change to ensure component known loading is done, but just load nothing
-      this._store.mutateState()
-      return null
-    }
-
-    const idField = this.idField
-    const mutation = {}
-    _.each(docs, (_doc, key) => {
-      if (_doc) {
-        const doc = this.cast(_doc)
-        const id = doc[idField] || key
-        mutation[id] = doc
-      }
-    })
-
-    // for Stage restore
-    if (!skipMutate) {
-      this._store.mutateState({ [this.name]: mutation })
-    }
-
-    // should return the processed ret array? or object of docs?
-    return mutation
-  }
 }
