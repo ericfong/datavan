@@ -16,6 +16,13 @@ export default class FetchingCollection extends Collection {
     return calcFindKey(query, option)
   }
 
+  _getQueryIds(query) {
+    if (!query) return null
+    const matcher = query[this.idField]
+    if (!matcher) return null
+    return Array.isArray(matcher.$in) ? matcher.$in : [matcher]
+  }
+
   isValidFetchQuery(query) {
     for (const key in query) {
       const matcher = query[key]
@@ -98,7 +105,10 @@ export default class FetchingCollection extends Collection {
       // is loading (promise exists but not deleted)
       if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
       const oldPromise = this._fetchPromises[findingKey]
-      if (oldPromise) return oldPromise
+      if (oldPromise) {
+        console.warn('try to fetch same ajax query while old ajax call is running')
+        return oldPromise
+      }
     }
 
     // NOTE should be able to handle Both Async and Sync onFetch
@@ -108,12 +118,17 @@ export default class FetchingCollection extends Collection {
     if (fetchIsAsync) {
       // uniq promise
       if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
+      const now = new Date()
+      // means start to fetch
+      this._fetchTimes[findingKey] = now
+      // prevent fetch by ids again for some ids
+      _.each(this._getQueryIds(query), id => (this._fetchTimes[id] = now))
+
+      // may not need promise anymore
       const promiseTable = this._fetchPromises
       promiseTable[findingKey] = result
       result
         .then(ret => {
-          const now = new Date()
-          this._fetchTimes[findingKey] = now
           delete promiseTable[findingKey]
 
           if (_.isEmpty(ret)) {
