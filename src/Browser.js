@@ -1,6 +1,5 @@
 import KeyValueStore from './KeyValueStore'
-import {genGetSetters} from './util/classUtil'
-
+import { genGetSetters } from './util/classUtil'
 
 export default class Browser extends KeyValueStore {
   preloadStoreState(preloadedState) {
@@ -21,7 +20,7 @@ export default class Browser extends KeyValueStore {
   }
 
   _onResize = () => {
-    this.setState({
+    this.setAll({
       width: window.innerWidth,
       height: window.innerHeight,
     })
@@ -31,7 +30,7 @@ export default class Browser extends KeyValueStore {
 Object.assign(
   Browser.prototype,
   genGetSetters({
-    width: {writable: false},
-    height: {writable: false},
+    width: { writable: false },
+    height: { writable: false },
   })
 )

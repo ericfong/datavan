@@ -16,11 +16,27 @@ export default class FetchingCollection extends Collection {
     return calcFindKey(query, option)
   }
 
+  isValidFetchQuery(query) {
+    for (const key in query) {
+      const matcher = query[key]
+      if (key === this.idField) {
+        // if idField defined in query, must be truthly
+        if (!matcher || _.filter(_.compact(matcher.$in), id => !this.isLocalId(id)).length === 0) {
+          return false
+        }
+      } else if (matcher && matcher.$in) {
+        if (_.filter(matcher.$in, id => !this.isLocalId(id)).length === 0) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
   find(query, option = {}) {
-    if (this.onFetch) {
+    if (this.onFetch && this.isValidFetchQuery(query)) {
       const cacheKey = this.calcFetchKey(query, option)
-      const match = this._shouldReload(cacheKey, option.load)
-      if (match) {
+      if (this._shouldReload(cacheKey, option.load)) {
         const result = this._doReload(query, option, cacheKey)
 
         const { duringMapState } = this._store.getContext()

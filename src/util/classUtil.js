@@ -1,6 +1,5 @@
 import _ from 'lodash'
 
-
 function isExportMethod(name, value) {
   return name[0] !== '_' && name !== 'constructor' && typeof value === 'function'
 }
@@ -92,8 +91,6 @@ export function composeClass(...array) {
   })()
 }
 
-
-
 export function genGetSetters(properties) {
   const obj = {}
   _.each(properties, (conf, id) => {
@@ -103,15 +100,14 @@ export function genGetSetters(properties) {
 
     if (conf.set !== false && conf.writable !== false) {
       obj[_.camelCase('set-' + id)] = function(value) {
-        return this.setState({ [id]: value })
+        return this.set(id, value)
       }
     }
   })
   return obj
 }
 
-
-export const mixinAccessor = (properties) => Base => {
+export const mixinAccessor = properties => Base => {
   class Accessor extends Base {
     preloadStoreState(preloadedState) {
       if (super.preloadStoreState) super.preloadStoreState(preloadedState)
@@ -124,9 +120,6 @@ export const mixinAccessor = (properties) => Base => {
       })
     }
   }
-  Object.assign(
-    Accessor.prototype,
-    genGetSetters(properties)
-  )
+  Object.assign(Accessor.prototype, genGetSetters(properties))
   return Accessor
 }
