@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import SubmittingCollection from './SubmittingCollection'
+import { fetchIdInQuery } from './util/fetchUtil'
 
 function parseJson(val) {
   try {
@@ -10,16 +11,12 @@ function parseJson(val) {
   }
 }
 
-function syncFetcher(func) {
-  return function onFetch(query) {
-    const idField = this.idField
-    const id = query[idField]
-    return { [id]: func(id) }
-  }
-}
-
 // LocalStorage
 export default class LocalStorage extends SubmittingCollection {
+  onFetch(query) {
+    return fetchIdInQuery(this.idField, query, id => parseJson(localStorage.getItem(id)))
+  }
+
   onSubmit(changes) {
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
@@ -30,10 +27,13 @@ export default class LocalStorage extends SubmittingCollection {
     })
   }
 }
-LocalStorage.prototype.onFetch = syncFetcher(id => parseJson(localStorage.getItem(id)))
 
 // SessionStorage
 export class SessionStorage extends SubmittingCollection {
+  onFetch(query) {
+    return fetchIdInQuery(this.idField, query, id => parseJson(sessionStorage.getItem(id)))
+  }
+
   onSubmit(changes) {
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
@@ -44,4 +44,3 @@ export class SessionStorage extends SubmittingCollection {
     })
   }
 }
-SessionStorage.prototype.onFetch = syncFetcher(id => parseJson(sessionStorage.getItem(id)))

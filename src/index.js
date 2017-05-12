@@ -13,6 +13,7 @@ export { composeClass, genGetSetters, mixinAccessor, isClass, KeyValueStore, Col
 export Browser from './Browser'
 export LocalStorage, { SessionStorage } from './LocalStorage'
 export Cookie from './Cookie'
+export KoaCookie from './KoaCookie'
 
 export function defineCollection(...args) {
   return composeClass(...args, SubmittingCollection)

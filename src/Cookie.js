@@ -5,6 +5,8 @@ import SubmittingCollection from './SubmittingCollection'
 
 // Cookie
 export default class Cookie extends SubmittingCollection {
+  cookieConf = null
+
   preloadStoreState(preloadedState) {
     if (global.window) {
       preloadedState[this.name] = jsCookie.get()
