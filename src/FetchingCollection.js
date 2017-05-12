@@ -136,10 +136,10 @@ export default class FetchingCollection extends Collection {
 
           if (_.isEmpty(ret)) {
             // force state change to ensure component known loading is done, but just load nothing
-            this._store.mutateState()
+            this._store.dispatchNow()
           } else {
             const changes = this.importAll(ret)
-            // skip setAll
+            // skip setAll overriding
             this._setAll(changes)
             // store fetchTimes
             if (changes) {

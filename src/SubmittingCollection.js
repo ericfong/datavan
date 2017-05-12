@@ -25,11 +25,14 @@ export default class SubmittingCollection extends FetchingCollection {
 
   setAll(changes) {
     if (this.onFetch) {
-      this._store.mutateState({
+      const allChanges = {
         [this.name]: changes,
         // convert DELETE_FROM_STORE to undefined in staging, so that undefined will be Dirty
         [this.name + this.submittingTarget]: _.mapValues(changes, change => (change === DELETE_FROM_STORE ? undefined : change)),
-      })
+      }
+      if (this._store.addChanges(allChanges)) {
+        this._store.dispatchNow()
+      }
       if (this.onSubmit) this.submit()
     } else {
       super.setAll(changes)
@@ -64,7 +67,9 @@ export default class SubmittingCollection extends FetchingCollection {
           }
 
           // console.log('submit result', docs, feedbackMutation)
-          this._store.mutateState(feedbackMutation)
+          if (this._store.addChanges(feedbackMutation)) {
+            this._store.dispatchDebounce()
+          }
         }
         return docs
       },

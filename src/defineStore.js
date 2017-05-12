@@ -1,53 +1,14 @@
 import _ from 'lodash'
 import { createStore, compose } from 'redux'
-import mutate from 'immutability-helper'
 
 import { isClass } from './util/classUtil'
-// import {composeClass} from './util/classUtil'
 
-const MUTATE = 'MUTATE'
 const REPLACE = 'REPLACE'
 export const DELETE_FROM_STORE = 'DELETE_FROM_STORE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
-mutate.extend('$unset', function(keysToRemove, original) {
-  var copy = Object.assign({}, original)
-  for (const key of keysToRemove) delete copy[key]
-  return copy
-})
-
-function reduceCollectionChanges(oldTable, changes, changingCtx) {
-  if (Object.keys(changes).length === 0) return oldTable
-  const newTable = Object.assign({}, oldTable)
-  for (const key in changes) {
-    const newValue = changes[key]
-    const oldValue = newTable[key]
-    if (oldValue !== newValue) {
-      if (newValue === DELETE_FROM_STORE) {
-        delete newTable[key]
-      } else {
-        newTable[key] = newValue
-      }
-      changingCtx.isChanged = true
-    }
-  }
-  return newTable
-}
-
 function dbReducer(state, action) {
-  if (action.type === MUTATE) {
-    const allChanges = action.mutation
-    if (!allChanges || Object.keys(allChanges).length === 0) return state
-    const changingCtx = { isChanged: false }
-
-    const newState = Object.assign({}, state)
-    for (const collName in allChanges) {
-      newState[collName] = reduceCollectionChanges(state[collName], allChanges[collName], changingCtx)
-    }
-    // console.log('dbReducer \n', state, '\n allChanges \n', allChanges, '\n>>>\n', newState)
-
-    return changingCtx.isChanged ? newState : state
-  } else if (action.type === REPLACE) {
+  if (action.type === REPLACE) {
     return action.state
   }
   return state
@@ -56,10 +17,8 @@ function dbReducer(state, action) {
 function createCollection(definition, name) {
   let newObj
   if (isClass(definition)) {
-    // class
     newObj = new definition()
   } else if (typeof definition === 'function') {
-    // factory
     newObj = definition()
     // } else if (Array.isArray(definition)) {
     //   // assume if type of definition is array, it is a array of class mixins
@@ -93,40 +52,26 @@ function assignDependencies(source, slices) {
   })
 }
 
+function getOrClone(newObj, oldObj) {
+  if (newObj && newObj !== oldObj) return newObj
+  return Object.assign({}, oldObj)
+}
+
 export function collectionsEnhancer(definitions) {
   const { enhancers, ...collectionDefinitions } = definitions
-
   const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
-    // create collections and preloadStoreState
+    // create collections and fill preloadedState
     const collections = _.mapValues(collectionDefinitions, (definition, name) => {
       const collection = createCollection(definition, name)
-
       // preload Store State
-      if (!preloadedState[name]) {
-        preloadedState[name] = {}
-      }
-      if (collection.preloadStoreState) {
-        collection.preloadStoreState(preloadedState)
-      }
-
+      if (!preloadedState[name]) preloadedState[name] = {}
+      if (collection.preloadStoreState) collection.preloadStoreState(preloadedState)
       return collection
     })
 
     // createStore
     const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
     const baseStore = _createStore(_reducer, preloadedState, enhancer)
-
-    function dispatch(action) {
-      // HACK to return whole store object for connect to get connections
-      if (action.type === CONNECT_GET_STORE) {
-        action.store = newStore
-        return action
-      }
-      return baseStore.dispatch(action)
-    }
-    function mutateState(mutation) {
-      dispatch({ type: MUTATE, mutation })
-    }
 
     // context
     const ctx = {}
@@ -139,20 +84,67 @@ export function collectionsEnhancer(definitions) {
 
     function getPromise() {
       const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
+      if (dispatchPromise) promises.push(dispatchPromise)
       if (promises.length <= 0) return null
-      return (
-        Promise.all(promises)
-          // TODO timeout or have a limit for recursive wait for promise
-          .then(() => getPromise())
-      )
+      // TODO timeout or have a limit for recursive wait for promise
+      return Promise.all(promises).then(() => getPromise())
+    }
+
+    let newState
+    let dispatchPromise
+    function getCollectionsState() {
+      return newState || baseStore.getState()
+    }
+    function replaceStoreState(state) {
+      baseStore.dispatch({ type: REPLACE, state })
+    }
+    function dispatchNow() {
+      replaceStoreState(getCollectionsState())
+      dispatchPromise = null
     }
 
     // only expose few funcs, so collections will be less depend on store
     const _store = {
       getContext,
-      // setContext,
-      getState: baseStore.getState,
-      mutateState,
+      getState: getCollectionsState,
+      addChanges(allChanges) {
+        if (!allChanges || Object.keys(allChanges).length === 0) return false
+        newState = Object.assign({}, getCollectionsState())
+        let hasChange = false
+
+        for (const collName in allChanges) {
+          const changes = allChanges[collName]
+          if (!changes || Object.keys(changes).length === 0) continue
+          const ourColl = (newState[collName] = Object.assign({}, newState[collName]))
+
+          for (const key in changes) {
+            const newValue = changes[key]
+            const oldValue = ourColl[key]
+            if (newValue === DELETE_FROM_STORE) {
+              if (key in ourColl) {
+                delete ourColl[key]
+                hasChange = true
+              }
+            } else if (oldValue !== newValue) {
+              ourColl[key] = newValue
+              hasChange = true
+            }
+          }
+        }
+
+        return hasChange
+      },
+      dispatchNow,
+      // TODO should use Promise to debounce
+      dispatchDebounce() {
+        if (dispatchPromise) return dispatchPromise
+        const curP = (dispatchPromise = new Promise(resolve =>
+          setTimeout(() => {
+            if (curP === dispatchPromise) dispatchNow()
+            resolve()
+          })
+        ))
+      },
     }
     _.each(collections, collection => {
       // inject store callback functions into slice
@@ -163,7 +155,14 @@ export function collectionsEnhancer(definitions) {
     // new store object
     const newStore = {
       ...baseStore,
-      dispatch,
+      dispatch(action) {
+        // HACK to return whole store object for connect to get connections
+        if (action.type === CONNECT_GET_STORE) {
+          action.store = newStore
+          return action
+        }
+        return baseStore.dispatch(action)
+      },
 
       definitions,
       collections,
@@ -171,8 +170,6 @@ export function collectionsEnhancer(definitions) {
       getContext,
       setContext,
       getPromise,
-
-      mutateState,
 
       serverRender(renderCallback) {
         setContext({ duringServerPreload: true })
@@ -191,16 +188,14 @@ export function collectionsEnhancer(definitions) {
       },
 
       invalidate() {
-        const newState = {}
+        newState = {}
         _.each(collections, (coll, name) => {
           if (coll.invalidate) {
             coll.invalidate()
-            // TODO combine Fetcher * Stage to Remote
             newState[name] = {}
           }
         })
-        // force the root state change
-        dispatch({ type: REPLACE, state: newState })
+        replaceStoreState(newState)
       },
     }
 

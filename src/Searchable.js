@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
 
-
 export default Base => {
   return class Searchable extends Base {
     _findImplementation(state, query, option) {
@@ -14,7 +13,7 @@ export default Base => {
 
         const result = _.filter(state, doc =>
           _.every(keywords, keyword => {
-            const {tag, exclude, term} = keyword
+            const { tag, exclude, term } = keyword
             let isHit
             if (tag) {
               isHit = this._isSearchHit(term, doc[tag])

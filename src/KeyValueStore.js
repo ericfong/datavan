@@ -16,12 +16,16 @@ export default class KeyValueStore {
 
   // for importAll or other methods to skip setAll Override
   _setAll(changes) {
-    this._store.mutateState({ [this.name]: changes })
+    if (this._store.addChanges({ [this.name]: changes })) {
+      this._store.dispatchDebounce()
+    }
   }
 
   // Override point: all user mutates should go through this point
   setAll(changes) {
-    this._setAll(changes)
+    if (this._store.addChanges({ [this.name]: changes })) {
+      this._store.dispatchNow()
+    }
   }
 
   set(id, value) {
