@@ -7,6 +7,7 @@ import { isClass } from './util/classUtil'
 
 const MUTATE = 'MUTATE'
 const REPLACE = 'REPLACE'
+export const DELETE_FROM_STORE = 'DELETE_FROM_STORE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
 mutate.extend('$unset', function(keysToRemove, original) {
@@ -22,7 +23,7 @@ function reduceCollectionChanges(oldTable, changes, changingCtx) {
     const newValue = changes[key]
     const oldValue = newTable[key]
     if (oldValue !== newValue) {
-      if (newValue === undefined) {
+      if (newValue === DELETE_FROM_STORE) {
         delete newTable[key]
       } else {
         newTable[key] = newValue
@@ -113,8 +114,6 @@ export function collectionsEnhancer(definitions) {
 
     // createStore
     const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
-    // const _enhancers = _.uniq(_.compact([].concat(enhancers, [enhancer])))
-    // const _enhancer = _enhancers.length > 0 ? compose(..._enhancers) : undefined
     const baseStore = _createStore(_reducer, preloadedState, enhancer)
 
     function dispatch(action) {

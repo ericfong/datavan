@@ -2,6 +2,9 @@ import _ from 'lodash'
 
 import FetchingCollection from './FetchingCollection'
 import { then } from './util/promiseUtil'
+import { DELETE_FROM_STORE } from './defineStore'
+
+const deleteFromStoreFunc = () => DELETE_FROM_STORE
 
 export default class SubmittingCollection extends FetchingCollection {
   // NOTE expecting functions
@@ -24,8 +27,8 @@ export default class SubmittingCollection extends FetchingCollection {
     if (this.onFetch) {
       this._store.mutateState({
         [this.name]: changes,
-        // TODO check changes may be undefined
-        [this.name + this.submittingTarget]: changes,
+        // convert DELETE_FROM_STORE to undefined in staging, so that undefined will be Dirty
+        [this.name + this.submittingTarget]: _.mapValues(changes, change => (change === DELETE_FROM_STORE ? undefined : change)),
       })
       if (this.onSubmit) this.submit()
     } else {
@@ -42,17 +45,22 @@ export default class SubmittingCollection extends FetchingCollection {
     return then(
       onSubmit(snapshotState),
       docs => {
-        // if return === false, means DON'T clean up current staging state. Like throw exception
         if (docs !== false) {
+          // return === false means don't consider current staging is submitted
+
           // clean snapshotState TODO check NOT mutated during HTTP POST
-          const removes = _.mapValues(snapshotState, () => undefined)
+          const removes = _.mapValues(snapshotState, deleteFromStoreFunc)
           const feedbackMutation = {}
           feedbackMutation[this.name + this.submittingTarget] = removes
-          const thisCollState = (feedbackMutation[this.name] = { ...removes })
 
-          // import docs changes
           if (docs) {
-            Object.assign(thisCollState, this.importAll(docs))
+            // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
+            const thisCollState = (feedbackMutation[this.name] = { ...removes })
+
+            // import docs changes
+            if (docs) {
+              Object.assign(thisCollState, this.importAll(docs))
+            }
           }
 
           // console.log('submit result', docs, feedbackMutation)

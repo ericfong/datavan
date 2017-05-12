@@ -7,6 +7,7 @@ import sift from 'sift'
 import KeyValueStore from './KeyValueStore'
 import { stateMemoizeTable } from './util/memoizeUtil'
 import { then } from './util/promiseUtil'
+import { DELETE_FROM_STORE } from './defineStore'
 
 function mongoToLodash(sort) {
   const fields = []
@@ -122,8 +123,7 @@ export default class Collection extends KeyValueStore {
     _.each(this._find(query), doc => {
       // TODO use mongo operators like $set, $push...
       const newDoc = mutateHelper(doc, update)
-      // console.log('update', newDoc, doc, update)
-      changes[doc[idField]] = undefined
+      changes[doc[idField]] = DELETE_FROM_STORE
       if (newDoc) {
         changes[newDoc[idField]] = newDoc
       }
@@ -136,7 +136,7 @@ export default class Collection extends KeyValueStore {
     const idField = this.idField
     const changes = {}
     _.each(this._find(query), doc => {
-      changes[doc[idField]] = undefined
+      changes[doc[idField]] = DELETE_FROM_STORE
     })
     this.setAll(changes)
     return changes

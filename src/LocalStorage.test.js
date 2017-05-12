@@ -24,6 +24,7 @@ it('basic', async () => {
   const db2 = createStore()
   expect(db2.users.get('u1')).toBe('hi')
   db2.users.set('u1', 'world')
-  // db1 should get new state sync
+
+  // db1 should get new state in Sync
   expect(db1.users.get('u1')).toBe('world')
 })

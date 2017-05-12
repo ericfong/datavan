@@ -41,6 +41,7 @@ export default class FetchingCollection extends Collection {
 
   find(query, option = {}) {
     if (this.onFetch && this.isValidFetchQuery(query)) {
+      // NOTE diff behavior for Sync and Async
       const cacheKey = this.calcFetchKey(query, option)
       if (this._shouldReload(cacheKey, option.load)) {
         const result = this._doReload(query, option, cacheKey)
@@ -57,12 +58,14 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id, option = {}) {
-    // NOTE need to use findOne if want to return promise or preload
-    if (this.onFetch && id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
+    if (this.onFetch) {
+      // NOTE diff behavior for Sync and Async
       if (this._fetchIsAsync) {
-        // Async (batch ids in here)
-        this._fetchIdArray.push(id)
-        this._fetchByIdsDebounce()
+        if (id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
+          // Async (batch ids in here)
+          this._fetchIdArray.push(id)
+          this._fetchByIdsDebounce()
+        }
       } else {
         this._doReload({ [this.idField]: id })
       }
