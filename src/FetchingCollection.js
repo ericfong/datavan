@@ -4,13 +4,13 @@ import { isThenable, then } from './util/promiseUtil'
 import Collection, { calcFindKey } from './Collection'
 
 export default class FetchingCollection extends Collection {
-  // NOTE expecting functions
+  // NOTE expecting overriding
   // onFetch() {}
   // calcFetchKey() {}
+  isAsyncFetch = false
 
   _fetchTimes = {}
   _fetchPromises = {}
-  _fetchIsAsync = false
 
   calcFetchKey(query, option) {
     return calcFindKey(query, option)
@@ -60,7 +60,7 @@ export default class FetchingCollection extends Collection {
   get(id, option = {}) {
     if (this.onFetch) {
       // NOTE diff behavior for Sync and Async
-      if (this._fetchIsAsync) {
+      if (this.isAsyncFetch) {
         if (id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
           // Async (batch ids in here)
           this._fetchIdArray.push(id)
@@ -104,7 +104,7 @@ export default class FetchingCollection extends Collection {
 
   _doReload(query, option, cacheKey) {
     let findingKey = cacheKey
-    if (this._fetchIsAsync) {
+    if (this.isAsyncFetch) {
       // is loading (promise exists but not deleted)
       if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
       const oldPromise = this._fetchPromises[findingKey]
@@ -117,7 +117,7 @@ export default class FetchingCollection extends Collection {
     // NOTE should be able to handle Both Async and Sync onFetch
     const result = this.onFetch(query, option)
 
-    const fetchIsAsync = (this._fetchIsAsync = isThenable(result))
+    const fetchIsAsync = (this.isAsyncFetch = isThenable(result))
     if (fetchIsAsync) {
       // uniq promise
       if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)

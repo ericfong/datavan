@@ -52,11 +52,6 @@ function assignDependencies(source, slices) {
   })
 }
 
-function getOrClone(newObj, oldObj) {
-  if (newObj && newObj !== oldObj) return newObj
-  return Object.assign({}, oldObj)
-}
-
 export function collectionsEnhancer(definitions) {
   const { enhancers, ...collectionDefinitions } = definitions
   const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
