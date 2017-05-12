@@ -107,6 +107,20 @@ export function genGetSetters(properties) {
   return obj
 }
 
+export function getSetters(...ids) {
+  // newer then genGetSetters
+  const obj = {}
+  _.each(ids, id => {
+    obj[_.camelCase('get-' + id)] = function(option) {
+      return this.get(id, option)
+    }
+    obj[_.camelCase('set-' + id)] = function(value) {
+      return this.set(id, value)
+    }
+  })
+  return obj
+}
+
 export const mixinAccessor = properties => Base => {
   class Accessor extends Base {
     preloadStoreState(preloadedState) {

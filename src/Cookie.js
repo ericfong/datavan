@@ -13,7 +13,8 @@ export default class Cookie extends SubmittingCollection {
     }
   }
 
-  onSubmit(changes) {
+  setAll(changes) {
+    super.setAll(changes)
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
         return jsCookie.remove(k)

@@ -10,6 +10,8 @@ export defineStore, { collectionsEnhancer } from './defineStore'
 export connect, { Provider } from './connect'
 export { composeClass, genGetSetters, mixinAccessor, isClass, KeyValueStore, Collection, SubmittingCollection, FetchingCollection, Searchable }
 
+export { getSetters } from './util/classUtil'
+
 export Browser from './Browser'
 export LocalStorage, { SessionStorage } from './LocalStorage'
 export Cookie from './Cookie'
