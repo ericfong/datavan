@@ -106,14 +106,28 @@ export default class Collection extends KeyValueStore {
     return this.cast(doc)
   }
 
-  insert(_doc) {
+  insert(docs) {
     const idField = this.idField
-    const doc = this.insertCast(_doc)
-    if (!doc[idField]) {
-      doc[idField] = this.genId()
+    if (Array.isArray(docs)) {
+      const changes = {}
+      const castedDocs = _.map(docs, d => {
+        const castedDoc = this.insertCast(d)
+        if (!castedDoc[idField]) {
+          castedDoc[idField] = this.genId()
+        }
+        changes[castedDoc[idField]] = castedDoc
+        return castedDoc
+      })
+      this.setAll(changes)
+      return castedDocs
+    } else {
+      const doc = this.insertCast(docs)
+      if (!doc[idField]) {
+        doc[idField] = this.genId()
+      }
+      this.setAll({ [doc[idField]]: doc })
+      return doc
     }
-    this.setAll({ [doc[idField]]: doc })
-    return doc
   }
 
   update(query, update) {
