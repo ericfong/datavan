@@ -14,8 +14,13 @@ function toReduxMapToProps(ourMapToPropsFunc, store, methodName) {
     return function mapToProps(stateOrDispatch, ownProps) {
       store.setContext({duringMapState: true})
 
-      // inject 'db' or 'dv' to children props ???
       const props = ourMapToPropsFunc(collections, ownProps, stateOrDispatch)
+
+      // TODO try to hack selectorFactory instead
+      // inject dv to props
+      if (!('dv' in props)) {
+        props.dv = store
+      }
 
       store.setContext({duringMapState: false})
       return props
