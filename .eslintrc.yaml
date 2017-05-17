@@ -4,18 +4,22 @@ env:
   jest: true
   mocha: true
   node: true
-extends:
-  - 'eslint:recommended'
-  - 'plugin:react/recommended'
+extends: airbnb
 globals:
   __DEV__: true
 parser: babel-eslint
 plugins:
+  - babel
   - import
+  - lodash
   - react
 root: true
 rules:
   angular/definedundefined: 0
+  arrow-parens: 'off'
+  class-methods-use-this: 'off'
+  consistent-return: 'off'
+  no-multi-assign: 'off'
   comma-dangle:
     - warn
     - arrays: always-multiline
@@ -31,6 +35,7 @@ rules:
     - 2
     - amd: true
       commonjs: true
+  linebreak-style: 'off'
   max-len:
     - warn
     - code: 160
@@ -39,7 +44,9 @@ rules:
     - allow:
         - warn
         - error
+  no-param-reassign: 'off'
   no-trailing-spaces: 1
+  no-underscore-dangle: 'off'
   no-unused-expressions: 1
   no-unused-labels: 1
   no-unused-vars: 1
