@@ -7,7 +7,7 @@ export function normalizeQuery(query, idField, idExcluder) {
   }
   // query is array of ids
   if (Array.isArray(query)) {
-    return query.sort()
+    return _.sortedUniq(query.sort())
   }
 
   const entries = Object.entries(query)
