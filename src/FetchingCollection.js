@@ -48,7 +48,7 @@ export default class FetchingCollection extends Collection {
       if (this.isAsyncFetch) {
         if (id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
           // Async (batch ids in here)
-          this._fetchIdArray.push(id)
+          this._fetchIdTable[id] = 1
           this._fetchByIdsDebounce()
         }
       } else {
@@ -57,7 +57,7 @@ export default class FetchingCollection extends Collection {
     }
     return super.get(id, option)
   }
-  _fetchIdArray = []
+  _fetchIdTable = []
   _fetchByIdsPromise = null
   _fetchByIdsDebounce() {
     if (this._fetchByIdsPromise) return this._fetchByIdsPromise
@@ -65,8 +65,9 @@ export default class FetchingCollection extends Collection {
     const promises = _.values(this._fetchPromises)
     this._fetchByIdsPromise = Promise.all(promises)
       .then(() => {
-        if (this._fetchIdArray.length > 0) {
-          return this._doReload(this._fetchIdArray)
+        const ids = Object.keys(this._fetchIdTable)
+        if (ids.length > 0) {
+          return this._doReload(ids)
         }
       })
       .then(() => (this._fetchByIdsPromise = null))
