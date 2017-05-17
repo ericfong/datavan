@@ -1,16 +1,16 @@
-import KeyValueStore from './KeyValueStore'
-import Collection from './Collection'
-import FetchingCollection from './FetchingCollection'
+import { composeClass } from './util/classUtil'
 import SubmittingCollection from './SubmittingCollection'
 
-import { composeClass, genGetSetters, mixinAccessor, isClass } from './util/classUtil'
-import Searchable from './Searchable'
+export { composeClass, SubmittingCollection }
 
 export defineStore, { collectionsEnhancer } from './defineStore'
 export connect, { Provider } from './connect'
-export { composeClass, genGetSetters, mixinAccessor, isClass, KeyValueStore, Collection, SubmittingCollection, FetchingCollection, Searchable }
-
 export { getSetters } from './util/classUtil'
+
+export KeyValueStore from './KeyValueStore'
+export Collection from './Collection'
+export FetchingCollection from './FetchingCollection'
+export Searchable from './Searchable'
 
 export Browser from './Browser'
 export LocalStorage, { SessionStorage } from './LocalStorage'
@@ -19,8 +19,4 @@ export KoaCookie from './KoaCookie'
 
 export function defineCollection(...args) {
   return composeClass(...args, SubmittingCollection)
-}
-
-export function defineKeyValues(conf, ...args) {
-  return composeClass(mixinAccessor(conf), ...args, SubmittingCollection)
 }

@@ -1,5 +1,4 @@
 import KeyValueStore from './KeyValueStore'
-import { genGetSetters } from './util/classUtil'
 
 export default class Browser extends KeyValueStore {
   preloadStoreState(preloadedState) {
@@ -25,12 +24,12 @@ export default class Browser extends KeyValueStore {
       height: window.innerHeight,
     })
   }
-}
 
-Object.assign(
-  Browser.prototype,
-  genGetSetters({
-    width: { writable: false },
-    height: { writable: false },
-  })
-)
+  getWidth() {
+    return this.get('width')
+  }
+
+  getHeight() {
+    return this.get('height')
+  }
+}

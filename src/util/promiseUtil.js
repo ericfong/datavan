@@ -1,4 +1,3 @@
-
 // class SyncResultPromise {
 //   isSyncResultPromise = true
 //
@@ -35,11 +34,13 @@
 //   return p.isSyncResultPromise
 // }
 
+// only FetchingCollection.js using this
 export function isThenable(p) {
   return p && !!p.then
 }
 
-export function then(result, onFulfilled, onRejected) {
+// Fetching, Submitting, Collection using
+export function syncOrThen(result, onFulfilled, onRejected) {
   if (isThenable(result)) {
     return result.then(onFulfilled, onRejected)
   } else {
@@ -50,5 +51,3 @@ export function then(result, onFulfilled, onRejected) {
     }
   }
 }
-
-export default then

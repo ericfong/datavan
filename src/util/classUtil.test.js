@@ -1,4 +1,5 @@
-import { composeClass, isClass, LocalStorage, SubmittingCollection, FetchingCollection, Collection, KeyValueStore } from '..'
+import { composeClass, LocalStorage, SubmittingCollection, FetchingCollection, Collection, KeyValueStore } from '..'
+import { isClass } from './classUtil'
 
 function digProto(Class, num = 1) {
   if (num > 0) return digProto(Object.getPrototypeOf(Class), num - 1)

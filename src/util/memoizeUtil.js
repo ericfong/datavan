@@ -1,6 +1,5 @@
 import stringfy from 'fast-stable-stringify'
 
-
 function defaultStatesGetter() {
   return []
 }
@@ -11,6 +10,7 @@ function defaultEqualityCheck(a, b) {
   return a === b
 }
 
+// only Collection.js using this
 export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyGetter = defaultKeyGetter, equalityCheck = defaultEqualityCheck) {
   let lastStates = null
   const isEqualToLastState = (value, index) => equalityCheck(value, lastStates[index])
@@ -23,11 +23,7 @@ export function stateMemoizeTable(func, statesGetter = defaultStatesGetter, keyG
     const cacheKey = keyGetter(...args)
 
     let memory = memoizedFunc.memory
-    if (
-      lastStates === null ||
-      lastStates.length !== states.length ||
-      !states.every(isEqualToLastState)
-    ) {
+    if (lastStates === null || lastStates.length !== states.length || !states.every(isEqualToLastState)) {
       // if any states changed, clean all caches
       memory = memoizedFunc.memory = {}
     }

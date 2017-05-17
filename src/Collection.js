@@ -6,7 +6,7 @@ import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
 import { stateMemoizeTable } from './util/memoizeUtil'
-import { then } from './util/promiseUtil'
+import { syncOrThen } from './util/promiseUtil'
 import { DELETE_FROM_STORE } from './defineStore'
 
 function mongoToLodash(sort) {
@@ -73,7 +73,7 @@ export default class Collection extends KeyValueStore {
   }
 
   findOne(query, option) {
-    return then(this.find(query, { ...option, limit: 1 }), list => list[0])
+    return syncOrThen(this.find(query, { ...option, limit: 1 }), list => list[0])
   }
 
   search($search, option) {

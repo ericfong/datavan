@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import FetchingCollection from './FetchingCollection'
-import { then } from './util/promiseUtil'
+import { syncOrThen } from './util/promiseUtil'
 import { DELETE_FROM_STORE } from './defineStore'
 
 const deleteFromStoreFunc = () => DELETE_FROM_STORE
@@ -45,7 +45,7 @@ export default class SubmittingCollection extends FetchingCollection {
 
   submit(onSubmit = this.onSubmit) {
     const snapshotState = this.getStagingState()
-    return then(
+    return syncOrThen(
       onSubmit(snapshotState),
       docs => {
         if (docs !== false) {

@@ -1,0 +1,67 @@
+env:
+  browser: true
+  es6: true
+  jest: true
+  mocha: true
+  node: true
+extends:
+  - 'eslint:recommended'
+  - 'plugin:react/recommended'
+globals:
+  __DEV__: true
+parser: babel-eslint
+plugins:
+  - import
+  - react
+root: true
+rules:
+  angular/definedundefined: 0
+  comma-dangle:
+    - warn
+    - arrays: always-multiline
+      exports: always-multiline
+      functions: ignore
+      imports: always-multiline
+      objects: always-multiline
+  import/default: 2
+  import/export: 2
+  import/named: 2
+  import/newline-after-import: warn
+  import/no-unresolved:
+    - 2
+    - amd: true
+      commonjs: true
+  max-len:
+    - warn
+    - code: 160
+  no-console:
+    - warn
+    - allow:
+        - warn
+        - error
+  no-trailing-spaces: 1
+  no-unused-expressions: 1
+  no-unused-labels: 1
+  no-unused-vars: 1
+  prefer-const: 1
+  quotes:
+    - 1
+    - single
+  react/prop-types: 0
+  semi:
+    - 1
+    - never
+settings:
+  import/extensions:
+    - .js
+    - .jsx
+    - .json
+  import/resolver:
+    node:
+      extensions:
+        - .js
+        - .jsx
+        - .json
+      moduleDirectory:
+        - node_modules
+        - .

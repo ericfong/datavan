@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { isThenable, then } from './util/promiseUtil'
+import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection, { calcFindKey } from './Collection'
 
 export default class FetchingCollection extends Collection {
@@ -50,7 +50,7 @@ export default class FetchingCollection extends Collection {
         // console.log('find duringMapState', !duringMapState, result, super.find(query, option))
         if (!duringMapState && (option.load === 'reload' || option.load === 'load')) {
           // TODO compare local and remote result, drop if backend is removed
-          return then(result, () => super.find(query, option))
+          return syncOrThen(result, () => super.find(query, option))
         }
       }
     }
