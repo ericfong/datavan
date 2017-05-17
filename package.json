@@ -1,9 +1,8 @@
 {
   "scripts": {
     "build": "babel src --out-dir lib --ignore spec.js,test.js",
-    "prepublish": "rm -rf ./lib && npm run build",
+    "prepublish": "npm test && rm -rf ./lib && npm run build",
     "start": "npm run build -- --watch",
-    "mocha": "cross-env NODE_ENV=test mocha --recursive --compilers js:babel-core/register src/**/*.test.js",
     "test": "cross-env NODE_PATH=src jest"
   },
   "name": "datavan",
@@ -67,7 +66,6 @@
     "invariant": "^2.2.2",
     "jest": "^20.0.1",
     "jsdom": "^10.1.0",
-    "mocha": "^3.4.1",
     "react": "^15.5.4",
     "react-addons-test-utils": "^15.5.1",
     "react-dom": "^15.5.4",

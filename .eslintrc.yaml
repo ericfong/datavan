@@ -18,8 +18,6 @@ rules:
   angular/definedundefined: 0
   arrow-parens: 'off'
   class-methods-use-this: 'off'
-  consistent-return: 'off'
-  no-multi-assign: 'off'
   comma-dangle:
     - warn
     - arrays: always-multiline
@@ -27,6 +25,7 @@ rules:
       functions: ignore
       imports: always-multiline
       objects: always-multiline
+  consistent-return: 'off'
   import/default: 2
   import/export: 2
   import/named: 2
@@ -44,7 +43,9 @@ rules:
     - allow:
         - warn
         - error
+  no-multi-assign: 'off'
   no-param-reassign: 'off'
+  no-plusplus: 'off'
   no-trailing-spaces: 1
   no-underscore-dangle: 'off'
   no-unused-expressions: 1

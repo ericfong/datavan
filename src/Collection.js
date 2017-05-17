@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import stringfy from 'fast-stable-stringify'
 import mutateHelper from 'immutability-helper'
 import { defaultMemoize as reselectMemoize } from 'reselect'
 import sift from 'sift'
@@ -7,21 +6,8 @@ import sift from 'sift'
 import KeyValueStore from './KeyValueStore'
 import { stateMemoizeTable } from './util/memoizeUtil'
 import { syncOrThen } from './util/promiseUtil'
+import { normalizeQuery, calcFindKey, mongoToLodash, emptyResultArray } from './util/queryUtil'
 import { DELETE_FROM_STORE } from './defineStore'
-
-function mongoToLodash(sort) {
-  const fields = []
-  const orders = []
-  _.each(sort, (v, k) => {
-    fields.push(k)
-    orders.push(v < 0 ? 'desc' : 'asc')
-  })
-  return [fields, orders]
-}
-
-export function calcFindKey(query, option) {
-  return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy')])
-}
 
 export default class Collection extends KeyValueStore {
   _getStateArray = reselectMemoize(state => _.values(state))
@@ -30,11 +16,15 @@ export default class Collection extends KeyValueStore {
   }
 
   // internal _find, won't trigger re-fetch from backend
-  _find = stateMemoizeTable(
+  _findMem = stateMemoizeTable(
     // runner
     (state, query, option) => {
       if (_.isEmpty(query)) {
         return this._postFind(_.values(state), option)
+      }
+
+      if (Array.isArray(query)) {
+        return this._postFind(query.map(id => state[id]), option)
       }
 
       const result = this._findImplementation && this._findImplementation(state, query, option)
@@ -68,6 +58,14 @@ export default class Collection extends KeyValueStore {
     }
     return arr
   }
+
+  // query can be null OR Array of ids OR object of mongo query
+  _find(_query, option) {
+    const query = normalizeQuery(_query, this.idField)
+    if (!query) return emptyResultArray
+    return this._findMem(query, option)
+  }
+
   find(query, option) {
     return this._find(query, option)
   }
@@ -85,7 +83,7 @@ export default class Collection extends KeyValueStore {
   }
 
   genId() {
-    return 'tmp-' + Math.random()
+    return `tmp-${Math.random()}`
   }
 
   isLocalId(docId) {
@@ -120,14 +118,13 @@ export default class Collection extends KeyValueStore {
       })
       this.setAll(changes)
       return castedDocs
-    } else {
-      const doc = this.insertCast(docs)
-      if (!doc[idField]) {
-        doc[idField] = this.genId()
-      }
-      this.setAll({ [doc[idField]]: doc })
-      return doc
     }
+    const doc = this.insertCast(docs)
+    if (!doc[idField]) {
+      doc[idField] = this.genId()
+    }
+    this.setAll({ [doc[idField]]: doc })
+    return doc
   }
 
   update(query, update) {

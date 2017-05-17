@@ -17,7 +17,7 @@ function dbReducer(state, action) {
 function createCollection(definition, name) {
   let newObj
   if (isClass(definition)) {
-    newObj = new definition()
+    newObj = new definition() // eslint-disable-line
   } else if (typeof definition === 'function') {
     newObj = definition()
     // } else if (Array.isArray(definition)) {
@@ -75,14 +75,6 @@ export function collectionsEnhancer(definitions) {
     }
     function setContext(data) {
       return _.merge(ctx, data)
-    }
-
-    function getPromise() {
-      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
-      if (dispatchPromise) promises.push(dispatchPromise)
-      if (promises.length <= 0) return null
-      // TODO timeout or have a limit for recursive wait for promise
-      return Promise.all(promises).then(() => getPromise())
     }
 
     let newState
@@ -146,6 +138,14 @@ export function collectionsEnhancer(definitions) {
       collection._store = _store
       assignDependencies(collection, collections)
     })
+
+    function getPromise() {
+      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
+      if (dispatchPromise) promises.push(dispatchPromise)
+      if (promises.length <= 0) return null
+      // TODO timeout or have a limit for recursive wait for promise
+      return Promise.all(promises).then(() => getPromise())
+    }
 
     // new store object
     const newStore = {

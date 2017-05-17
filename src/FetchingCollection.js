@@ -1,7 +1,8 @@
 import _ from 'lodash'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
-import Collection, { calcFindKey } from './Collection'
+import Collection from './Collection'
+import { calcFindKey, normalizeQuery } from './util/queryUtil'
 
 export default class FetchingCollection extends Collection {
   // NOTE expecting overriding
@@ -23,24 +24,8 @@ export default class FetchingCollection extends Collection {
     return Array.isArray(matcher.$in) ? matcher.$in : [matcher]
   }
 
-  isValidFetchQuery(query) {
-    for (const key in query) {
-      const matcher = query[key]
-      if (key === this.idField) {
-        // if idField defined in query, must be truthly
-        if (!matcher) return false
-        if (matcher.$in && _.filter(_.compact(matcher.$in), id => !this.isLocalId(id)).length === 0) return false
-      } else if (matcher && matcher.$in) {
-        if (_.filter(matcher.$in, id => !this.isLocalId(id)).length === 0) {
-          return false
-        }
-      }
-    }
-    return true
-  }
-
   find(query, option = {}) {
-    if (this.onFetch && this.isValidFetchQuery(query)) {
+    if (this.onFetch && normalizeQuery(query, this.idField, this.isLocalId)) {
       // NOTE diff behavior for Sync and Async
       const cacheKey = this.calcFetchKey(query, option)
       if (this._shouldReload(cacheKey, option.load)) {
