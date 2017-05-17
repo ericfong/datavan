@@ -13,10 +13,10 @@ test('onSubmit', async () => {
         return false
       },
       onFetch(query) {
-        if (query && query.id) {
-          return Promise.resolve([{ id: 'u1', name: 'John' }])
+        if (Array.isArray(query)) {
+          return Promise.resolve(_.map(query, id => ({ id, name: 'John' })))
         }
-        return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
+        return Promise.resolve([{ id: 'u2', name: `${this.name} Eric` }])
       },
     }),
   })
@@ -44,7 +44,7 @@ test('onSubmit', async () => {
 
   // onSubmit with feedback
 
-  db.users.onSubmit = function(changes) {
+  db.users.onSubmit = changes => {
     lastSubmit = changes
     return _.reduce(
       changes,
@@ -69,10 +69,10 @@ test('basic', async () => {
     users: defineCollection({
       idField: 'id',
       onFetch(query) {
-        if (query && query.id) {
-          return Promise.resolve([{ id: 'u1', name: 'John' }])
+        if (Array.isArray(query)) {
+          return Promise.resolve(_.map(query, id => ({ id, name: 'John' })))
         }
-        return Promise.resolve([{ id: 'u2', name: this.name + ' Eric' }])
+        return Promise.resolve([{ id: 'u2', name: `${this.name} Eric` }])
       },
     }),
   })

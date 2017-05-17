@@ -40,6 +40,11 @@ export function normalizeQuery(query, idField, idExcluder) {
   return query
 }
 
+export function fetchIdInQuery(query, func) {
+  const id = query[0]
+  return { [id]: func(id) }
+}
+
 export function mongoToLodash(sort) {
   const fields = []
   const orders = []

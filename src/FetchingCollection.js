@@ -52,7 +52,7 @@ export default class FetchingCollection extends Collection {
           this._fetchByIdsDebounce()
         }
       } else {
-        this._doReload({ [this.idField]: id })
+        this._doReload([id])
       }
     }
     return super.get(id, option)
@@ -66,7 +66,7 @@ export default class FetchingCollection extends Collection {
     this._fetchByIdsPromise = Promise.all(promises)
       .then(() => {
         if (this._fetchIdArray.length > 0) {
-          return this._doReload({ [this.idField]: { $in: this._fetchIdArray } })
+          return this._doReload(this._fetchIdArray)
         }
       })
       .then(() => (this._fetchByIdsPromise = null))

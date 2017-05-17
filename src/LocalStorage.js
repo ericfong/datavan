@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import SubmittingCollection from './SubmittingCollection'
-import { fetchIdInQuery } from './util/fetchUtil'
+import { fetchIdInQuery } from './util/queryUtil'
 
 function parseJson(val) {
   try {
@@ -14,16 +14,15 @@ function parseJson(val) {
 // LocalStorage
 export default class LocalStorage extends SubmittingCollection {
   onFetch(query) {
-    return fetchIdInQuery(this.idField, query, id => parseJson(localStorage.getItem(id)))
+    return fetchIdInQuery(query, id => parseJson(localStorage.getItem(id)))
   }
 
   onSubmit(changes) {
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
         return localStorage.removeItem(k)
-      } else {
-        return localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
       }
+      return localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
     })
   }
 }
@@ -31,16 +30,15 @@ export default class LocalStorage extends SubmittingCollection {
 // SessionStorage
 export class SessionStorage extends SubmittingCollection {
   onFetch(query) {
-    return fetchIdInQuery(this.idField, query, id => parseJson(sessionStorage.getItem(id)))
+    return fetchIdInQuery(query, id => parseJson(sessionStorage.getItem(id)))
   }
 
   onSubmit(changes) {
     _.each(changes, (v, k) => {
       if (v === null || v === undefined) {
         return sessionStorage.removeItem(k)
-      } else {
-        return sessionStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
       }
+      return sessionStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v))
     })
   }
 }

@@ -4,7 +4,14 @@ import { defineStore, defineCollection, Searchable } from '.'
 
 global.__DEV__ = true
 
-const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [query._id])
+function getQueryIds(query, idField = '_id') {
+  if (Array.isArray(query)) return query
+  const queryId = query[idField]
+  if (queryId) {
+    if (Array.isArray(queryId.$in)) return queryId.$in
+    return [queryId]
+  }
+}
 
 test('sync get', async () => {
   const createStore = defineStore({
@@ -36,11 +43,7 @@ test('batch get failback to find', async () => {
       onFetch(query) {
         // console.log('onFetch', query)
         const ids = getQueryIds(query)
-        return Promise.resolve(
-          _.map(ids, _id => {
-            return { _id, name: 'Echo-' + _id }
-          })
-        )
+        return Promise.resolve(_.map(ids, _id => ({ _id, name: `Echo-${_id}` })))
       },
     }),
   })
@@ -56,7 +59,9 @@ test('batch get failback to find', async () => {
 })
 
 test('basic', async () => {
-  let calledSearch = 0, calledFind = 0, calledGet = 0
+  let calledSearch = 0
+  let calledFind = 0
+  let calledGet = 0
   const createStore = defineStore({
     users: defineCollection(
       {
@@ -65,10 +70,12 @@ test('basic', async () => {
           if (query) {
             if (query.$search) {
               ++calledSearch
-              return Promise.resolve([{ _id: 'u3', name: query.$search + ' Simon' }])
-            } else if (query._id) {
+              return Promise.resolve([{ _id: 'u3', name: `${query.$search} Simon` }])
+            }
+
+            const ids = getQueryIds(query)
+            if (ids) {
               ++calledGet
-              const ids = getQueryIds(query)
               // console.log('onFetch get', ids, calledGet)
               return Promise.resolve(
                 _.compact(
@@ -81,7 +88,7 @@ test('basic', async () => {
             }
           }
           ++calledFind
-          return Promise.resolve([{ _id: 'u2', name: this.name + ' Eric' }])
+          return Promise.resolve([{ _id: 'u2', name: `${this.name} Eric` }])
         },
       },
       Searchable

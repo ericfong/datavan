@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import SubmittingCollection from './SubmittingCollection'
-import { fetchIdInQuery } from './util/fetchUtil'
+import { fetchIdInQuery } from './util/queryUtil'
 
 // const DAY = 24 * 3600 * 1000
 
@@ -11,7 +11,7 @@ export default class Cookie extends SubmittingCollection {
   cookieConf = null
 
   onFetch(query) {
-    return fetchIdInQuery(this.idField, query, id => this.koaCtx.cookies.get(id))
+    return fetchIdInQuery(query, id => this.koaCtx.cookies.get(id))
   }
 
   onSubmit(changes) {
