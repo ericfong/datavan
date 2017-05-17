@@ -9,6 +9,14 @@ import { syncOrThen } from './util/promiseUtil'
 import { normalizeQuery, calcFindKey, mongoToLodash, emptyResultArray } from './util/queryUtil'
 import { DELETE_FROM_STORE } from './defineStore'
 
+function filterStateByIds(state, ids) {
+  return ids.reduce((result, id) => {
+    const doc = state[id]
+    if (doc) result.push(doc)
+    return result
+  }, [])
+}
+
 export default class Collection extends KeyValueStore {
   _getStateArray = reselectMemoize(state => _.values(state))
   getStateArray() {
@@ -24,11 +32,11 @@ export default class Collection extends KeyValueStore {
       }
 
       if (Array.isArray(query)) {
-        return this._postFind(query.map(id => state[id]), option)
+        return this._postFind(filterStateByIds(state, query), option)
       }
 
       const idQuery = query[this.idField]
-      const filteredState = idQuery && idQuery.$in ? idQuery.$in.map(id => state[id]) : state
+      const filteredState = idQuery && idQuery.$in ? filterStateByIds(state, idQuery.$in) : state
 
       const result = this._findImplementation && this._findImplementation(filteredState, query, option)
       if (result !== undefined) {
