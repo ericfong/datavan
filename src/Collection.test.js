@@ -6,7 +6,7 @@ it('query by array of ids', async () => {
   const createStore = defineStore({ users: Collection })
   const dv = createStore()
   const docs = dv.users.insert([{ name: 'A' }, { name: 'B' }])
-  expect(dv.users.find(_.map(docs, '_id'))).toEqual(docs)
+  expect(dv.users.find(_.map(docs, '_id'))).toEqual(_.sortBy(docs, '_id'))
 })
 
 it('insert', async () => {

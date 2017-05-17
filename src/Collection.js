@@ -27,12 +27,15 @@ export default class Collection extends KeyValueStore {
         return this._postFind(query.map(id => state[id]), option)
       }
 
-      const result = this._findImplementation && this._findImplementation(state, query, option)
+      const idQuery = query[this.idField]
+      const filteredState = idQuery && idQuery.$in ? idQuery.$in.map(id => state[id]) : state
+
+      const result = this._findImplementation && this._findImplementation(filteredState, query, option)
       if (result !== undefined) {
         return result
       }
 
-      return this._postFind(_.filter(state, sift(query)), option)
+      return this._postFind(_.filter(filteredState, sift(query)), option)
     },
     // get state
     () => [this.getState()],

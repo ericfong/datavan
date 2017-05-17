@@ -13,23 +13,28 @@ export function normalizeQuery(query, idField, idExcluder) {
   const entries = Object.entries(query)
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
-    if (matcher) {
-      if (matcher.$in) {
-        matcher.$in = _.sortedUniq(matcher.$in.sort())
-        if (matcher.$in.length === 0) {
-          return null
-        } else if (key === idField) {
-          // key=idField & _id.$in (id query muse be truthly)
-          matcher.$in = _.compact(matcher.$in)
-          if (idExcluder) {
-            matcher.$in = _.filter(matcher.$in, id => !idExcluder(id))
-          }
-          if (matcher.$in.length === 0) return null
-        }
+    if (key === idField) {
+      // key=idField, id(s) query muse be truthly
+      if (!matcher) {
+        return null
       }
-    } else if (key === idField) {
-      // key=idField & !id, id query muse be truthly
-      return null
+      if (typeof matcher === 'string') {
+        query[idField] = { $in: [matcher] }
+      } else if (matcher.$in) {
+        let ids = _.compact(_.sortedUniq(matcher.$in.sort()))
+        if (idExcluder) {
+          ids = _.filter(ids, id => !idExcluder(id))
+        }
+        if (ids.length === 0) {
+          return null
+        }
+        matcher.$in = ids
+      }
+    } else if (matcher && matcher.$in) {
+      matcher.$in = _.sortedUniq(matcher.$in.sort())
+      if (matcher.$in.length === 0) {
+        return null
+      }
     }
   }
   return query
