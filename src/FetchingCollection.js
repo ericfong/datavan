@@ -11,6 +11,7 @@ export default class FetchingCollection extends Collection {
   isAsyncFetch = false
 
   // TODO may need to pass _fetchTimes data from server to client
+  // fetchTime means start to fetch
   _fetchTimes = {}
   _fetchPromises = {}
 
@@ -92,36 +93,21 @@ export default class FetchingCollection extends Collection {
   }
 
   _doReload(query, option, cacheKey) {
-    let findingKey = cacheKey
-    if (this.isAsyncFetch) {
-      // is loading (promise exists but not deleted)
-      if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
-      const oldPromise = this._fetchPromises[findingKey]
-      if (oldPromise) {
-        console.warn('try to fetch same ajax query while old ajax call is running')
-        return oldPromise
-      }
-    }
-
     // NOTE should be able to handle Both Async and Sync onFetch
     const result = this.onFetch(query, option)
-
-    const fetchIsAsync = (this.isAsyncFetch = isThenable(result))
-    if (fetchIsAsync) {
-      // uniq promise
-      if (findingKey === undefined) findingKey = this.calcFetchKey(query, option)
+    this.isAsyncFetch = isThenable(result)
+    if (this.isAsyncFetch) {
+      const findingKey = cacheKey || this.calcFetchKey(query, option)
       const now = new Date()
-      // means start to fetch
       this._fetchTimes[findingKey] = now
-      // prevent fetch by ids again for some ids
+      // prevent fetch by ids again for same ids, so need to store _fetchTimes before async call done
       _.each(this._getQueryIds(query), id => (this._fetchTimes[id] = now))
 
-      // may not need promise anymore
-      const promiseTable = this._fetchPromises
-      promiseTable[findingKey] = result
+      const fetchPromises = this._fetchPromises
+      fetchPromises[findingKey] = result
       result
         .then(ret => {
-          delete promiseTable[findingKey]
+          delete fetchPromises[findingKey]
 
           if (_.isEmpty(ret)) {
             // force state change to ensure component known loading is done, but just load nothing
@@ -130,29 +116,20 @@ export default class FetchingCollection extends Collection {
             const changes = this.importAll(ret)
             // skip setAll overriding
             this._setAll(changes)
-            // store fetchTimes
-            if (changes) {
-              _.keys(changes).forEach(id => {
-                this._fetchTimes[id] = now
-              })
-            }
+            // store fetchTimes again for query return more docs that cannot extract via _getQueryIds
+            _.keys(changes).forEach(id => (this._fetchTimes[id] = now))
           }
-
-          // TODO compare local and remote result, drop if backend is removed
-          // should return the processed ret array instead?
           return ret
         })
         .catch(err => {
-          delete promiseTable[findingKey]
+          delete fetchPromises[findingKey]
           if (__DEV__) console.error(err)
           return Promise.reject(err)
         })
     } else {
-      // Async fetch result
-      // skip setAll
+      // Sync onFetch result (skip setAll which overrided by SubmittingCollection)
       this._setAll(this.importAll(result))
     }
-
     return result
   }
 
