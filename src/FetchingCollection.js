@@ -10,6 +10,7 @@ export default class FetchingCollection extends Collection {
   // calcFetchKey() {}
   isAsyncFetch = false
 
+  // TODO may need to pass _fetchTimes data from server to client
   _fetchTimes = {}
   _fetchPromises = {}
 
@@ -169,11 +170,29 @@ export default class FetchingCollection extends Collection {
       {}
     )
     // GC here
+    // TODO compare local and remote result, drop if backend is removed
     return changes
   }
 
   isTidy() {
     return true
+  }
+
+  reload(query, option) {
+    const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
+    const result = this._doReload(fetchQuery, option)
+    return syncOrThen(result, () => super.find(query, option))
+  }
+
+  load(query, option = {}) {
+    const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
+    // NOTE diff behavior for Sync and Async
+    const cacheKey = this.calcFetchKey(fetchQuery, option)
+    if (this._fetchTimes[cacheKey]) {
+      const result = this._doReload(fetchQuery, option, cacheKey)
+      return syncOrThen(result, () => super.find(query, option))
+    }
+    return super.find(query, option)
   }
 
   getPromise() {
