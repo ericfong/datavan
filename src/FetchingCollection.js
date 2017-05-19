@@ -25,17 +25,19 @@ export default class FetchingCollection extends Collection {
   }
 
   find(query, option = {}) {
-    if (this.onFetch && normalizeQuery(query, this.idField, this.isLocalId)) {
-      // NOTE diff behavior for Sync and Async
-      const cacheKey = this.calcFetchKey(query, option)
-      if (this._shouldReload(cacheKey, option.load)) {
-        const result = this._doReload(query, option, cacheKey)
+    if (this.onFetch) {
+      const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
+      if (fetchQuery) {
+        // NOTE diff behavior for Sync and Async
+        const cacheKey = this.calcFetchKey(fetchQuery, option)
+        if (this._shouldReload(cacheKey, option.load)) {
+          const result = this._doReload(fetchQuery, option, cacheKey)
 
-        const { duringMapState } = this._store.getContext()
-        // console.log('find duringMapState', !duringMapState, result, super.find(query, option))
-        if (!duringMapState && (option.load === 'reload' || option.load === 'load')) {
-          // TODO compare local and remote result, drop if backend is removed
-          return syncOrThen(result, () => super.find(query, option))
+          const { duringMapState } = this._store.getContext()
+          if (!duringMapState && (option.load === 'reload' || option.load === 'load')) {
+            // TODO compare local and remote result, drop if backend is removed
+            return syncOrThen(result, () => super.find(query, option))
+          }
         }
       }
     }

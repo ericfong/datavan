@@ -10,6 +10,7 @@ export function normalizeQuery(query, idField, idExcluder) {
     return _.sortedUniq(query.sort())
   }
 
+  const norQuery = { ...query }
   const entries = Object.entries(query)
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
@@ -19,7 +20,7 @@ export function normalizeQuery(query, idField, idExcluder) {
         return null
       }
       if (typeof matcher === 'string') {
-        query[idField] = { $in: [matcher] }
+        norQuery[idField] = { $in: [matcher] }
       } else if (matcher.$in) {
         let ids = _.compact(_.sortedUniq(matcher.$in.sort()))
         if (idExcluder) {
@@ -28,16 +29,17 @@ export function normalizeQuery(query, idField, idExcluder) {
         if (ids.length === 0) {
           return null
         }
-        matcher.$in = ids
+        norQuery[key] = { $in: ids }
       }
     } else if (matcher && matcher.$in) {
-      matcher.$in = _.sortedUniq(matcher.$in.sort())
-      if (matcher.$in.length === 0) {
+      const $in = _.sortedUniq(matcher.$in.sort())
+      if ($in.length === 0) {
         return null
       }
+      norQuery[key] = { $in }
     }
   }
-  return query
+  return norQuery
 }
 
 export function fetchIdInQuery(query, func) {
