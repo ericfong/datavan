@@ -27,6 +27,9 @@ export default class FetchingCollection extends Collection {
   }
 
   find(query, option = {}) {
+    if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
+      console.error(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
+    }
     if (this.onFetch) {
       const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
       if (fetchQuery) {
@@ -34,14 +37,8 @@ export default class FetchingCollection extends Collection {
           // NOTE diff behavior for Sync and Async
           const cacheKey = this.calcFetchKey(fetchQuery, option)
           // TODO make sure only background-reload in mapState is good
-          // this._store.getContext().duringMapState &&
-          if (this._shouldReload(cacheKey, option.load)) {
-            const promise = this._doReload(fetchQuery, option, cacheKey)
-
-            if (option.load === 'reload' || option.load === 'load') {
-              if (__DEV__) console.error(`Deprecated. Please use Collection.load() or reload() instead of find(query, {option: ${option.load}})`)
-              return syncOrThen(promise, () => super.find(query, option))
-            }
+          if (this._store.getContext().duringMapState && this._shouldReload(cacheKey, option.load)) {
+            this._doReload(fetchQuery, option, cacheKey)
           }
         } else {
           this._doReload(fetchQuery, option)
@@ -53,7 +50,7 @@ export default class FetchingCollection extends Collection {
 
   get(id, option = {}) {
     if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
-      console.warn(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
+      console.error(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
     }
     if (this.onFetch && id && !this.isLocalId(id)) {
       // NOTE diff behavior for Sync and Async
@@ -88,17 +85,12 @@ export default class FetchingCollection extends Collection {
   }
 
   _shouldReload(cacheKey, mode) {
-    if (mode === 'local') return false
     const fetchTime = this._fetchTimes[cacheKey]
-
-    // console.log('this._store.getContext().duringServerPreload', this._store.getContext().duringServerPreload, mode === 'preload' && !fetchTime)
     if (this._store.getContext().duringServerPreload) {
       // duringServerPreload, only load resource that is mark as preload and preload only one time
       return mode === 'preload' && !fetchTime
     }
-
-    // TODO CronJob to clear _fetchTimes & cached values
-    return mode === 'reload' || !fetchTime
+    return !fetchTime
   }
 
   _doReload(query, option, cacheKey) {
@@ -156,7 +148,7 @@ export default class FetchingCollection extends Collection {
       },
       {}
     )
-    // GC here
+    // TODO CronJob to clear _fetchTimes & cached values
     // TODO compare local and remote result, drop if backend is removed
     return changes
   }
