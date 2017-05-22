@@ -159,16 +159,21 @@ export default class FetchingCollection extends Collection {
 
   reload(query, option) {
     const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-    const result = this._doReload(fetchQuery, option)
-    return syncOrThen(result, () => super.find(query, option))
+    if (fetchQuery) {
+      const result = this._doReload(fetchQuery, option)
+      return syncOrThen(result, () => super.find(query, option))
+    }
+    return Promise.resolve(super.find(query, option))
   }
 
   load(query, option = {}) {
     const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-    const cacheKey = this.calcFetchKey(fetchQuery, option)
-    if (!this._fetchTimes[cacheKey]) {
-      const result = this._doReload(fetchQuery, option, cacheKey)
-      return syncOrThen(result, () => super.find(query, option))
+    if (fetchQuery) {
+      const cacheKey = this.calcFetchKey(fetchQuery, option)
+      if (!this._fetchTimes[cacheKey]) {
+        const result = this._doReload(fetchQuery, option, cacheKey)
+        return syncOrThen(result, () => super.find(query, option))
+      }
     }
     return Promise.resolve(super.find(query, option))
   }
