@@ -85,6 +85,7 @@ export default class Collection extends KeyValueStore {
     return syncOrThen(this.find(query, { ...option, limit: 1 }), list => list[0])
   }
 
+  // TODO consider remove this to favour load() and reload() ???
   search($search, option) {
     return this.find({ $search }, option)
   }

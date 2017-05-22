@@ -24,6 +24,7 @@ test('sync get', async () => {
     }),
   })
   const db = createStore()
+  db.setContext({ duringMapState: false })
 
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(db.users.get('2')).toEqual({ _id: '2', name: 'Echo-2' })
@@ -51,8 +52,8 @@ test('batch get failback to find', async () => {
   db.setContext({ duringMapState: false })
 
   db.users.get('1')
-  const p1 = db.users.findOne({ _id: '2' }, { load: 'load' })
-  const p2 = db.users.findOne({ _id: '3' }, { load: 'reload' })
+  const p1 = db.users.load({ _id: '2' }).then(r => r[0])
+  const p2 = db.users.reload(['3']).then(r => r[0])
   await db.users.getPromise()
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(await Promise.all([p1, p2])).toEqual([{ _id: '2', name: 'Echo-2' }, { _id: '3', name: 'Echo-3' }])
@@ -116,9 +117,10 @@ test('basic', async () => {
     { _id: 'u3', name: 'hi Simon' },
   ])
 
-  // won't affect calledGet, because search or find will fill individual cacheTimes
   expect(calledGet).toBe(1)
-  store.users.get('u3', { load: 'load' })
+  // won't affect calledGet, because search or find will fill individual cacheTimes
+  store.users.get('u3')
+  await store.getPromise()
   expect(calledGet).toBe(1)
 
   // load something missing
@@ -127,7 +129,9 @@ test('basic', async () => {
   expect(calledGet).toBe(2)
 
   // load local won't affect
-  store.users.get('u5', { load: 'local' })
+  store.setContext({ duringMapState: false })
+  store.users.get('u5')
+  store.setContext({ duringMapState: true })
   expect(calledGet).toBe(2)
 
   expect(calledSearch).toBe(1)

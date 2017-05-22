@@ -30,16 +30,21 @@ export default class FetchingCollection extends Collection {
     if (this.onFetch) {
       const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
       if (fetchQuery) {
-        // NOTE diff behavior for Sync and Async
-        const cacheKey = this.calcFetchKey(fetchQuery, option)
-        if (this._shouldReload(cacheKey, option.load)) {
-          const result = this._doReload(fetchQuery, option, cacheKey)
+        if (this.isAsyncFetch) {
+          // NOTE diff behavior for Sync and Async
+          const cacheKey = this.calcFetchKey(fetchQuery, option)
+          // TODO make sure only background-reload in mapState is good
+          // this._store.getContext().duringMapState &&
+          if (this._shouldReload(cacheKey, option.load)) {
+            const promise = this._doReload(fetchQuery, option, cacheKey)
 
-          const { duringMapState } = this._store.getContext()
-          if (!duringMapState && (option.load === 'reload' || option.load === 'load')) {
-            // TODO compare local and remote result, drop if backend is removed
-            return syncOrThen(result, () => super.find(query, option))
+            if (option.load === 'reload' || option.load === 'load') {
+              if (__DEV__) console.error(`Deprecated. Please use Collection.load() or reload() instead of find(query, {option: ${option.load}})`)
+              return syncOrThen(promise, () => super.find(query, option))
+            }
           }
+        } else {
+          this._doReload(fetchQuery, option)
         }
       }
     }
@@ -47,10 +52,14 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id, option = {}) {
-    if (this.onFetch) {
+    if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
+      console.warn(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
+    }
+    if (this.onFetch && id && !this.isLocalId(id)) {
       // NOTE diff behavior for Sync and Async
       if (this.isAsyncFetch) {
-        if (id && !this.isLocalId(id) && this._shouldReload(id, option.load)) {
+        // TODO make sure only background-reload in mapState is good
+        if (this._store.getContext().duringMapState && this._shouldReload(id, option.load)) {
           // Async (batch ids in here)
           this._fetchIdTable[id] = 1
           this._fetchByIdsDebounce()
@@ -113,6 +122,7 @@ export default class FetchingCollection extends Collection {
             // force state change to ensure component known loading is done, but just load nothing
             this._store.dispatchNow()
           } else {
+            // TODO what about ret is not collection of items, onFetch should call importAll directly?
             const changes = this.importAll(ret)
             // skip setAll overriding
             this._setAll(changes)
@@ -163,13 +173,12 @@ export default class FetchingCollection extends Collection {
 
   load(query, option = {}) {
     const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-    // NOTE diff behavior for Sync and Async
     const cacheKey = this.calcFetchKey(fetchQuery, option)
-    if (this._fetchTimes[cacheKey]) {
+    if (!this._fetchTimes[cacheKey]) {
       const result = this._doReload(fetchQuery, option, cacheKey)
       return syncOrThen(result, () => super.find(query, option))
     }
-    return super.find(query, option)
+    return Promise.resolve(super.find(query, option))
   }
 
   getPromise() {
@@ -177,10 +186,10 @@ export default class FetchingCollection extends Collection {
     if (this._fetchByIdsPromise) promises.push(this._fetchByIdsPromise)
     const superPromise = super.getPromise && super.getPromise()
     if (superPromise) promises.push(superPromise)
-    // console.log('getPromise()', _.values(this._fetchPromises), this._fetchByIdsPromise, superPromise)
     return promises.length > 0 ? Promise.all(promises) : null
   }
 
+  // isFetching state should be stored, so change in isFetching state will cause a dispatch
   isFetching() {
     return !!this._fetchByIdsPromise || Object.keys(this._fetchPromises).length > 0
   }
@@ -188,6 +197,6 @@ export default class FetchingCollection extends Collection {
   invalidate() {
     if (super.invalidate) super.invalidate()
     this._fetchTimes = {}
-    // NOTE Fetcher should combine with Stage, so no local changes will go to Fetcher wrapping collection
+    // FIXME drop all data that is NOT dirty
   }
 }

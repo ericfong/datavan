@@ -1,8 +1,9 @@
+/* eslint-disable react/jsx-filename-extension */
 import _ from 'lodash'
 import React from 'react'
 import { mount, render } from 'enzyme'
 
-import './dev-tools/test-setup'
+import '../tool/test-setup'
 import { defineStore, defineCollection } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
@@ -17,10 +18,7 @@ test('server rendering', async () => {
         if (query && query._id) {
           const ids = getQueryIds(query)
           return Promise.resolve(
-            _.map(ids, _id => {
-              // console.log('onFetch done', {_id, name: 'Echo-' + _id})
-              return { _id, name: _.toUpper(_id), friendId: 'u1' }
-            })
+            _.map(ids, _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })) // console.log('onFetch done', {_id, name: 'Echo-' + _id})
           )
         }
         return Promise.resolve([])
@@ -44,9 +42,7 @@ test('server rendering', async () => {
   })
 
   // server side render
-  const wrapper = await store.serverRender(() => {
-    return render(<Provider store={store}><FriendComp /></Provider>)
-  })
+  const wrapper = await store.serverRender(() => render(<Provider store={store}><FriendComp /></Provider>))
   expect(wrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
 
   // transfer data to client
@@ -71,18 +67,14 @@ it('basic', async () => {
 
   let lastClickValue
   const UserComp = connect(
-    store => {
-      return {
-        user1: store.users.get('u1'),
-      }
-    },
-    store => {
-      return {
-        onClick() {
-          lastClickValue = store.users.get('u1')
-        },
-      }
-    }
+    dv => ({
+      user1: dv.users.get('u1'),
+    }),
+    dv => ({
+      onClick() {
+        lastClickValue = dv.users.get('u1')
+      },
+    })
   )(props => {
     props.onClick()
     return <span>{props.user1}</span>
@@ -108,14 +100,12 @@ it('same state', async () => {
   store.users.set('u1', 'user 1 name!!')
 
   let runTime = 0
-  const UserComp = connect(store => {
+  const UserComp = connect(dv => {
     runTime++
     return {
-      user1: store.users.get('u1'),
+      user1: dv.users.get('u1'),
     }
-  })(props => {
-    return <span>{props.user1}</span>
-  })
+  })(props => <span>{props.user1}</span>)
   const wrapper = mount(
     <Provider store={store}>
       <UserComp />

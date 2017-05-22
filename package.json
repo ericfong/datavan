@@ -15,6 +15,7 @@
     "lib": "./lib"
   },
   "jest": {
+    "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/src"

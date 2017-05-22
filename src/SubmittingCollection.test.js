@@ -77,6 +77,7 @@ test('basic', async () => {
     }),
   })
   const db = createStore()
+  db.setContext({ duringMapState: true })
 
   db.users.insert({ name: 'Apple' })
   db.users.insert({ name: 'Car' })
