@@ -65,6 +65,8 @@ export default class Collection extends KeyValueStore {
         arr = _.keyBy(arr, option.keyBy)
       } else if (option.groupBy) {
         arr = _.groupBy(arr, option.groupBy)
+      } else if (option.map) {
+        arr = _.map(arr, option.map)
       }
     }
     return arr

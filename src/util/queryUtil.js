@@ -58,7 +58,7 @@ export function mongoToLodash(sort) {
 }
 
 export function calcFindKey(query, option) {
-  return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy')])
+  return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
 }
 
 export const emptyResultArray = []
