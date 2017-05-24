@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import { DELETE_FROM_STORE } from './defineStore'
+
 export default class KeyValueStore {
   preloadStoreState(preloadedState) {
     preloadedState[this.name] = _.mapValues(preloadedState[this.name], doc => this.cast(doc))
@@ -30,6 +32,10 @@ export default class KeyValueStore {
 
   set(id, value) {
     this.setAll({ [id]: value })
+  }
+
+  del(id) {
+    this.setAll({ [id]: DELETE_FROM_STORE })
   }
 
   cast(v) {
