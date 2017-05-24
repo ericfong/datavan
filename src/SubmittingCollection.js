@@ -58,15 +58,14 @@ export default class SubmittingCollection extends FetchingCollection {
 
           if (docs) {
             // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
-            const thisCollState = (feedbackMutation[this.name] = { ...removes })
+            this._setAll(removes)
 
             // import docs changes
             if (docs) {
-              Object.assign(thisCollState, this.importAll(docs))
+              this.importAll(docs)
             }
           }
 
-          // console.log('submit result', docs, feedbackMutation)
           if (this._store.addChanges(feedbackMutation)) {
             this._store.dispatchDebounce()
           }

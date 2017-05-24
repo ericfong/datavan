@@ -111,15 +111,11 @@ export default class FetchingCollection extends Collection {
           delete fetchPromises[findingKey]
 
           if (_.isEmpty(ret)) {
-            // force state change to ensure component known loading is done, but just load nothing
+            // TODO add isFetching to state
             this._store.dispatchNow()
           } else {
-            // TODO what about ret is not collection of items, onFetch should call importAll directly?
-            const changes = this.importAll(ret)
-            // skip setAll overriding
-            this._setAll(changes)
-            // store fetchTimes again for query return more docs that cannot extract via _getQueryIds
-            _.keys(changes).forEach(id => (this._fetchTimes[id] = now))
+            // NOTE onFetch may call importAll directly. One ajax call contains few collections data
+            this.importAll(ret)
           }
           return ret
         })
@@ -128,9 +124,9 @@ export default class FetchingCollection extends Collection {
           if (__DEV__) console.error(err)
           return Promise.reject(err)
         })
-    } else {
-      // Sync onFetch result (skip setAll which overrided by SubmittingCollection)
-      this._setAll(this.importAll(result))
+    } else if (result) {
+      // Sync onFetch result
+      this.importAll(result)
     }
     return result
   }
@@ -148,8 +144,19 @@ export default class FetchingCollection extends Collection {
       },
       {}
     )
-    // TODO CronJob to clear _fetchTimes & cached values
+
+    if (this.isAsyncFetch) {
+      // set fetchTimes one-more for onFetch return more docs that cannot extract via _getQueryIds
+      // also prevent GC
+      const now = new Date()
+      _.keys(changes).forEach(id => (this._fetchTimes[id] = now))
+    }
+
     // TODO compare local and remote result, drop if backend is removed
+    // TODO CronJob to clear _fetchTimes & cached values
+
+    // skip setAll SubmittingCollection overriding
+    this._setAll(changes)
     return changes
   }
 
