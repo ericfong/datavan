@@ -2,14 +2,14 @@ import _ from 'lodash'
 import { createStore, compose } from 'redux'
 
 import { isClass } from './util/classUtil'
+import { mergeToStore } from './util/mutateUtil'
 
-const REPLACE = 'REPLACE'
-export const DELETE_FROM_STORE = 'DELETE_FROM_STORE'
+const DV_MUTATE = 'DV_MUTATE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
 function dbReducer(state, action) {
-  if (action.type === REPLACE) {
-    return action.state
+  if (action.type === DV_MUTATE) {
+    return mergeToStore(state, action.collections)
   }
   return state
 }
@@ -55,87 +55,43 @@ function assignDependencies(source, slices) {
 export function collectionsEnhancer(definitions) {
   const { enhancers, ...collectionDefinitions } = definitions
   const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
-    // create collections and fill preloadedState
-    const collections = _.mapValues(collectionDefinitions, (definition, name) => {
-      const collection = createCollection(definition, name)
-      // preload Store State
-      if (!preloadedState[name]) preloadedState[name] = {}
-      if (collection.preloadStoreState) collection.preloadStoreState(preloadedState)
-      return collection
-    })
+    // create collections
+    const collections = _.mapValues(collectionDefinitions, createCollection)
 
     // createStore
     const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
     const baseStore = _createStore(_reducer, preloadedState, enhancer)
 
-    // context
-    const ctx = {}
-    function getContext() {
-      return ctx
-    }
-    function setContext(data) {
-      return _.merge(ctx, data)
-    }
-
-    let newState
+    // promise for debounce
     let dispatchPromise
-    function getCollectionsState() {
-      return newState || baseStore.getState()
-    }
-    function replaceStoreState(state) {
-      baseStore.dispatch({ type: REPLACE, state })
-    }
-    function dispatchNow() {
-      replaceStoreState(getCollectionsState())
+
+    // things need to pass into collections
+    const context = {}
+    function onChange() {
+      baseStore.dispatch({ type: DV_MUTATE, collections })
       dispatchPromise = null
     }
-
-    // only expose few funcs, so collections will be less depend on store
-    const _store = {
-      getContext,
-      getState: getCollectionsState,
-      addChanges(allChanges) {
-        if (!allChanges || Object.keys(allChanges).length === 0) return false
-        newState = Object.assign({}, getCollectionsState())
-        let hasChange = false
-
-        for (const collName in allChanges) {
-          const changes = allChanges[collName]
-          if (!changes || Object.keys(changes).length === 0) continue
-          const ourColl = (newState[collName] = Object.assign({}, newState[collName]))
-
-          for (const key in changes) {
-            const newValue = changes[key]
-            const oldValue = ourColl[key]
-            if (newValue === DELETE_FROM_STORE) {
-              if (key in ourColl) {
-                delete ourColl[key]
-                hasChange = true
-              }
-            } else if (oldValue !== newValue) {
-              ourColl[key] = newValue
-              hasChange = true
-            }
-          }
-        }
-
-        return hasChange
-      },
-      dispatchNow,
-      // TODO should use Promise to debounce
-      dispatchDebounce() {
-        if (dispatchPromise) return dispatchPromise
-        const curP = (dispatchPromise = new Promise(resolve =>
-          setTimeout(() => {
-            if (curP === dispatchPromise) dispatchNow()
-            resolve()
-          })
-        ))
-      },
+    function onChangeDebounce() {
+      if (dispatchPromise) return dispatchPromise
+      const curP = (dispatchPromise = new Promise(resolve =>
+        setTimeout(() => {
+          if (curP === dispatchPromise) onChange()
+          resolve()
+        })
+      ))
+      return curP
     }
-    _.each(collections, collection => {
-      // inject store callback functions into slice
-      collection._store = _store
+    const passIntoCollections = { context, onChange, onChangeDebounce }
+
+    _.each(collections, (collection, name) => {
+      const preloadCollState = preloadedState[name]
+      if (preloadCollState) {
+        collection.importPreload(preloadCollState)
+      }
+
+      // pass functions into collection
+      Object.assign(collection, passIntoCollections)
+
       assignDependencies(collection, collections)
     })
 
@@ -149,6 +105,7 @@ export function collectionsEnhancer(definitions) {
 
     // new store object
     const newStore = {
+      ...collections,
       ...baseStore,
       dispatch(action) {
         // HACK to return whole store object for connect to get connections
@@ -160,14 +117,13 @@ export function collectionsEnhancer(definitions) {
       },
 
       definitions,
-      collections,
 
-      getContext,
-      setContext,
+      context,
       getPromise,
 
       serverRender(renderCallback) {
-        setContext({ duringServerPreload: true })
+        context.duringServerPreload = true
+
         const output = renderCallback()
 
         // recursive renderCallback & promise.then (instead of recursive this.wait())
@@ -178,26 +134,17 @@ export function collectionsEnhancer(definitions) {
           })
         }
 
-        setContext({ duringServerPreload: false })
+        context.duringServerPreload = false
         return output
       },
 
       invalidate() {
-        newState = {}
-        _.each(collections, (coll, name) => {
-          if (coll.invalidate) {
-            coll.invalidate()
-            newState[name] = {}
-          }
+        _.each(collections, coll => {
+          if (coll.invalidate) coll.invalidate()
         })
-        replaceStoreState(newState)
+        onChange()
       },
     }
-
-    // HACK for people who directly access store
-    // NOTE connect should use collections ONLY
-    _.defaults(newStore, collections)
-
     return newStore
   }
 

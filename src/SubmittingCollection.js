@@ -2,37 +2,32 @@ import _ from 'lodash'
 
 import FetchingCollection from './FetchingCollection'
 import { syncOrThen } from './util/promiseUtil'
-import { DELETE_FROM_STORE } from './defineStore'
 
-const deleteFromStoreFunc = () => DELETE_FROM_STORE
+const setUndefinedFunc = () => undefined
 
 export default class SubmittingCollection extends FetchingCollection {
   // NOTE expecting functions
   // onSubmit() {}
 
-  submittingTarget = '_staging'
+  constructor() {
+    super()
+    this.state.submits = {}
+  }
 
-  preloadStoreState(preloadedState) {
-    if (super.preloadStoreState) super.preloadStoreState(preloadedState)
-    if (!preloadedState[this.name + this.submittingTarget]) {
-      preloadedState[this.name + this.submittingTarget] = {}
-    }
+  importPreload(preloadedState) {
+    super.importPreload(preloadedState)
+    this.state.submits = this.state.submits ? _.mapValues(this.state.submits, this.cast) : {}
   }
 
   getStagingState() {
-    return this._store.getState()[this.name + this.submittingTarget]
+    return this.state.submits
   }
 
   setAll(changes) {
     if (this.onFetch) {
-      const allChanges = {
-        [this.name]: changes,
-        // convert DELETE_FROM_STORE to undefined in staging, so that undefined will be Dirty
-        [this.name + this.submittingTarget]: _.mapValues(changes, change => (change === DELETE_FROM_STORE ? undefined : change)),
-      }
-      if (this._store.addChanges(allChanges)) {
-        this._store.dispatchNow()
-      }
+      changes.submits = changes.byId
+      super.setAll(changes)
+
       if (this.onSubmit) this.submit()
     } else {
       super.setAll(changes)
@@ -40,7 +35,8 @@ export default class SubmittingCollection extends FetchingCollection {
   }
 
   isTidy(key) {
-    return !(key in this.getStagingState())
+    // return !(key in this.getStagingState())
+    return this.getStagingState()[key] === undefined
   }
 
   submit(onSubmit = this.onSubmit) {
@@ -52,13 +48,11 @@ export default class SubmittingCollection extends FetchingCollection {
           // return === false means don't consider current staging is submitted
 
           // clean snapshotState TODO check NOT mutated during HTTP POST
-          const removes = _.mapValues(snapshotState, deleteFromStoreFunc)
-          const feedbackMutation = {}
-          feedbackMutation[this.name + this.submittingTarget] = removes
+          const removes = _.mapValues(snapshotState, setUndefinedFunc)
 
           if (docs) {
             // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
-            this._setAll(removes)
+            this._setAll({ byId: removes })
 
             // import docs changes
             if (docs) {
@@ -66,9 +60,7 @@ export default class SubmittingCollection extends FetchingCollection {
             }
           }
 
-          if (this._store.addChanges(feedbackMutation)) {
-            this._store.dispatchDebounce()
-          }
+          this._setAll({ submits: removes })
         }
         return docs
       },

@@ -76,21 +76,21 @@ test('basic', async () => {
       },
     }),
   })
-  const db = createStore()
-  db.setContext({ duringMapState: true })
+  const dv = createStore()
+  dv.context.duringMapState = true
 
-  db.users.insert({ name: 'Apple' })
-  db.users.insert({ name: 'Car' })
-  expect(_.map(db.users.getState(), 'name')).toEqual(['Apple', 'Car'])
-  expect(_.map(db.users.getStagingState(), 'name')).toEqual(['Apple', 'Car'])
+  dv.users.insert({ name: 'Apple' })
+  dv.users.insert({ name: 'Car' })
+  expect(_.map(dv.users.getState(), 'name')).toEqual(['Apple', 'Car'])
+  expect(_.map(dv.users.getStagingState(), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
-  const car = db.users.findOne({ name: 'Car' })
-  db.users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
-  expect(_.map(db.users.getStagingState(), 'name')).toEqual(['Apple', 'Car 2'])
+  const car = dv.users.findOne({ name: 'Car' })
+  dv.users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
+  expect(_.map(dv.users.getStagingState(), 'name')).toEqual(['Apple', 'Car 2'])
 
   // mix data from server
-  db.users.get('u1')
-  await db.getPromise()
-  expect(_.map(db.users.getState(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
+  dv.users.get('u1')
+  await dv.getPromise()
+  expect(_.map(dv.users.getState(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })

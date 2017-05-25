@@ -15,7 +15,7 @@ it('basic', async () => {
     users: LocalStorage,
   })
   const db1 = createStore()
-  db1.setContext({ duringMapState: true })
+  db1.context.duringMapState = true
 
   expect(db1.users.get('u1')).toBe(undefined)
   db1.users.set('u1', 'hi')
@@ -23,7 +23,7 @@ it('basic', async () => {
 
   // should access global localStorage
   const db2 = createStore()
-  db2.setContext({ duringMapState: true })
+  db1.context.duringMapState = true
   expect(db2.users.get('u1')).toBe('hi')
   db2.users.set('u1', 'world')
 

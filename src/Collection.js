@@ -7,7 +7,6 @@ import KeyValueStore from './KeyValueStore'
 import { stateMemoizeTable } from './util/memoizeUtil'
 import { syncOrThen } from './util/promiseUtil'
 import { normalizeQuery, calcFindKey, mongoToLodash, emptyResultArray } from './util/queryUtil'
-import { DELETE_FROM_STORE } from './defineStore'
 
 function filterStateByIds(state, ids) {
   return ids.reduce((result, id) => {
@@ -106,64 +105,62 @@ export default class Collection extends KeyValueStore {
 
   set(id, value) {
     if (typeof id === 'object') {
-      super.set(id[this.idField], this.insertCast(id))
+      const castedDoc = this.cast(id)
+      super.set(castedDoc[this.idField], castedDoc)
     } else {
-      super.set(id, this.insertCast(value))
+      super.set(id, this.cast(value))
     }
   }
 
   idField = '_id'
 
-  insertCast(doc) {
-    return this.cast(doc)
-  }
-
-  insert(docs) {
+  insert(_docs) {
+    const inputIsArray = Array.isArray(_docs)
+    const docs = inputIsArray ? _docs : [_docs]
     const idField = this.idField
-    if (Array.isArray(docs)) {
-      const changes = {}
-      const castedDocs = _.map(docs, d => {
-        const castedDoc = this.insertCast(d)
-        if (!castedDoc[idField]) {
-          castedDoc[idField] = this.genId()
-        }
-        changes[castedDoc[idField]] = castedDoc
-        return castedDoc
-      })
-      this.setAll(changes)
-      return castedDocs
-    }
-    const doc = this.insertCast(docs)
-    if (!doc[idField]) {
-      doc[idField] = this.genId()
-    }
-    this.setAll({ [doc[idField]]: doc })
-    return doc
+
+    const changes = {}
+    const castedDocs = _.map(docs, d => {
+      const castedDoc = this.cast(d)
+      let id = castedDoc[idField]
+      if (!id) {
+        id = castedDoc[idField] = this.genId()
+      }
+      changes[id] = castedDoc
+      return castedDoc
+    })
+    this.setAll({ byId: changes })
+
+    return inputIsArray ? castedDocs : castedDocs[0]
   }
 
   update(query, update) {
+    const oldDocs = this._find(query)
     // internal _find, won't trigger re-fetch from backend
+    const change = {}
     const idField = this.idField
-    const changes = {}
-    _.each(this._find(query), doc => {
+    _.each(oldDocs, doc => {
       // TODO use mongo operators like $set, $push...
       const newDoc = mutateHelper(doc, update)
-      changes[doc[idField]] = DELETE_FROM_STORE
+
+      // delete and set the newDoc with new id
+      change[doc[idField]] = undefined
       if (newDoc) {
-        changes[newDoc[idField]] = newDoc
+        change[newDoc[idField]] = newDoc
       }
     })
-    this.setAll(changes)
-    return changes
+    this.setAll({ byId: change })
+    return oldDocs
   }
 
   remove(query) {
+    const removedDocs = this._find(query)
+    const change = {}
     const idField = this.idField
-    const changes = {}
-    _.each(this._find(query), doc => {
-      changes[doc[idField]] = DELETE_FROM_STORE
+    _.each(removedDocs, doc => {
+      change[doc[idField]] = undefined
     })
-    this.setAll(changes)
-    return changes
+    this.setAll({ byId: change })
+    return removedDocs
   }
 }

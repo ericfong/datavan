@@ -1,7 +1,9 @@
-import mutate from 'immutability-helper'
+import _ from 'lodash'
+import mutateHelper from 'immutability-helper'
 
 import { defineStore } from '.'
 import KeyValueStore from './KeyValueStore'
+import { mergeToStore } from './util/mutateUtil'
 
 test('get & set', async () => {
   const createStore = defineStore({
@@ -21,7 +23,7 @@ test('syntax', async () => {
         return ' I am first layer draft'
       },
       get() {
-        return this.users.get() + ' x' + this.draft()
+        return `${this.users.get()} x${this.draft()}`
       },
     },
     users: {
@@ -58,6 +60,20 @@ test('syntax', async () => {
 
 test('util', async () => {
   const data = { a: 1 }
-  const newData = mutate(data, { a: { $set: 1 } })
+  const newData = mutateHelper(data, { a: { $set: 1 } })
   expect(data === newData).toBe(true)
+})
+
+test('merge collections states again will not trigger new dispatch', async () => {
+  const oldStates = { users: { byId: {} } }
+  const collections = { users: { state: { byId: { 'userId-1': { name: 'Eric' } } } } }
+
+  const newStates = mergeToStore(oldStates, collections)
+
+  // is changed
+  expect(newStates !== oldStates).toBe(true)
+
+  // run again will not changed
+  const newStates2 = mergeToStore(newStates, collections)
+  expect(newStates2 === newStates).toBe(true)
 })

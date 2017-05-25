@@ -1,34 +1,33 @@
-import {createConnect} from 'react-redux/lib/connect/connect'
-import {whenMapStateToPropsIsMissing} from 'react-redux/lib/connect/mapStateToProps'
-import {whenMapDispatchToPropsIsMissing} from 'react-redux/lib/connect/mapDispatchToProps'
-import {getDependsOnOwnProps} from 'react-redux/lib/connect/wrapMapToProps'
+import { createConnect } from 'react-redux/lib/connect/connect'
+import { whenMapStateToPropsIsMissing } from 'react-redux/lib/connect/mapStateToProps'
+import { whenMapDispatchToPropsIsMissing } from 'react-redux/lib/connect/mapDispatchToProps'
+import { getDependsOnOwnProps } from 'react-redux/lib/connect/wrapMapToProps'
 import verifyPlainObject from 'react-redux/lib/utils/verifyPlainObject'
 
-import {CONNECT_GET_STORE} from './defineStore'
+import { CONNECT_GET_STORE } from './defineStore'
 
-export {Provider} from 'react-redux'
+export { Provider } from 'react-redux'
 
-function toReduxMapToProps(ourMapToPropsFunc, store, methodName) {
-  const collections = store.collections
+function toReduxMapToProps(ourMapToPropsFunc, dv, methodName) {
   if (methodName === 'mapStateToProps') {
     return function mapToProps(stateOrDispatch, ownProps) {
-      store.setContext({duringMapState: true})
+      dv.context.duringMapState = true
 
-      const props = ourMapToPropsFunc(collections, ownProps, stateOrDispatch)
+      const props = ourMapToPropsFunc(dv, ownProps, stateOrDispatch)
 
       // TODO try to hack selectorFactory instead
       // inject dv to props
       if (!('dv' in props)) {
-        props.dv = store
+        props.dv = dv
       }
 
-      store.setContext({duringMapState: false})
+      dv.context.duringMapState = false
       return props
     }
   }
 
   return function mapToProps(stateOrDispatch, ownProps) {
-    return ourMapToPropsFunc(collections, ownProps, stateOrDispatch)
+    return ourMapToPropsFunc(dv, ownProps, stateOrDispatch)
   }
 }
 
@@ -36,21 +35,17 @@ function toReduxMapToProps(ourMapToPropsFunc, store, methodName) {
 function wrapMapToPropsFunc(_mapToProps, methodName) {
   return function initProxySelector(dispatch, { displayName }) {
     const proxy = function mapToPropsProxy(stateOrDispatch, ownProps) {
-      return proxy.dependsOnOwnProps
-        ? proxy.mapToProps(stateOrDispatch, ownProps)
-        : proxy.mapToProps(stateOrDispatch)
+      return proxy.dependsOnOwnProps ? proxy.mapToProps(stateOrDispatch, ownProps) : proxy.mapToProps(stateOrDispatch)
     }
 
     proxy.dependsOnOwnProps = getDependsOnOwnProps(_mapToProps)
 
-
     // HACK wrap our _mapToProps to redux mapToProps
-    const store = dispatch({type: CONNECT_GET_STORE}).store
-    if (process.env.NODE_ENV !== 'production' && !store) {
+    const dv = dispatch({ type: CONNECT_GET_STORE }).store
+    if (process.env.NODE_ENV !== 'production' && !dv) {
       throw new Error('Cannot found hacking attachment of store in dispatch function')
     }
-    const mapToProps = toReduxMapToProps(_mapToProps, store, methodName)
-
+    const mapToProps = toReduxMapToProps(_mapToProps, dv, methodName)
 
     proxy.mapToProps = function detectFactoryAndVerify(stateOrDispatch, ownProps) {
       proxy.mapToProps = mapToProps
@@ -62,8 +57,9 @@ function wrapMapToPropsFunc(_mapToProps, methodName) {
         props = proxy(stateOrDispatch, ownProps)
       }
 
-      if (process.env.NODE_ENV !== 'production')
+      if (process.env.NODE_ENV !== 'production') {
         verifyPlainObject(props, displayName, methodName)
+      }
 
       return props
     }
@@ -72,28 +68,18 @@ function wrapMapToPropsFunc(_mapToProps, methodName) {
   }
 }
 
-
 // copy from react-redux/lib/connect/mapStateToProps
 function whenMapStateToPropsIsFunction(mapStateToProps) {
-  return (typeof mapStateToProps === 'function')
-    ? wrapMapToPropsFunc(mapStateToProps, 'mapStateToProps')
-    : undefined
+  return typeof mapStateToProps === 'function' ? wrapMapToPropsFunc(mapStateToProps, 'mapStateToProps') : undefined
 }
-
 
 // copy from react-redux/lib/connect/mapDispatchToProps
 function whenMapDispatchToPropsIsFunction(mapDispatchToProps) {
-  return (typeof mapDispatchToProps === 'function')
-    ? wrapMapToPropsFunc(mapDispatchToProps, 'mapDispatchToProps')
-    : undefined
+  return typeof mapDispatchToProps === 'function' ? wrapMapToPropsFunc(mapDispatchToProps, 'mapDispatchToProps') : undefined
 }
 
-
 export default createConnect({
-  mapStateToPropsFactories: [
-    whenMapStateToPropsIsFunction,
-    whenMapStateToPropsIsMissing,
-  ],
+  mapStateToPropsFactories: [whenMapStateToPropsIsFunction, whenMapStateToPropsIsMissing],
   mapDispatchToPropsFactories: [
     whenMapDispatchToPropsIsFunction,
     whenMapDispatchToPropsIsMissing,

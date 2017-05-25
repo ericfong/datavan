@@ -1,41 +1,48 @@
 import _ from 'lodash'
 
-import { DELETE_FROM_STORE } from './defineStore'
+import { setChanges } from './util/mutateUtil'
 
 export default class KeyValueStore {
-  preloadStoreState(preloadedState) {
-    preloadedState[this.name] = _.mapValues(preloadedState[this.name], doc => this.cast(doc))
+  state = {
+    byId: {},
   }
 
-  // plain wrapper for _store.getState
+  // expect store pass-in: context, onChange(), onChangeDebounce()
+  context = {}
+  onChange() {}
+  onChangeDebounce() {}
+
+  importPreload(state) {
+    Object.assign(this.state, state)
+    this.state.byId = this.state.byId ? _.mapValues(state.byId, this.cast) : {}
+  }
+
   getState() {
-    return this._store.getState()[this.name]
+    return this.state.byId
   }
 
   get(id) {
-    return this.getState()[id]
+    return this.state.byId[id]
   }
 
   // for importAll or other methods to skip setAll Override
   _setAll(changes) {
-    if (this._store.addChanges({ [this.name]: changes })) {
-      this._store.dispatchDebounce()
-    }
+    this.state = setChanges(this.state, changes)
+    this.onChangeDebounce()
   }
 
   // Override point: all user mutates should go through this point
   setAll(changes) {
-    if (this._store.addChanges({ [this.name]: changes })) {
-      this._store.dispatchNow()
-    }
+    this.state = setChanges(this.state, changes)
+    this.onChange()
   }
 
   set(id, value) {
-    this.setAll({ [id]: value })
+    this.setAll({ byId: { [id]: value } })
   }
 
   del(id) {
-    this.setAll({ [id]: DELETE_FROM_STORE })
+    this.setAll({ byId: { [id]: undefined } })
   }
 
   cast(v) {

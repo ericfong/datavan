@@ -24,15 +24,14 @@ test('sync get', async () => {
     }),
   })
   const db = createStore()
-  db.setContext({ duringMapState: false })
+  db.context.duringMapState = false
 
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(db.users.get('2')).toEqual({ _id: '2', name: 'Echo-2' })
   expect(db.users.getPromise()).toBe(null)
 
   _.each(db.users, (val, key) => {
-    if (key !== '_store' && (Array.isArray(val) || typeof val === 'object')) {
-      // console.log(key, val)
+    if (key !== 'state' && key !== 'context' && (Array.isArray(val) || typeof val === 'object')) {
       expect(_.isEmpty(val)).toBe(true)
     }
   })
@@ -49,7 +48,7 @@ test('batch get failback to find', async () => {
     }),
   })
   const db = createStore()
-  db.setContext({ duringMapState: false })
+  db.context.duringMapState = false
 
   db.users.get('1')
   const p1 = db.users.load({ _id: '2' }).then(r => r[0])
@@ -95,23 +94,23 @@ test('basic', async () => {
       Searchable
     ),
   })
-  const store = createStore()
-  store.setContext({ duringMapState: true })
+  const dv = createStore()
+  dv.context.duringMapState = true
 
   // normal get
-  expect(store.users.get('u1')).toBe(undefined)
-  await store.getPromise()
-  expect(store.users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
+  expect(dv.users.get('u1')).toBe(undefined)
+  await dv.getPromise()
+  expect(dv.users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // search
-  expect(store.users.search('hi')).toEqual([])
-  await store.getPromise()
-  expect(store.users.search('hi')).toEqual([{ _id: 'u3', name: 'hi Simon' }])
+  expect(dv.users.search('hi')).toEqual([])
+  await dv.getPromise()
+  expect(dv.users.search('hi')).toEqual([{ _id: 'u3', name: 'hi Simon' }])
 
   // find again will same as search
-  expect(store.users.find(null, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u3', name: 'hi Simon' }])
-  await store.getPromise()
-  expect(store.users.find(null, { sort: { _id: 1 } })).toEqual([
+  expect(dv.users.find(null, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u3', name: 'hi Simon' }])
+  await dv.getPromise()
+  expect(dv.users.find(null, { sort: { _id: 1 } })).toEqual([
     { _id: 'u1', name: 'u1 name' },
     { _id: 'u2', name: 'users Eric' },
     { _id: 'u3', name: 'hi Simon' },
@@ -119,25 +118,25 @@ test('basic', async () => {
 
   expect(calledGet).toBe(1)
   // won't affect calledGet, because search or find will fill individual cacheTimes
-  store.users.get('u3')
-  await store.getPromise()
+  dv.users.get('u3')
+  await dv.getPromise()
   expect(calledGet).toBe(1)
 
   // load something missing
-  store.users.get('not_exists')
-  await store.getPromise()
+  dv.users.get('not_exists')
+  await dv.getPromise()
   expect(calledGet).toBe(2)
 
   // load local won't affect
-  store.setContext({ duringMapState: false })
-  store.users.get('u5')
-  store.setContext({ duringMapState: true })
+  dv.context.duringMapState = false
+  dv.users.get('u5')
+  dv.context.duringMapState = true
   expect(calledGet).toBe(2)
 
   expect(calledSearch).toBe(1)
   expect(calledFind).toBe(1)
   expect(calledGet).toBe(2)
-  expect(store.users.getState()).toEqual({
+  expect(dv.users.getState()).toEqual({
     u1: { _id: 'u1', name: 'u1 name' },
     u2: { _id: 'u2', name: 'users Eric' },
     u3: { _id: 'u3', name: 'hi Simon' },

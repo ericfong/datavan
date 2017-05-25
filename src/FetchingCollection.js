@@ -37,7 +37,7 @@ export default class FetchingCollection extends Collection {
           // NOTE diff behavior for Sync and Async
           const cacheKey = this.calcFetchKey(fetchQuery, option)
           // TODO make sure only background-reload in mapState is good
-          if (this._store.getContext().duringMapState && this._shouldReload(cacheKey, option.load)) {
+          if (this.context.duringMapState && this._shouldReload(cacheKey, option.load)) {
             this._doReload(fetchQuery, option, cacheKey)
           }
         } else {
@@ -56,7 +56,7 @@ export default class FetchingCollection extends Collection {
       // NOTE diff behavior for Sync and Async
       if (this.isAsyncFetch) {
         // TODO make sure only background-reload in mapState is good
-        if (this._store.getContext().duringMapState && this._shouldReload(id, option.load)) {
+        if (this.context.duringMapState && this._shouldReload(id, option.load)) {
           // Async (batch ids in here)
           this._fetchIdTable[id] = 1
           this._fetchByIdsDebounce()
@@ -86,7 +86,7 @@ export default class FetchingCollection extends Collection {
 
   _shouldReload(cacheKey, mode) {
     const fetchTime = this._fetchTimes[cacheKey]
-    if (this._store.getContext().duringServerPreload) {
+    if (this.context.duringServerPreload) {
       // duringServerPreload, only load resource that is mark as preload and preload only one time
       return mode === 'preload' && !fetchTime
     }
@@ -109,14 +109,8 @@ export default class FetchingCollection extends Collection {
       result
         .then(ret => {
           delete fetchPromises[findingKey]
-
-          if (_.isEmpty(ret)) {
-            // TODO add isFetching to state
-            this._store.dispatchNow()
-          } else {
-            // NOTE onFetch may call importAll directly. One ajax call contains few collections data
-            this.importAll(ret)
-          }
+          // NOTE onFetch may call importAll directly. One ajax call contains few collections data
+          this.importAll(ret)
           return ret
         })
         .catch(err => {
@@ -132,7 +126,7 @@ export default class FetchingCollection extends Collection {
   }
 
   importAll(values) {
-    const changes = _.reduce(
+    const change = _.reduce(
       values,
       (accumulator, value, key) => {
         if (value && this.isTidy(key)) {
@@ -149,15 +143,15 @@ export default class FetchingCollection extends Collection {
       // set fetchTimes one-more for onFetch return more docs that cannot extract via _getQueryIds
       // also prevent GC
       const now = new Date()
-      _.keys(changes).forEach(id => (this._fetchTimes[id] = now))
+      _.keys(change).forEach(id => (this._fetchTimes[id] = now))
     }
 
     // TODO compare local and remote result, drop if backend is removed
     // TODO CronJob to clear _fetchTimes & cached values
 
     // skip setAll SubmittingCollection overriding
-    this._setAll(changes)
-    return changes
+
+    this._setAll({ byId: change })
   }
 
   isTidy() {
