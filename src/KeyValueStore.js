@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { setChanges } from './util/mutateUtil'
+import { mutateState } from './util/mutateUtil'
 
 export default class KeyValueStore {
   state = {
@@ -25,24 +25,28 @@ export default class KeyValueStore {
     return this.state.byId[id]
   }
 
+  mutateState(changes) {
+    this.state = mutateState(this.state, changes)
+  }
+
   // for importAll or other methods to skip setAll Override
-  _setAll(changes) {
-    this.state = setChanges(this.state, changes)
+  _setAll(change) {
+    this.mutateState({ byId: change })
     this.onChangeDebounce()
   }
 
   // Override point: all user mutates should go through this point
-  setAll(changes) {
-    this.state = setChanges(this.state, changes)
+  setAll(change) {
+    this.mutateState({ byId: change })
     this.onChange()
   }
 
   set(id, value) {
-    this.setAll({ byId: { [id]: value } })
+    this.setAll({ [id]: value })
   }
 
   del(id) {
-    this.setAll({ byId: { [id]: undefined } })
+    this.setAll({ [id]: undefined })
   }
 
   cast(v) {

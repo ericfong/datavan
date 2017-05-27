@@ -84,10 +84,7 @@ export function collectionsEnhancer(definitions) {
     const passIntoCollections = { context, onChange, onChangeDebounce }
 
     _.each(collections, (collection, name) => {
-      const preloadCollState = preloadedState[name]
-      if (preloadCollState) {
-        collection.importPreload(preloadCollState)
-      }
+      if (collection.importPreload) collection.importPreload(preloadedState[name] || {})
 
       // pass functions into collection
       Object.assign(collection, passIntoCollections)
@@ -148,7 +145,7 @@ export function collectionsEnhancer(definitions) {
     return newStore
   }
 
-  // run defined enhancers before preloadStoreState
+  // run defined enhancers before importPreload
   return enhancers && enhancers.length > 0 ? compose(...enhancers, ourEnhancer) : ourEnhancer
 }
 

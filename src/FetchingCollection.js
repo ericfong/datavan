@@ -151,7 +151,7 @@ export default class FetchingCollection extends Collection {
 
     // skip setAll SubmittingCollection overriding
 
-    this._setAll({ byId: change })
+    this._setAll(change)
   }
 
   isTidy() {

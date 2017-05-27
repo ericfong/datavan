@@ -1,7 +1,7 @@
 import KeyValueStore from './KeyValueStore'
 
 export default class Browser extends KeyValueStore {
-  preloadStoreState(preloadedState) {
+  importPreload(preloadedState) {
     let preload
     if (global.window) {
       preload = {
@@ -15,7 +15,8 @@ export default class Browser extends KeyValueStore {
         height: 640,
       }
     }
-    preloadedState[this.name] = preload
+    preloadedState.byId = preload
+    super.importPreload(preloadedState)
   }
 
   _onResize = () => {

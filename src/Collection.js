@@ -119,17 +119,17 @@ export default class Collection extends KeyValueStore {
     const docs = inputIsArray ? _docs : [_docs]
     const idField = this.idField
 
-    const changes = {}
+    const change = {}
     const castedDocs = _.map(docs, d => {
       const castedDoc = this.cast(d)
       let id = castedDoc[idField]
       if (!id) {
         id = castedDoc[idField] = this.genId()
       }
-      changes[id] = castedDoc
+      change[id] = castedDoc
       return castedDoc
     })
-    this.setAll({ byId: changes })
+    this.setAll(change)
 
     return inputIsArray ? castedDocs : castedDocs[0]
   }
@@ -149,7 +149,7 @@ export default class Collection extends KeyValueStore {
         change[newDoc[idField]] = newDoc
       }
     })
-    this.setAll({ byId: change })
+    this.setAll(change)
     return oldDocs
   }
 
@@ -160,7 +160,7 @@ export default class Collection extends KeyValueStore {
     _.each(removedDocs, doc => {
       change[doc[idField]] = undefined
     })
-    this.setAll({ byId: change })
+    this.setAll(change)
     return removedDocs
   }
 }

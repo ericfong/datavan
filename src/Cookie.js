@@ -7,20 +7,20 @@ import SubmittingCollection from './SubmittingCollection'
 export default class Cookie extends SubmittingCollection {
   cookieConf = null
 
-  preloadStoreState(preloadedState) {
+  importPreload(preloadedState) {
     if (global.window) {
-      preloadedState[this.name] = jsCookie.get()
+      preloadedState.byId = jsCookie.get()
     }
+    super.importPreload(preloadedState)
   }
 
-  setAll(changes) {
-    super.setAll(changes)
-    _.each(changes, (v, k) => {
+  setAll(change) {
+    super.setAll(change)
+    _.each(change, (v, k) => {
       if (v === null || v === undefined) {
         return jsCookie.remove(k)
-      } else {
-        return jsCookie.set(k, v, this.cookieConf)
       }
+      return jsCookie.set(k, v, this.cookieConf)
     })
   }
 }

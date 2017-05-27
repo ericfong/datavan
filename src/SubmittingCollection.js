@@ -23,14 +23,16 @@ export default class SubmittingCollection extends FetchingCollection {
     return this.state.submits
   }
 
-  setAll(changes) {
+  setAll(change) {
     if (this.onFetch) {
-      changes.submits = changes.byId
-      super.setAll(changes)
-
+      this.mutateState({
+        byId: change,
+        submits: change,
+      })
+      this.onChange()
       if (this.onSubmit) this.submit()
     } else {
-      super.setAll(changes)
+      super.setAll(change)
     }
   }
 
@@ -50,9 +52,13 @@ export default class SubmittingCollection extends FetchingCollection {
           // clean snapshotState TODO check NOT mutated during HTTP POST
           const removes = _.mapValues(snapshotState, setUndefinedFunc)
 
+          const changes = {
+            submits: removes,
+          }
+
           if (docs) {
             // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
-            this._setAll({ byId: removes })
+            changes.byId = removes
 
             // import docs changes
             if (docs) {
@@ -60,7 +66,8 @@ export default class SubmittingCollection extends FetchingCollection {
             }
           }
 
-          this._setAll({ submits: removes })
+          this.mutateState(changes)
+          this.onChangeDebounce()
         }
         return docs
       },
