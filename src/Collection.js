@@ -91,9 +91,10 @@ export default class Collection extends KeyValueStore {
     return this.find({ $search }, option)
   }
 
-  count(query) {
-    return _.size(this.find(query))
-  }
+  // NOTE Remove to prevent confusion with server's collection.count()
+  // count(query) {
+  //   return _.size(this.find(query))
+  // }
 
   genId() {
     return `tmp-${Math.random()}`
