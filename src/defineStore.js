@@ -135,6 +135,10 @@ export function collectionsEnhancer(definitions) {
         return output
       },
 
+      serverPreload(onOff) {
+        context.serverPreloading = onOff !== false
+      },
+
       invalidate() {
         _.each(collections, coll => {
           if (coll.invalidate) coll.invalidate()

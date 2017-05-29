@@ -11,17 +11,20 @@ export { Provider } from 'react-redux'
 function toReduxMapToProps(ourMapToPropsFunc, dv, methodName) {
   if (methodName === 'mapStateToProps') {
     return function mapToProps(stateOrDispatch, ownProps) {
-      dv.context.duringMapState = true
+      const context = dv.context
+      context.duringMapState = true
 
       const props = ourMapToPropsFunc(dv, ownProps, stateOrDispatch)
 
-      // TODO try to hack selectorFactory instead
-      // inject dv to props
-      if (!('dv' in props)) {
-        props.dv = dv
-      }
+      // NOTE maybe bad to inject dv, because hard to deprecate things
+      // if (!('dv' in props)) {
+      //   props.dv = dv
+      // }
 
-      dv.context.duringMapState = false
+      // always set back to normal mode, if some find / queries set as serverPreloading
+      context.serverPreloading = false
+
+      context.duringMapState = false
       return props
     }
   }

@@ -23,9 +23,6 @@ export default class FetchingCollection extends Collection {
   }
 
   find(query, option = {}) {
-    if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
-      console.error(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
-    }
     if (this.onFetch) {
       const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
       if (fetchQuery) {
@@ -33,7 +30,7 @@ export default class FetchingCollection extends Collection {
           // NOTE diff behavior for Sync and Async
           const cacheKey = this.calcFetchKey(fetchQuery, option)
           // TODO make sure only background-reload in mapState is good
-          if (this._shouldReload(cacheKey, option.load)) {
+          if (this._shouldReload(cacheKey)) {
             this._doReload(fetchQuery, option, cacheKey)
           }
         } else {
@@ -45,14 +42,11 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id, option = {}) {
-    if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
-      console.error(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
-    }
     if (this.onFetch && id && !this.isLocalId(id)) {
       // NOTE diff behavior for Sync and Async
       if (this.isAsyncFetch) {
         // TODO make sure only background-reload in mapState is good
-        if (this._shouldReload(id, option.load)) {
+        if (this._shouldReload(id)) {
           // Async (batch ids in here)
           this._fetchIdTable[id] = 1
           this._fetchByIdsDebounce()
@@ -86,7 +80,7 @@ export default class FetchingCollection extends Collection {
   query(query, option = {}) {
     // like get but for backend oriented data
     const cacheKey = this.calcQueryKey(query)
-    if (this.onQuery && this._shouldReload(cacheKey, option.load)) {
+    if (this.onQuery && this._shouldReload(cacheKey)) {
       this._doReload(query, option, cacheKey, 'onQuery')
     }
     return this.state.queries[cacheKey]
@@ -95,10 +89,11 @@ export default class FetchingCollection extends Collection {
     return stringify(query)
   }
 
-  _shouldReload(cacheKey, mode) {
-    if (!this.context.duringMapState) return false
+  _shouldReload(cacheKey) {
+    const { duringMapState, duringServerPreload, serverPreloading } = this.context
+    if (!duringMapState) return false
     // duringServerPreload, only load resource that is mark as preload and preload only one time
-    if (this.context.duringServerPreload && mode !== 'preload') return false
+    if (duringServerPreload && !serverPreloading) return false
     return !this._fetchTimes[cacheKey]
   }
 

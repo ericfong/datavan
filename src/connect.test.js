@@ -27,16 +27,22 @@ test('server rendering', async () => {
   })
   const store = createStore()
 
-  const UserComp = connect((db, props) => ({
-    user: db.users.findOne({ _id: props.userId }, { load: 'preload' }),
-  }))(props => {
+  const UserComp = connect((dv, props) => {
+    dv.serverPreload(true)
+    return {
+      user: dv.users.findOne({ _id: props.userId }),
+    }
+  })(props => {
     const user = props.user || {}
     return <span>{user.name}</span>
   })
 
-  const FriendComp = connect(db => ({
-    user: db.users.findOne({ _id: 'u2' }, { load: 'preload' }),
-  }))(props => {
+  const FriendComp = connect(dv => {
+    dv.serverPreload(true)
+    return {
+      user: dv.users.findOne({ _id: 'u2' }),
+    }
+  })(props => {
     const user = props.user || {}
     return <span>{user.name} is <UserComp userId={user.friendId} /> friend</span>
   })
