@@ -41,7 +41,7 @@ export default class FetchingCollection extends Collection {
     return super.find(query, option)
   }
 
-  get(id, option = {}) {
+  get(id) {
     if (this.onFetch && id && !this.isLocalId(id)) {
       // NOTE diff behavior for Sync and Async
       if (this.isAsyncFetch) {
@@ -56,7 +56,7 @@ export default class FetchingCollection extends Collection {
         this._doReload([id])
       }
     }
-    return super.get(id, option)
+    return super.get(id)
   }
   _fetchIdTable = []
   _fetchByIdsPromise = null
@@ -77,7 +77,7 @@ export default class FetchingCollection extends Collection {
       .catch(() => (this._fetchByIdsPromise = null))
   }
 
-  query(query, option = {}) {
+  query(query, option) {
     // like get but for backend oriented data
     const cacheKey = this.calcQueryKey(query)
     if (this.onQuery && this._shouldReload(cacheKey)) {
