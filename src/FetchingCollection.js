@@ -1,10 +1,13 @@
 import _ from 'lodash'
+import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
 import { calcFindKey, normalizeQuery } from './util/queryUtil'
 
 export default class FetchingCollection extends Collection {
+  // state = { queries: {} }
+
   // NOTE expecting overriding
   // onFetch() {}
   // calcFetchKey() {}
@@ -19,13 +22,6 @@ export default class FetchingCollection extends Collection {
     return calcFindKey(query, option)
   }
 
-  _getQueryIds(query) {
-    if (!query) return null
-    const matcher = query[this.idField]
-    if (!matcher) return null
-    return Array.isArray(matcher.$in) ? matcher.$in : [matcher]
-  }
-
   find(query, option = {}) {
     if (__DEV__ && (option.load === 'local' || option.load === 'load' || option.load === 'reload')) {
       console.error(`Deprecated. Please use Collection.load() or reload() or get directly instead of find(query, {option: ${option.load}})`)
@@ -37,7 +33,7 @@ export default class FetchingCollection extends Collection {
           // NOTE diff behavior for Sync and Async
           const cacheKey = this.calcFetchKey(fetchQuery, option)
           // TODO make sure only background-reload in mapState is good
-          if (this.context.duringMapState && this._shouldReload(cacheKey, option.load)) {
+          if (this._shouldReload(cacheKey, option.load)) {
             this._doReload(fetchQuery, option, cacheKey)
           }
         } else {
@@ -56,12 +52,13 @@ export default class FetchingCollection extends Collection {
       // NOTE diff behavior for Sync and Async
       if (this.isAsyncFetch) {
         // TODO make sure only background-reload in mapState is good
-        if (this.context.duringMapState && this._shouldReload(id, option.load)) {
+        if (this._shouldReload(id, option.load)) {
           // Async (batch ids in here)
           this._fetchIdTable[id] = 1
           this._fetchByIdsDebounce()
         }
       } else {
+        // prevent Async fetch by ids again
         this._doReload([id])
       }
     }
@@ -77,6 +74,8 @@ export default class FetchingCollection extends Collection {
       .then(() => {
         const ids = Object.keys(this._fetchIdTable)
         if (ids.length > 0) {
+          const now = new Date()
+          _.each(ids, id => (this._fetchTimes[id] = now))
           return this._doReload(ids)
         }
       })
@@ -84,25 +83,33 @@ export default class FetchingCollection extends Collection {
       .catch(() => (this._fetchByIdsPromise = null))
   }
 
-  _shouldReload(cacheKey, mode) {
-    const fetchTime = this._fetchTimes[cacheKey]
-    if (this.context.duringServerPreload) {
-      // duringServerPreload, only load resource that is mark as preload and preload only one time
-      return mode === 'preload' && !fetchTime
+  query(query, option = {}) {
+    // like get but for backend oriented data
+    const cacheKey = this.calcQueryKey(query)
+    if (this.onQuery && this._shouldReload(cacheKey, option.load)) {
+      this._doReload(query, option, cacheKey, 'onQuery')
     }
-    return !fetchTime
+    return this.state.queries[cacheKey]
+  }
+  calcQueryKey(query) {
+    return stringify(query)
   }
 
-  _doReload(query, option, cacheKey) {
+  _shouldReload(cacheKey, mode) {
+    if (!this.context.duringMapState) return false
+    // duringServerPreload, only load resource that is mark as preload and preload only one time
+    if (this.context.duringServerPreload && mode !== 'preload') return false
+    return !this._fetchTimes[cacheKey]
+  }
+
+  _doReload(query, option, cacheKey, reloadFuncName = 'onFetch') {
     // NOTE should be able to handle Both Async and Sync onFetch
-    const result = this.onFetch(query, option)
+    const result = this[reloadFuncName](query, option)
     this.isAsyncFetch = isThenable(result)
     if (this.isAsyncFetch) {
       const findingKey = cacheKey || this.calcFetchKey(query, option)
       const now = new Date()
       this._fetchTimes[findingKey] = now
-      // prevent fetch by ids again for same ids, so need to store _fetchTimes before async call done
-      _.each(this._getQueryIds(query), id => (this._fetchTimes[id] = now))
 
       const fetchPromises = this._fetchPromises
       fetchPromises[findingKey] = result
@@ -125,6 +132,9 @@ export default class FetchingCollection extends Collection {
     return result
   }
 
+  // NOTE for better utilize browser cache, each collection (or one-to-many relationship collection groups) should do their own http GET.
+  // Hence, cross collection importAll should be limited
+  // add invalidateAll() for backend to notify front-end to clean cache
   importAll(values) {
     const change = _.reduce(
       values,
@@ -140,9 +150,8 @@ export default class FetchingCollection extends Collection {
     )
 
     if (this.isAsyncFetch) {
-      // set fetchTimes one-more for onFetch return more docs that cannot extract via _getQueryIds
-      // also prevent GC
       const now = new Date()
+      // set fetchTimes to prevent GC or re-fetch again
       _.keys(change).forEach(id => (this._fetchTimes[id] = now))
     }
 

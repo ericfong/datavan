@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import stringfy from 'fast-stable-stringify'
+import stringify from 'fast-stable-stringify'
 
 export function normalizeQuery(query, idField, idExcluder) {
   if (!query) {
@@ -58,7 +58,7 @@ export function mongoToLodash(sort) {
 }
 
 export function calcFindKey(query, option) {
-  return stringfy([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
+  return stringify([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
 }
 
 export const emptyResultArray = []
