@@ -13,6 +13,7 @@ function extractExportMethods(obj, methods = {}) {
   return methods
 }
 function getClassMethodsDeep(Class, methods = {}) {
+  // eslint-disable-next-line
   while (Class && !Class.isPrototypeOf(Object)) {
     extractExportMethods(Class.prototype, methods)
     Class = Object.getPrototypeOf(Class)
@@ -38,7 +39,7 @@ function convertObjectToMixin(mixin) {
       _.each(mixin, (v, k) => {
         if (typeof v === 'function') {
           Class.prototype[k] = v
-        } else if (k !== 'requires') {
+        } else {
           props[k] = v
         }
       })
@@ -53,6 +54,7 @@ export function isClass(Class) {
   if (typeof Class !== 'function') return false
 
   const SuperClass = Object.getPrototypeOf(Class)
+  // eslint-disable-next-line
   if (!SuperClass.isPrototypeOf(Object)) return true
 
   const methods = _.without(Object.getOwnPropertyNames(Class.prototype), 'constructor')
@@ -68,36 +70,38 @@ export function composeClass(...array) {
   if (mixins.length === 1) return mixins[0]
 
   const Accumulator = mixins[0]
-  if (typeof Accumulator === 'object') {
-    mixins[0] = convertObjectToMixin(Accumulator)
-  } else if (isClass(Accumulator)) {
+  if (isClass(Accumulator)) {
     return Accumulator
   }
 
-  return mixins.reduce((Accumulator, mixin) => {
+  // NOTE mixin = "with a superclass as input and a subclass extending that superclass as output"
+
+  // Array.reduce will take first item as accumulator
+  if (typeof Accumulator === 'object') {
+    mixins[0] = convertObjectToMixin(Accumulator)
+  }
+
+  return mixins.reduce((accumulator, mixin) => {
     if (typeof mixin === 'object') {
       mixin = convertObjectToMixin(mixin)
     } else if (isClass(mixin)) {
       // ignore Base and directly return mixin because it is class
-      return function() {
-        return Accumulator(mixin)
-      }
+      return () => accumulator(mixin)
     }
 
-    return function(Base) {
-      // mixin = "with a superclass as input and a subclass extending that superclass as output"
-      return Accumulator(mixin(Base))
-    }
+    // return new mixin = current accumulator + current mixin
+    return Base => accumulator(mixin(Base))
   })()
+  // finally run all accumulated function with Base argument as undefined / Object
 }
 
 export function getSetters(...ids) {
   const obj = {}
   _.each(ids, id => {
-    obj[_.camelCase('get-' + id)] = function(option) {
+    obj[_.camelCase(`get-${id}`)] = function fieldGetter(option) {
       return this.get(id, option)
     }
-    obj[_.camelCase('set-' + id)] = function(value) {
+    obj[_.camelCase(`set-${id}`)] = function fieldSetter(value) {
       return this.set(id, value)
     }
   })
