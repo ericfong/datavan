@@ -35,7 +35,7 @@ function createCollection(definition, name) {
 }
 
 function assignDependencies(source, slices) {
-  let requires = source.getRequires && source.getRequires()
+  let requires = source.getRequires ? source.getRequires() : source.requires
   if (Array.isArray(requires)) {
     requires = _.keyBy(requires)
   }
