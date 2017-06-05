@@ -43,11 +43,12 @@ export function isThenable(p) {
 export function syncOrThen(result, onFulfilled, onRejected) {
   if (isThenable(result)) {
     return result.then(onFulfilled, onRejected)
-  } else {
-    try {
-      return onFulfilled(result)
-    } catch (err) {
-      return onRejected(err)
-    }
+  }
+
+  try {
+    return onFulfilled(result)
+  } catch (err) {
+    if (onRejected) return onRejected(err)
+    throw err
   }
 }

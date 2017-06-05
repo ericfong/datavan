@@ -5,6 +5,27 @@ import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
 import { normalizeQuery, calcFindKey } from './util/queryUtil'
 
+// @auto-fold here
+function loopResponse(data, idField, operations) {
+  if (!data) return
+  const handleById = operations.$byId
+
+  if (Array.isArray(data)) return _.each(data, doc => handleById(doc, doc[idField]))
+
+  _.each(data, (value, key) => {
+    if (key[0] === '$') {
+      const opFunc = operations[key]
+      if (opFunc) {
+        opFunc(value)
+      } else {
+        throw new Error(`Unknown import operation ${key}`)
+      }
+    } else {
+      handleById(value, value[idField] || key)
+    }
+  })
+}
+
 export default class FetchingCollection extends Collection {
   // Override: onFetch()
   _cacheAts = {}
@@ -55,7 +76,6 @@ export default class FetchingCollection extends Collection {
 
     // fetch
     const result = this.fetch(query, option)
-    // expect onFetch call importAll internally
     if (isThenable(result)) {
       const fetchPromises = this._fetchPromises
       fetchPromises[cacheKey] = result
@@ -72,7 +92,10 @@ export default class FetchingCollection extends Collection {
   }
 
   fetch(query, option) {
-    return syncOrThen(this.onFetch(query, option), ret => (this.state.requests[option.cacheKey] = ret))
+    return syncOrThen(this.onFetch(query, option), ret => {
+      this.importAll(ret, option.cacheKey)
+      return ret
+    })
   }
 
   _fetchPromises = {}
@@ -106,27 +129,30 @@ export default class FetchingCollection extends Collection {
     }
   }
 
-  // NOTE for better utilize browser cache, collections should do their own http GET. So, cross collection importAll should be limited
-  importAll(_byId, requests) {
-    const byId = {}
-    const now = new Date()
+  importAll(ops, cacheKey) {
+    const mutation = { byId: {} }
+    const byId = mutation.byId
     const _cacheAts = this._cacheAts
-    _.each(_byId, (value, key) => {
-      if (key === '$unset') {
+    const idField = this.idField
+    const now = new Date()
+    loopResponse(ops, idField, {
+      // handleById
+      $byId: (doc, id) => {
+        if (!this.isTidy(id)) return
+        byId[id] = this.cast(doc)
+        _cacheAts[id] = now
+      },
+      $unset(value) {
         byId.$unset = value
-        return
-      }
-
-      if (this.isTidy(key)) {
-        byId[key] = this.cast(value)
-        _cacheAts[key] = now
-      }
+      },
+      $request(value) {
+        mutation.requests = { [cacheKey]: value }
+      },
     })
+    this.mutateState(mutation)
 
     // TODO GC more to drop backend removals
     this.gc()
-
-    this.mutateState({ byId, requests })
     this.onChangeDebounce()
   }
 
