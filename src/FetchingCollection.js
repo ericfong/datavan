@@ -52,7 +52,7 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id) {
-    this._checkFetch([id], { cacheKey: id })
+    if (id && !this.isLocalId(id)) this._checkFetch([id], { cacheKey: id })
     return super.get(id)
   }
 
