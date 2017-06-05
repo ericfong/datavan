@@ -3,20 +3,12 @@ import _ from 'lodash'
 import FetchingCollection from './FetchingCollection'
 import { syncOrThen } from './util/promiseUtil'
 
-const setUndefinedFunc = () => undefined
-
 export default class SubmittingCollection extends FetchingCollection {
-  // NOTE expecting functions
-  // onSubmit() {}
+  // Override: onSubmit()
 
-  constructor() {
-    super()
-    this.state.submits = {}
-  }
-
-  importPreload(preloadedState) {
-    super.importPreload(preloadedState)
-    this.state.submits = this.state.submits ? _.mapValues(this.state.submits, this.cast) : {}
+  constructor(state) {
+    super(state)
+    state.submits = state.submits || {}
   }
 
   getStagingState() {
@@ -36,11 +28,6 @@ export default class SubmittingCollection extends FetchingCollection {
     }
   }
 
-  isTidy(key) {
-    // return !(key in this.getStagingState())
-    return this.getStagingState()[key] === undefined
-  }
-
   submit(onSubmit = this.onSubmit) {
     const snapshotState = this.getStagingState()
     return syncOrThen(
@@ -50,20 +37,19 @@ export default class SubmittingCollection extends FetchingCollection {
           // return === false means don't consider current staging is submitted
 
           // clean snapshotState TODO check NOT mutated during HTTP POST
-          const removes = _.mapValues(snapshotState, setUndefinedFunc)
+          const $unset = _.keys(snapshotState)
 
           const changes = {
-            submits: removes,
+            submits: { $unset },
           }
 
           if (docs) {
             // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
-            changes.byId = removes
+            const allUnset = docs.$unset ? _.concat(docs.$unset, $unset) : $unset
+            const byIdUnset = _.uniq(_.without(allUnset, ..._.keys(docs)))
+            if (byIdUnset.length > 0) docs.$unset = byIdUnset
 
-            // import docs changes
-            if (docs) {
-              this.importAll(docs)
-            }
+            this.importAll(docs)
           }
 
           this.mutateState(changes)
@@ -80,5 +66,10 @@ export default class SubmittingCollection extends FetchingCollection {
         return err instanceof Error ? err : new Error(err)
       }
     )
+  }
+
+  isTidy(key) {
+    // return !(key in this.getStagingState())
+    return this.getStagingState()[key] === undefined
   }
 }

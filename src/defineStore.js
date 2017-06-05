@@ -7,40 +7,44 @@ import { mergeToStore } from './util/mutateUtil'
 const DV_MUTATE = 'DV_MUTATE'
 export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
-function dbReducer(state, action) {
+// @auto-fold here
+function dvReducer(state, action) {
   if (action.type === DV_MUTATE) {
     return mergeToStore(state, action.collections)
   }
   return state
 }
 
-function createCollection(definition, name) {
+// @auto-fold here
+function createCollection(definition, name, preloadedState = {}, context) {
   let newObj
   if (isClass(definition)) {
-    newObj = new definition() // eslint-disable-line
+    newObj = new definition(preloadedState) // eslint-disable-line
   } else if (typeof definition === 'function') {
-    newObj = definition()
+    newObj = definition(preloadedState)
     // } else if (Array.isArray(definition)) {
-    //   // assume if type of definition is array, it is a array of class mixins
     //   newObj = new (composeClass(definition))
   } else {
     newObj = Object.create(definition)
+    if (newObj.constructor) newObj.constructor(preloadedState)
   }
 
   Object.assign(newObj, {
+    context,
     name,
     dependencies: [],
   })
   return newObj
 }
 
-function assignDependencies(source, slices) {
+// @auto-fold here
+function assignDependencies(source, collections) {
   let requires = source.getRequires ? source.getRequires() : source.requires
   if (Array.isArray(requires)) {
     requires = _.keyBy(requires)
   }
   _.each(requires, (targetName, localName) => {
-    const target = slices[targetName]
+    const target = collections[targetName]
     if (!target) {
       throw new Error(`Required Store Not Found: ${targetName}`)
     }
@@ -56,17 +60,16 @@ export function collectionsEnhancer(definitions) {
   const { enhancers, ...collectionDefinitions } = definitions
   const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
     // create collections
-    const collections = _.mapValues(collectionDefinitions, createCollection)
+    const context = {}
+    const collections = _.mapValues(collectionDefinitions, (definition, name) => createCollection(definition, name, preloadedState[name], context))
 
     // createStore
-    const _reducer = reducer ? (s, a) => dbReducer(reducer(s, a), a) : dbReducer
-    const baseStore = _createStore(_reducer, preloadedState, enhancer)
+    const baseStore = _createStore(reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer, preloadedState, enhancer)
 
     // promise for debounce
     let dispatchPromise
 
-    // things need to pass into collections
-    const context = {}
+    // onChange & onChangeDebounce for inject to collection
     function onChange() {
       baseStore.dispatch({ type: DV_MUTATE, collections })
       dispatchPromise = null
@@ -81,15 +84,10 @@ export function collectionsEnhancer(definitions) {
       ))
       return curP
     }
-    const passIntoCollections = { context, onChange, onChangeDebounce }
-
-    _.each(collections, (collection, name) => {
-      if (collection.importPreload) collection.importPreload(preloadedState[name] || {})
-
-      // pass functions into collection
+    const passIntoCollections = { onChange, onChangeDebounce }
+    _.each(collections, collection => {
+      assignDependencies(collection, collections) // should after ALL collections created
       Object.assign(collection, passIntoCollections)
-
-      assignDependencies(collection, collections)
     })
 
     function getPromise() {
@@ -149,7 +147,6 @@ export function collectionsEnhancer(definitions) {
     return newStore
   }
 
-  // run defined enhancers before importPreload
   return enhancers && enhancers.length > 0 ? compose(...enhancers, ourEnhancer) : ourEnhancer
 }
 

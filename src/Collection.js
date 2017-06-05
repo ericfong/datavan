@@ -1,13 +1,12 @@
 import _ from 'lodash'
 import mutateHelper from 'immutability-helper'
-import { defaultMemoize as reselectMemoize } from 'reselect'
 import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
-import { stateMemoizeTable } from './util/memoizeUtil'
 import { syncOrThen } from './util/promiseUtil'
-import { normalizeQuery, calcFindKey, mongoToLodash, emptyResultArray } from './util/queryUtil'
+import { normalizeQuery, calcFindKey, processOption, emptyResultArray } from './util/queryUtil'
 
+// @auto-fold here
 function filterStateByIds(state, ids) {
   return ids.reduce((result, id) => {
     const doc = state[id]
@@ -16,68 +15,59 @@ function filterStateByIds(state, ids) {
   }, [])
 }
 
+function findHeavy(self, byId, query, option) {
+  // should after memoize to prevent return new Array all the time
+  if (Array.isArray(query)) {
+    return processOption(filterStateByIds(byId, query), option)
+  }
+
+  if (Object.keys(query).length === 0) {
+    return processOption(_.values(byId), option)
+  }
+
+  // can contain other matchers, so consider as heavy
+  const idQuery = query[self.idField]
+  const filteredState = idQuery && idQuery.$in ? filterStateByIds(byId, idQuery.$in) : byId
+
+  const result = self._findImplementation && self._findImplementation(filteredState, query, option)
+  if (result !== undefined) {
+    return result
+  }
+
+  return processOption(_.filter(filteredState, sift(query)), option)
+}
+
+function findHeavyAndMemoize(self, query, option) {
+  const byId = self.state.byId
+  // setup memory
+  if (byId !== self._lastById) self._findMemory = {}
+  self._lastById = byId
+  const _findMemory = self._findMemory
+
+  // calc cacheKey
+  const cacheKey = (option && option.cacheKey) || calcFindKey(query, option)
+  if (option) option.cacheKey = cacheKey
+
+  // return cache if exists
+  const lastResult = _findMemory[cacheKey]
+  if (lastResult) return lastResult
+
+  // gen new result and put into cache
+  return (_findMemory[cacheKey] = findHeavy(self, byId, query, option))
+}
+
 export default class Collection extends KeyValueStore {
-  _getStateArray = reselectMemoize(state => _.values(state))
-  getStateArray() {
-    return this._getStateArray(this.getState())
+  idField = '_id'
+
+  _lastById
+  _findMemory
+  _find(_query, option) {
+    const query = option && option.queryNormalized ? _query : normalizeQuery(_query, this.idField)
+    if (!query) return emptyResultArray
+    return findHeavyAndMemoize(this, query, option)
   }
 
   // internal _find, won't trigger re-fetch from backend
-  _findMem = stateMemoizeTable(
-    // runner
-    (state, query, option) => {
-      if (_.isEmpty(query)) {
-        return this._postFind(_.values(state), option)
-      }
-
-      if (Array.isArray(query)) {
-        return this._postFind(filterStateByIds(state, query), option)
-      }
-
-      const idQuery = query[this.idField]
-      const filteredState = idQuery && idQuery.$in ? filterStateByIds(state, idQuery.$in) : state
-
-      const result = this._findImplementation && this._findImplementation(filteredState, query, option)
-      if (result !== undefined) {
-        return result
-      }
-
-      return this._postFind(_.filter(filteredState, sift(query)), option)
-    },
-    // get state
-    () => [this.getState()],
-    // get memoize key
-    calcFindKey
-  )
-
-  _postFind(arr, option) {
-    if (option) {
-      if (option.sort) {
-        const [fields, orders] = mongoToLodash(option.sort)
-        arr = _.orderBy(arr, fields, orders)
-      }
-      if (option.skip || option.limit) {
-        arr = _.slice(arr, option.skip || 0, option.limit)
-      }
-      // convert to other object
-      if (option.keyBy) {
-        arr = _.keyBy(arr, option.keyBy)
-      } else if (option.groupBy) {
-        arr = _.groupBy(arr, option.groupBy)
-      } else if (option.map) {
-        arr = _.map(arr, option.map)
-      }
-    }
-    return arr
-  }
-
-  // query can be null OR Array of ids OR object of mongo query
-  _find(_query, option) {
-    const query = normalizeQuery(_query, this.idField)
-    if (!query) return emptyResultArray
-    return this._findMem(query, option)
-  }
-
   find(query, option) {
     return this._find(query, option)
   }
@@ -86,22 +76,20 @@ export default class Collection extends KeyValueStore {
     return syncOrThen(this.find(query, { ...option, limit: 1 }), list => list[0])
   }
 
-  // TODO consider remove this to favour load() and reload() ???
-  search($search, option) {
-    return this.find({ $search }, option)
+  // search($search, option) {
+  //   return this.find({ $search }, option)
+  // }
+
+  isLocalId(docId) {
+    return _.startsWith(docId, 'tmp-')
   }
 
-  // NOTE Remove to prevent confusion with server's collection.count()
-  // count(query) {
-  //   return _.size(this.find(query))
-  // }
+  // ==================================
+  // insert or update functions
+  // ==================================
 
   genId() {
     return `tmp-${Math.random()}`
-  }
-
-  isLocalId(docId) {
-    return docId && _.startsWith(docId, 'tmp-')
   }
 
   set(id, value) {
@@ -112,8 +100,6 @@ export default class Collection extends KeyValueStore {
       super.set(id, this.cast(value))
     }
   }
-
-  idField = '_id'
 
   insert(_docs) {
     const inputIsArray = Array.isArray(_docs)

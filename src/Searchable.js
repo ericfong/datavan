@@ -1,13 +1,14 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
 
-export default Base => {
-  return class Searchable extends Base {
+export default Base =>
+  class Searchable extends Base {
     _findImplementation(state, query, option) {
       if ('$search' in query) {
         // allow directly pass in parsed keywords (Array of objects with term, exclude, tag fields)
         const keywords = Array.isArray(query.$search) ? query.$search : this._searchParseKeyword(query.$search)
         if (keywords.length === 0) {
+          FIXME
           return this._postFind(_.values(state), option)
         }
 
@@ -23,6 +24,7 @@ export default Base => {
             return exclude ? !isHit : isHit
           })
         )
+        FIXME
         return this._postFind(result, option)
       }
     }
@@ -46,9 +48,8 @@ export default Base => {
           if (Math.trunc(value) === parseInt(term)) return true
         } else {
           // float, full match
-          if (value + '' === term) return true
+          if (`${value}` === term) return true
         }
       }
     }
   }
-}

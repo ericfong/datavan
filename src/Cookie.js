@@ -1,17 +1,17 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-import SubmittingCollection from './SubmittingCollection'
+import KeyValueStore from './KeyValueStore'
 
 // Cookie
-export default class Cookie extends SubmittingCollection {
+export default class Cookie extends KeyValueStore {
   cookieConf = null
 
-  importPreload(preloadedState) {
+  constructor(state) {
+    super(state)
     if (global.window) {
-      preloadedState.byId = jsCookie.get()
+      state.byId = jsCookie.get() || {}
     }
-    super.importPreload(preloadedState)
   }
 
   setAll(change) {

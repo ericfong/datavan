@@ -15,7 +15,17 @@ export function mergeToStore(state, collections) {
 
 export function mutateState(state, changes) {
   // changes is two levels
-  // delete by $set undefined
-  const mutation = _.mapValues(changes, change => _.mapValues(change, value => ({ $set: value })))
-  return mutateHelper(state, mutation)
+  const allMutation = _.mapValues(changes, change => {
+    const mutation = {}
+    _.each(change, (value, key) => {
+      if (key === '$unset') {
+        mutation.$unset = value
+        return
+      }
+
+      mutation[key] = { $set: value }
+    })
+    return mutation
+  })
+  return mutateHelper(state, allMutation)
 }

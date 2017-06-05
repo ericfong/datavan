@@ -3,202 +3,162 @@ import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
-import { calcFindKey, normalizeQuery } from './util/queryUtil'
+import { normalizeQuery, calcFindKey } from './util/queryUtil'
 
 export default class FetchingCollection extends Collection {
-  // state = { queries: {} }
+  // Override: onFetch()
+  _cacheAts = {}
 
-  // NOTE expecting overriding
-  // onFetch() {}
-  // calcFetchKey() {}
-  isAsyncFetch = false
+  constructor(state) {
+    super(state)
+    state.requests = state.requests || {}
 
-  // TODO may need to pass _fetchTimes data from server to client
-  // fetchTime means start to fetch
-  _fetchTimes = {}
-  _fetchPromises = {}
-
-  calcFetchKey(query, option) {
-    return calcFindKey(query, option)
+    const now = new Date()
+    const _cacheAts = this._cacheAts
+    const setCacheAtFunc = (v, cacheKey) => {
+      _cacheAts[cacheKey] = now
+    }
+    _.each(state.byId, setCacheAtFunc)
+    _.each(state.requests, setCacheAtFunc)
   }
 
   find(query, option = {}) {
-    if (this.onFetch) {
-      const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-      if (fetchQuery) {
-        if (this.isAsyncFetch) {
-          // NOTE diff behavior for Sync and Async
-          const cacheKey = this.calcFetchKey(fetchQuery, option)
-          // TODO make sure only background-reload in mapState is good
-          if (this._shouldReload(cacheKey)) {
-            this._doReload(fetchQuery, option, cacheKey)
-          }
-        } else {
-          this._doReload(fetchQuery, option)
-        }
-      }
-    }
-    return super.find(query, option)
+    const ret = super.find(query, option)
+    this._checkFetch(query, option) // super.find will set option.cacheKey
+    return ret
   }
 
   get(id) {
-    if (this.onFetch && id && !this.isLocalId(id)) {
-      // NOTE diff behavior for Sync and Async
-      if (this.isAsyncFetch) {
-        // TODO make sure only background-reload in mapState is good
-        if (this._shouldReload(id)) {
-          // Async (batch ids in here)
-          this._fetchIdTable[id] = 1
-          this._fetchByIdsDebounce()
-        }
-      } else {
-        // prevent Async fetch by ids again
-        this._doReload([id])
-      }
-    }
+    this._checkFetch([id], { cacheKey: id })
     return super.get(id)
   }
-  _fetchIdTable = []
-  _fetchByIdsPromise = null
-  _fetchByIdsDebounce() {
-    if (this._fetchByIdsPromise) return this._fetchByIdsPromise
 
-    const promises = _.values(this._fetchPromises)
-    this._fetchByIdsPromise = Promise.all(promises)
-      .then(() => {
-        const ids = Object.keys(this._fetchIdTable)
-        if (ids.length > 0) {
-          const now = new Date()
-          _.each(ids, id => (this._fetchTimes[id] = now))
-          return this._doReload(ids)
-        }
-      })
-      .then(() => (this._fetchByIdsPromise = null))
-      .catch(() => (this._fetchByIdsPromise = null))
+  request(req, option = {}) {
+    const cacheKey = (option.cacheKey = stringify(req))
+    this._checkFetch({ $request: req }, option)
+    return this.state.requests[cacheKey]
   }
 
-  query(query, option) {
-    // like get but for backend oriented data
-    const cacheKey = this.calcQueryKey(query)
-    if (this.onQuery && this._shouldReload(cacheKey)) {
-      this._doReload(query, option, cacheKey, 'onQuery')
-    }
-    return this.state.queries[cacheKey]
-  }
-  calcQueryKey(query) {
-    return stringify(query)
-  }
-
-  _shouldReload(cacheKey) {
+  _checkFetch(query, option) {
+    if (!this.onFetch) return false
+    // TODO make sure only background-reload in mapState is good
     const { duringMapState, duringServerPreload, serverPreloading } = this.context
     if (!duringMapState) return false
     // duringServerPreload, only load resource that is mark as preload and preload only one time
     if (duringServerPreload && !serverPreloading) return false
-    return !this._fetchTimes[cacheKey]
-  }
 
-  _doReload(query, option, cacheKey, reloadFuncName = 'onFetch') {
-    // NOTE should be able to handle Both Async and Sync onFetch
-    const result = this[reloadFuncName](query, option)
-    this.isAsyncFetch = isThenable(result)
-    if (this.isAsyncFetch) {
-      const findingKey = cacheKey || this.calcFetchKey(query, option)
-      const now = new Date()
-      this._fetchTimes[findingKey] = now
+    // have readAt?
+    const _cacheAts = this._cacheAts
+    const cacheKey = option.cacheKey
+    if (_cacheAts[cacheKey]) return false
+    _cacheAts[cacheKey] = new Date() // prevent async fetch again
 
+    // fetch
+    const result = this.fetch(query, option)
+    // expect onFetch call importAll internally
+    if (isThenable(result)) {
       const fetchPromises = this._fetchPromises
-      fetchPromises[findingKey] = result
+      fetchPromises[cacheKey] = result
       result
         .then(ret => {
-          delete fetchPromises[findingKey]
-          // NOTE onFetch may call importAll directly. One ajax call contains few collections data
-          this.importAll(ret)
+          if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
           return ret
         })
         .catch(err => {
-          delete fetchPromises[findingKey]
-          if (__DEV__) console.error(err)
+          if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
           return Promise.reject(err)
         })
-    } else if (result) {
-      // Sync onFetch result
-      this.importAll(result)
     }
-    return result
   }
 
-  // NOTE for better utilize browser cache, each collection (or one-to-many relationship collection groups) should do their own http GET.
-  // Hence, cross collection importAll should be limited
-  // add invalidateAll() for backend to notify front-end to clean cache
-  importAll(values) {
-    const change = _.reduce(
-      values,
-      (accumulator, value, key) => {
-        if (value && this.isTidy(key)) {
-          const doc = this.cast(value)
-          const id = doc[this.idField] || key
-          accumulator[id] = doc
-        }
-        return accumulator
-      },
-      {}
-    )
-
-    if (this.isAsyncFetch) {
-      const now = new Date()
-      // set fetchTimes to prevent GC or re-fetch again
-      _.keys(change).forEach(id => (this._fetchTimes[id] = now))
-    }
-
-    // TODO compare local and remote result, drop if backend is removed
-    // TODO CronJob to clear _fetchTimes & cached values
-
-    // skip setAll SubmittingCollection overriding
-
-    this._setAll(change)
+  fetch(query, option) {
+    return syncOrThen(this.onFetch(query, option), ret => (this.state.requests[option.cacheKey] = ret))
   }
 
-  isTidy() {
-    return true
-  }
+  _fetchPromises = {}
 
-  reload(query, option) {
-    const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-    if (fetchQuery) {
-      const result = this._doReload(fetchQuery, option)
-      return syncOrThen(result, () => super.find(query, option))
-    }
-    return Promise.resolve(super.find(query, option))
-  }
-
-  load(query, option = {}) {
-    const fetchQuery = normalizeQuery(query, this.idField, this.isLocalId)
-    if (fetchQuery) {
-      const cacheKey = this.calcFetchKey(fetchQuery, option)
-      if (!this._fetchTimes[cacheKey]) {
-        const result = this._doReload(fetchQuery, option, cacheKey)
+  findAsync(_query, option = {}) {
+    const query = normalizeQuery(_query, this.idField)
+    option.queryNormalized = true
+    if (query) {
+      const cacheKey = (option.cacheKey = calcFindKey(query, option))
+      if (!this._cacheAts[cacheKey]) {
+        const result = this.fetch(query, option)
         return syncOrThen(result, () => super.find(query, option))
       }
     }
     return Promise.resolve(super.find(query, option))
   }
 
+  requestAsync(req, option = {}) {
+    const cacheKey = (option.cacheKey = stringify(req))
+    if (!this._cacheAts[cacheKey]) {
+      return this.fetch({ $request: req }, option)
+    }
+    return Promise.resolve(this.state.requests[cacheKey])
+  }
+
+  invalidate(key) {
+    if (key) {
+      delete this._cacheAts[key]
+    } else {
+      this._cacheAts = {}
+    }
+  }
+
+  // NOTE for better utilize browser cache, collections should do their own http GET. So, cross collection importAll should be limited
+  importAll(_byId, requests) {
+    const byId = {}
+    const now = new Date()
+    const _cacheAts = this._cacheAts
+    _.each(_byId, (value, key) => {
+      if (key === '$unset') {
+        byId.$unset = value
+        return
+      }
+
+      if (this.isTidy(key)) {
+        byId[key] = this.cast(value)
+        _cacheAts[key] = now
+      }
+    })
+
+    // TODO GC more to drop backend removals
+    this.gc()
+
+    this.mutateState({ byId, requests })
+    this.onChangeDebounce()
+  }
+
+  isTidy() {
+    return true
+  }
+
+  gcTime = 60 * 1000
+  _gcAt = 0
+  gc() {
+    const expire = Date.now() - this.gcTime
+    if (this._gcAt > expire) return
+    this._gcAt = Date.now()
+
+    const state = this.state
+    const _cacheAts = this._cacheAts
+    const check = (v, key) => {
+      const cacheAt = _cacheAts[key]
+      return cacheAt && cacheAt > expire
+    }
+    state.byId = _.pickBy(state.byId, check)
+    state.requests = _.pickBy(state.requests, check)
+  }
+
   getPromise() {
     const promises = _.values(this._fetchPromises)
-    if (this._fetchByIdsPromise) promises.push(this._fetchByIdsPromise)
     const superPromise = super.getPromise && super.getPromise()
     if (superPromise) promises.push(superPromise)
     return promises.length > 0 ? Promise.all(promises) : null
   }
 
-  // isFetching state should be stored, so change in isFetching state will cause a dispatch
   isFetching() {
-    return !!this._fetchByIdsPromise || Object.keys(this._fetchPromises).length > 0
-  }
-
-  invalidate() {
-    if (super.invalidate) super.invalidate()
-    this._fetchTimes = {}
-    // FIXME drop all data that is NOT dirty
+    return Object.keys(this._fetchPromises).length > 0
   }
 }

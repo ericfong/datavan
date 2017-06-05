@@ -1,36 +1,43 @@
 import KeyValueStore from './KeyValueStore'
 
-export default class Browser extends KeyValueStore {
-  importPreload(preloadedState) {
-    let preload
-    if (global.window) {
-      preload = {
+function ensureListener(self, listenerKey, addListenerFunc) {
+  if (self[listenerKey]) return
+  self[listenerKey] = true
+  const initValues = addListenerFunc(self)
+  if (initValues) {
+    this.mutateState({ byId: initValues })
+  }
+}
+
+function addOnResize(self) {
+  if (global.window) {
+    window.addEventListener('resize', () => {
+      self.setAll({
         width: window.innerWidth,
         height: window.innerHeight,
-      }
-      window.addEventListener('resize', this._onResize)
-    } else {
-      preload = {
-        width: 360,
-        height: 640,
-      }
-    }
-    preloadedState.byId = preload
-    super.importPreload(preloadedState)
-  }
-
-  _onResize = () => {
-    this.setAll({
+      })
+    })
+    return {
       width: window.innerWidth,
       height: window.innerHeight,
-    })
+    }
   }
 
+  // default value for node
+  return {
+    width: 360,
+    height: 640,
+  }
+}
+
+export default class Browser extends KeyValueStore {
   getWidth() {
+    ensureListener(this, 'resize', addOnResize)
     return this.get('width')
   }
 
   getHeight() {
+    ensureListener(this, 'resize', addOnResize)
     return this.get('height')
   }
 }

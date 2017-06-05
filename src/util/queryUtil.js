@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-export function normalizeQuery(query, idField, idExcluder) {
+export function normalizeQuery(query, idField) {
   if (!query) {
     return {}
   }
@@ -22,10 +22,10 @@ export function normalizeQuery(query, idField, idExcluder) {
       if (typeof matcher === 'string') {
         norQuery[idField] = { $in: [matcher] }
       } else if (matcher.$in) {
-        let ids = _.compact(_.sortedUniq(matcher.$in.sort()))
-        if (idExcluder) {
-          ids = _.filter(ids, id => !idExcluder(id))
-        }
+        const ids = _.compact(_.sortedUniq(matcher.$in.sort()))
+        // if (idExcluder) {
+        //   ids = _.filter(ids, id => !idExcluder(id))
+        // }
         if (ids.length === 0) {
           return null
         }
@@ -55,6 +55,27 @@ export function mongoToLodash(sort) {
     orders.push(v < 0 ? 'desc' : 'asc')
   })
   return [fields, orders]
+}
+
+export function processOption(arr, option) {
+  if (option) {
+    if (option.sort) {
+      const [fields, orders] = mongoToLodash(option.sort)
+      arr = _.orderBy(arr, fields, orders)
+    }
+    if (option.skip || option.limit) {
+      arr = _.slice(arr, option.skip || 0, option.limit)
+    }
+    // convert to other object
+    if (option.keyBy) {
+      arr = _.keyBy(arr, option.keyBy)
+    } else if (option.groupBy) {
+      arr = _.groupBy(arr, option.groupBy)
+    } else if (option.map) {
+      arr = _.map(arr, option.map)
+    }
+  }
+  return arr
 }
 
 export function calcFindKey(query, option) {
