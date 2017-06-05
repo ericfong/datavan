@@ -23,7 +23,6 @@ test('sync get', async () => {
     }),
   })
   const db = createStore()
-  db.context.duringMapState = true
 
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(db.users.get('2')).toEqual({ _id: '2', name: 'Echo-2' })
@@ -41,7 +40,6 @@ test('batch get failback to find', async () => {
     }),
   })
   const db = createStore()
-  db.context.duringMapState = true
 
   db.users.get('1')
   const p1 = db.users.findAsync({ _id: '2' }).then(r => r[0])
@@ -86,7 +84,6 @@ test('basic', async () => {
     }),
   })
   const dv = createStore()
-  dv.context.duringMapState = true
 
   // normal get
   expect(dv.users.get('u1')).toBe(undefined)
@@ -115,9 +112,7 @@ test('basic', async () => {
   expect(calledGet).toBe(2)
 
   // load local won't affect
-  dv.context.duringMapState = false
-  dv.users.get('u5')
-  dv.context.duringMapState = true
+  dv.users.get('u1')
   expect(calledGet).toBe(2)
 
   // expect(calledSearch).toBe(0)

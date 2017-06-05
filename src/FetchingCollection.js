@@ -136,7 +136,7 @@ export default class FetchingCollection extends Collection {
     loopResponse(ops, idField, {
       // handleById
       $byId: (doc, id) => {
-        if (!this.isTidy(id)) return
+        if (this.isDirty(id)) return
         byId[id] = this.cast(doc)
         _accessAts[id] = now
       },
@@ -147,6 +147,7 @@ export default class FetchingCollection extends Collection {
         mutation.requests = { [cacheKey]: value }
       },
     })
+    // console.log('importAll', mutation)
     this.mutateState(mutation)
 
     // TODO GC more to drop backend removals
@@ -154,7 +155,7 @@ export default class FetchingCollection extends Collection {
     this.onChangeDebounce()
   }
 
-  isTidy() {
+  isDirty() {
     return true
   }
 
@@ -168,7 +169,11 @@ export default class FetchingCollection extends Collection {
     const state = this.state
     const _accessAts = this._accessAts
     const check = (v, key) => {
+      if (this.isDirty(key)) return true
       const cacheAt = _accessAts[key]
+      // if (!(cacheAt && cacheAt > expire)) {
+      //   console.log('gc', this.name, key, cacheAt, expire - cacheAt)
+      // }
       return cacheAt && cacheAt > expire
     }
     state.byId = _.pickBy(state.byId, check)

@@ -40,19 +40,25 @@ export default class SubmittingCollection extends FetchingCollection {
           const $unset = _.keys(snapshotState)
 
           const changes = {
-            submits: { $unset },
+            submits: { $unset }, // remove from submits to prevent submit again
           }
 
           if (docs) {
-            // if docs return, assuem all local changes can be remove, remote should feedback stored id or other normalized fields
+            // if docs return, assuem all local state.byId changes can be remove
             const allUnset = docs.$unset ? _.concat(docs.$unset, $unset) : $unset
             const byIdUnset = _.uniq(_.without(allUnset, ..._.keys(docs)))
-            if (byIdUnset.length > 0) docs.$unset = byIdUnset
-
-            this.importAll(docs)
+            if (byIdUnset.length > 0) {
+              changes.byId = { $unset } // remove from submits to prevent submit again
+            }
           }
 
           this.mutateState(changes)
+
+          if (docs) {
+            // remote should feedback stored object with generated id and other normalized fields
+            this.importAll(docs)
+          }
+
           this.onChangeDebounce()
         }
         return docs
@@ -68,8 +74,8 @@ export default class SubmittingCollection extends FetchingCollection {
     )
   }
 
-  isTidy(key) {
-    // return !(key in this.getStagingState())
-    return this.getStagingState()[key] === undefined
+  isDirty(key) {
+    return key in this.getStagingState()
+    // return this.getStagingState()[key] === undefined
   }
 }

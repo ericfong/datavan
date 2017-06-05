@@ -61,7 +61,7 @@ test('onSubmit', async () => {
   // all changes submitted
   expect(_.size(lastSubmit)).toBe(3)
   expect(_.compact(_.map(db.users.getState(), 'name')).sort()).toEqual(['Apple', 'Car 3'])
-  // expect(_.isEmpty(db.users.getStagingState())).toBe(true)
+  expect(_.isEmpty(db.users.getStagingState())).toBe(true)
 })
 
 test('basic', async () => {
@@ -77,7 +77,6 @@ test('basic', async () => {
     }),
   })
   const dv = createStore()
-  dv.context.duringMapState = true
 
   dv.users.insert({ name: 'Apple' })
   dv.users.insert({ name: 'Car' })

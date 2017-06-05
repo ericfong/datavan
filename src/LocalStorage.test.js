@@ -15,7 +15,6 @@ it('basic', async () => {
     users: LocalStorage,
   })
   const dvLeft = createStore()
-  dvLeft.context.duringMapState = true
 
   expect(dvLeft.users.get('u1')).toBe(undefined)
   dvLeft.users.set('u1', 'hi')
@@ -25,7 +24,6 @@ it('basic', async () => {
 
   // should access global localStorage
   const dvRight = createStore()
-  dvRight.context.duringMapState = true
   expect(dvRight.users.get('u1')).toBe('hi')
   dvRight.users.set('u1', 'world')
 
