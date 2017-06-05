@@ -13,6 +13,8 @@ function parseJson(val) {
 
 // LocalStorage
 export default class LocalStorage extends SubmittingCollection {
+  alwaysFetch = true
+
   onFetch(query) {
     return fetchIdInQuery(query, id => parseJson(localStorage.getItem(id)))
   }
@@ -29,6 +31,8 @@ export default class LocalStorage extends SubmittingCollection {
 
 // SessionStorage
 export class SessionStorage extends SubmittingCollection {
+  alwaysFetch = true
+
   onFetch(query) {
     return fetchIdInQuery(query, id => parseJson(sessionStorage.getItem(id)))
   }

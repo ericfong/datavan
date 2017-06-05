@@ -21,26 +21,24 @@ function loopResponse(data, idField, operations) {
         throw new Error(`Unknown import operation ${key}`)
       }
     } else {
-      handleById(value, value[idField] || key)
+      handleById(value, (value && value[idField]) || key)
     }
   })
 }
 
 export default class FetchingCollection extends Collection {
-  // Override: onFetch()
-  _cacheAts = {}
+  // Override: onFetch(), alwaysFetch
+  _accessAts = {}
 
   constructor(state) {
     super(state)
     state.requests = state.requests || {}
 
     const now = new Date()
-    const _cacheAts = this._cacheAts
-    const setCacheAtFunc = (v, cacheKey) => {
-      _cacheAts[cacheKey] = now
-    }
-    _.each(state.byId, setCacheAtFunc)
-    _.each(state.requests, setCacheAtFunc)
+    const _accessAts = this._accessAts
+    const setAccessAtFunc = (v, cacheKey) => (_accessAts[cacheKey] = now)
+    _.each(state.byId, setAccessAtFunc)
+    _.each(state.requests, setAccessAtFunc)
   }
 
   find(query, option = {}) {
@@ -62,17 +60,16 @@ export default class FetchingCollection extends Collection {
 
   _checkFetch(query, option) {
     if (!this.onFetch) return false
-    // TODO make sure only background-reload in mapState is good
-    const { duringMapState, duringServerPreload, serverPreloading } = this.context
-    if (!duringMapState) return false
+    const { duringServerPreload, serverPreloading } = this.context
     // duringServerPreload, only load resource that is mark as preload and preload only one time
     if (duringServerPreload && !serverPreloading) return false
 
     // have readAt?
-    const _cacheAts = this._cacheAts
+    const _accessAts = this._accessAts
     const cacheKey = option.cacheKey
-    if (_cacheAts[cacheKey]) return false
-    _cacheAts[cacheKey] = new Date() // prevent async fetch again
+    // console.log('fetch', this.alwaysFetch, cacheKey, !!_accessAts[cacheKey])
+    if (!this.alwaysFetch && _accessAts[cacheKey]) return false
+    _accessAts[cacheKey] = new Date() // prevent async fetch again
 
     // fetch
     const result = this.fetch(query, option)
@@ -93,6 +90,7 @@ export default class FetchingCollection extends Collection {
 
   fetch(query, option) {
     return syncOrThen(this.onFetch(query, option), ret => {
+      // console.log('fetch result', ret)
       this.importAll(ret, option.cacheKey)
       return ret
     })
@@ -105,7 +103,7 @@ export default class FetchingCollection extends Collection {
     option.queryNormalized = true
     if (query) {
       const cacheKey = (option.cacheKey = calcFindKey(query, option))
-      if (!this._cacheAts[cacheKey]) {
+      if (!this._accessAts[cacheKey]) {
         const result = this.fetch(query, option)
         return syncOrThen(result, () => super.find(query, option))
       }
@@ -115,7 +113,7 @@ export default class FetchingCollection extends Collection {
 
   requestAsync(req, option = {}) {
     const cacheKey = (option.cacheKey = stringify(req))
-    if (!this._cacheAts[cacheKey]) {
+    if (!this._accessAts[cacheKey]) {
       return this.fetch({ $request: req }, option)
     }
     return Promise.resolve(this.state.requests[cacheKey])
@@ -123,16 +121,16 @@ export default class FetchingCollection extends Collection {
 
   invalidate(key) {
     if (key) {
-      delete this._cacheAts[key]
+      delete this._accessAts[key]
     } else {
-      this._cacheAts = {}
+      this._accessAts = {}
     }
   }
 
   importAll(ops, cacheKey) {
     const mutation = { byId: {} }
     const byId = mutation.byId
-    const _cacheAts = this._cacheAts
+    const _accessAts = this._accessAts
     const idField = this.idField
     const now = new Date()
     loopResponse(ops, idField, {
@@ -140,7 +138,7 @@ export default class FetchingCollection extends Collection {
       $byId: (doc, id) => {
         if (!this.isTidy(id)) return
         byId[id] = this.cast(doc)
-        _cacheAts[id] = now
+        _accessAts[id] = now
       },
       $unset(value) {
         byId.$unset = value
@@ -168,9 +166,9 @@ export default class FetchingCollection extends Collection {
     this._gcAt = Date.now()
 
     const state = this.state
-    const _cacheAts = this._cacheAts
+    const _accessAts = this._accessAts
     const check = (v, key) => {
-      const cacheAt = _cacheAts[key]
+      const cacheAt = _accessAts[key]
       return cacheAt && cacheAt > expire
     }
     state.byId = _.pickBy(state.byId, check)

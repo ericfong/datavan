@@ -14,19 +14,23 @@ it('basic', async () => {
   const createStore = defineStore({
     users: LocalStorage,
   })
-  const db1 = createStore()
-  db1.context.duringMapState = true
+  const dvLeft = createStore()
+  dvLeft.context.duringMapState = true
 
-  expect(db1.users.get('u1')).toBe(undefined)
-  db1.users.set('u1', 'hi')
-  expect(db1.users.get('u1')).toBe('hi')
+  expect(dvLeft.users.get('u1')).toBe(undefined)
+  dvLeft.users.set('u1', 'hi')
+  expect(dvLeft.users.get('u1')).toBe('hi')
+
+  // console.log('>>> dvRight')
 
   // should access global localStorage
-  const db2 = createStore()
-  db1.context.duringMapState = true
-  expect(db2.users.get('u1')).toBe('hi')
-  db2.users.set('u1', 'world')
+  const dvRight = createStore()
+  dvRight.context.duringMapState = true
+  expect(dvRight.users.get('u1')).toBe('hi')
+  dvRight.users.set('u1', 'world')
 
-  // db1 should get new state in Sync
-  expect(db1.users.get('u1')).toBe('world')
+  // console.log('>>> dvLeft')
+
+  // dvLeft should get new state, which set by dvRight in Sync
+  expect(dvLeft.users.get('u1')).toBe('world')
 })
