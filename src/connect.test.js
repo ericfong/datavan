@@ -17,9 +17,7 @@ test('server rendering', async () => {
       onFetch(query) {
         if (query && query._id) {
           const ids = getQueryIds(query)
-          return Promise.resolve(
-            _.map(ids, _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })) // console.log('onFetch done', {_id, name: 'Echo-' + _id})
-          )
+          return Promise.resolve(_.map(ids, _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
         }
         return Promise.resolve([])
       },

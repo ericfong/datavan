@@ -41,10 +41,14 @@ export default class FetchingCollection extends Collection {
     _.each(state.requests, setAccessAtFunc)
   }
 
-  find(query, option = {}) {
-    const ret = super.find(query, option)
-    this._checkFetch(query, option) // super.find will set option.cacheKey
-    return ret
+  find(_query, option = {}) {
+    const query = normalizeQuery(_query, this.idField)
+    option.queryNormalized = true
+    if (query) {
+      option.cacheKey = calcFindKey(query, option)
+      this._checkFetch(query, option)
+    }
+    return super.find(query, option)
   }
 
   get(id) {
@@ -62,12 +66,13 @@ export default class FetchingCollection extends Collection {
     if (!this.onFetch) return false
     const { duringServerPreload, serverPreloading } = this.context
     // duringServerPreload, only load resource that is mark as preload and preload only one time
+    // console.log('_checkFetch', query, duringServerPreload, serverPreloading)
     if (duringServerPreload && !serverPreloading) return false
 
     // have readAt?
     const _accessAts = this._accessAts
     const cacheKey = option.cacheKey
-    // console.log('fetch', this.alwaysFetch, cacheKey, !!_accessAts[cacheKey])
+    // console.log('_checkFetch', this.alwaysFetch, cacheKey, !!_accessAts[cacheKey])
     if (!this.alwaysFetch && _accessAts[cacheKey]) return false
     _accessAts[cacheKey] = new Date() // prevent async fetch again
 

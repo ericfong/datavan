@@ -47,7 +47,7 @@ export function fetchIdInQuery(query, func) {
   return { [id]: func(id) }
 }
 
-export function mongoToLodash(sort) {
+function mongoToLodash(sort) {
   const fields = []
   const orders = []
   _.each(sort, (v, k) => {
