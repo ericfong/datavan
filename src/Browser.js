@@ -5,7 +5,7 @@ function ensureListener(self, listenerKey, addListenerFunc) {
   self[listenerKey] = true
   const initValues = addListenerFunc(self)
   if (initValues) {
-    this.mutateState({ byId: initValues })
+    self.mutateState({ byId: initValues })
   }
 }
 
