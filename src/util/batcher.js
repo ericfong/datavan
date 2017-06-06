@@ -1,5 +1,6 @@
 import _ from 'lodash'
 
+/*
 function fetchByIdsDebounce() {
   if (this._fetchByIdsPromise) return this._fetchByIdsPromise
 
@@ -16,8 +17,9 @@ function fetchByIdsDebounce() {
     .then(() => (this._fetchByIdsPromise = null))
     .catch(() => (this._fetchByIdsPromise = null))
 }
+*/
 
-export default function batcher(func) {
+export function batcher(func) {
   let argsArr = []
   let resolveArr = []
   let rejectArr = []
@@ -36,9 +38,7 @@ export default function batcher(func) {
         return retArr
       })
       .catch(err => {
-        for (const reject of _rejectArr) {
-          reject(err)
-        }
+        _.each(_rejectArr, reject => reject(err))
         return Promise.reject(err)
       })
   }
@@ -61,4 +61,27 @@ export default function batcher(func) {
   enqueue.flush = flush
 
   return enqueue
+}
+
+function _runNext(funcs, i, args) {
+  const func = funcs[i]
+  if (!func) return
+  return func(...args, (...nextArgs) => _runNext(funcs, i + 1, nextArgs.length > 0 ? nextArgs : args))
+}
+export function joinMiddlewares(...funcs) {
+  return (...args) => _runNext(funcs, 0, args)
+}
+
+export function makeBatchIdQuery() {
+  const batch = batcher(argsArr => {
+    const next = _.last(_.last(argsArr))
+    const ids = _.flatten(_.map(argsArr, args => args[0]))
+    return next(ids)
+  })
+  return (query, option, next) => {
+    if (Array.isArray(query)) {
+      return batch(query, option, next)
+    }
+    return next()
+  }
 }
