@@ -3,7 +3,7 @@ import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
-import { normalizeQuery, calcFindKey, emptyResultArray } from './util/queryUtil'
+import { normalizeQueryAndKey, emptyResultArray, calcQueryKey } from './util/queryUtil'
 
 // @auto-fold here
 function loopResponse(data, idField, operations) {
@@ -53,6 +53,23 @@ function excludeQueryLocalId(query, idField, isLocalId) {
   return query
 }
 
+// @auto-fold here
+function markFetchPromise(fetchPromises, cacheKey, result) {
+  if (isThenable(result)) {
+    fetchPromises[cacheKey] = result
+    result
+      .then(ret => {
+        if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
+        return ret
+      })
+      .catch(err => {
+        if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
+        return Promise.reject(err)
+      })
+  }
+  return result
+}
+
 export default class FetchingCollection extends Collection {
   // Override: onFetch(), alwaysFetch
   _accessAts = {}
@@ -69,78 +86,64 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id) {
-    if (id && !this.isLocalId(id)) this._checkFetch([id], { cacheKey: id })
+    this._checkFetchSync([id], { fetchKey: id })
     return super.get(id)
   }
 
   find(_query, option = {}) {
-    const query = normalizeQuery(_query, option, this.idField)
+    const query = normalizeQueryAndKey(_query, option, this.idField)
     if (query === false) return emptyResultArray
-    option.cacheKey = calcFindKey(query, option)
-    // calc and shortcut remoteQuery
-    const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
-    if (remoteQuery !== false) this._checkFetch(remoteQuery, option)
+    this._checkFetchSync(query, option)
     return super.find(query, option)
   }
 
   findAsync(_query, option = {}) {
-    const query = normalizeQuery(_query, option, this.idField)
-    // query should be empty
+    const query = normalizeQueryAndKey(_query, option, this.idField)
     if (query === false) return Promise.resolve(emptyResultArray)
-    const cacheKey = (option.cacheKey = calcFindKey(query, option))
-    if (!this._accessAts[cacheKey]) {
-      // calc and shortcut remoteQuery
-      const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
-      if (remoteQuery !== false) {
-        return Promise.resolve(this.fetch(remoteQuery, option)).then(() => super.find(query, option))
-      }
-    }
-    return Promise.resolve(super.find(query, option))
+    return Promise.resolve(this._checkFetchAsync(query, option)).then(() => super.find(query, option))
   }
 
   request(req, option = {}) {
-    const cacheKey = (option.cacheKey = stringify(req))
-    this._checkFetch({ $request: req }, option)
+    const cacheKey = (option.fetchKey = option.cacheKey = stringify(req))
+    this._checkFetchSync({ $request: req }, option)
     return this.state.requests[cacheKey]
   }
 
   requestAsync(req, option = {}) {
-    const cacheKey = (option.cacheKey = stringify(req))
-    if (!this._accessAts[cacheKey]) {
-      return this.fetch({ $request: req }, option)
-    }
-    return Promise.resolve(this.state.requests[cacheKey])
+    const cacheKey = (option.fetchKey = option.cacheKey = stringify(req))
+    return Promise.resolve(this._checkFetchAsync({ $request: req }, option)).then(() => this.state.requests[cacheKey])
   }
 
-  _checkFetch(query, option) {
+  calcFetchKey(remoteQuery, option) {
+    return calcQueryKey(remoteQuery, option)
+  }
+
+  _checkFetchAsync(query, option) {
     if (!this.onFetch) return false
-    const { duringServerPreload, serverPreloading } = this.context
-    // duringServerPreload, only load resource that is mark as preload and preload only one time
-    // console.log('_checkFetch', query, duringServerPreload, serverPreloading)
-    if (duringServerPreload && !serverPreloading) return false
 
-    // have readAt?
-    const _accessAts = this._accessAts
-    const cacheKey = option.cacheKey
-    // console.log('_checkFetch', this.alwaysFetch, cacheKey, !!_accessAts[cacheKey])
-    if (!this.alwaysFetch && _accessAts[cacheKey]) return false
-    _accessAts[cacheKey] = new Date() // prevent async fetch again
+    const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
+    if (remoteQuery === false) return false
 
-    // fetch
-    const result = this.fetch(query, option)
-    if (isThenable(result)) {
-      const fetchPromises = this._fetchPromises
-      fetchPromises[cacheKey] = result
-      result
-        .then(ret => {
-          if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
-          return ret
-        })
-        .catch(err => {
-          if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
-          return Promise.reject(err)
-        })
+    // calc fetchKey based on remoteQuery
+    if (!option.fetchKey) {
+      option.fetchKey = this.calcFetchKey(remoteQuery, option)
     }
+    const fetchKey = option.fetchKey
+
+    const _accessAts = this._accessAts
+    // console.log('_checkFetchAsync', fetchKey, !!_accessAts[fetchKey])
+    if (!this.alwaysFetch && _accessAts[fetchKey]) return false
+    _accessAts[fetchKey] = new Date() // prevent async fetch again
+
+    return this.fetch(remoteQuery, option)
+  }
+
+  _checkFetchSync(query, option) {
+    const { duringServerPreload, serverPreloading } = this.context
+    if (duringServerPreload && !serverPreloading) return false
+    const result = this._checkFetchAsync(query, option)
+    if (result) return markFetchPromise(this._fetchPromises, option.cacheKey, result)
+    return result
   }
 
   fetch(query, option) {

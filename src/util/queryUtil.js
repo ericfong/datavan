@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-export function normalizeQuery(query, option, idField) {
+function normalizeQuery(query, option, idField) {
   if (option) {
     if (option.queryNormalized) {
       return query
@@ -88,8 +88,16 @@ export function processOption(arr, option) {
   return arr
 }
 
-export function calcFindKey(query, option) {
+export function calcQueryKey(query, option) {
   return stringify([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
 }
 
 export const emptyResultArray = []
+
+export function normalizeQueryAndKey(query, option, idField) {
+  const q = normalizeQuery(query, option, idField)
+  if (q !== false) {
+    option.cacheKey = option.cacheKey || calcQueryKey(query, option)
+  }
+  return q
+}

@@ -4,7 +4,7 @@ import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
 import { syncOrThen } from './util/promiseUtil'
-import { normalizeQuery, calcFindKey, processOption, emptyResultArray } from './util/queryUtil'
+import { normalizeQueryAndKey, processOption, emptyResultArray } from './util/queryUtil'
 
 // @auto-fold here
 function filterStateByIds(state, ids) {
@@ -44,11 +44,8 @@ function findHeavyAndMemoize(self, query, option) {
   self._lastById = byId
   const _findMemory = self._findMemory
 
-  // calc cacheKey
-  const cacheKey = (option && option.cacheKey) || calcFindKey(query, option)
-  if (option) option.cacheKey = cacheKey
-
   // return cache if exists
+  const cacheKey = option.cacheKey
   const lastResult = _findMemory[cacheKey]
   if (lastResult) return lastResult
 
@@ -61,8 +58,8 @@ export default class Collection extends KeyValueStore {
 
   _lastById
   _findMemory
-  _find(_query, option) {
-    const query = normalizeQuery(_query, option, this.idField)
+  _find(_query, option = {}) {
+    const query = normalizeQueryAndKey(_query, option, this.idField)
     if (query === false) return emptyResultArray
     return findHeavyAndMemoize(this, query, option)
   }

@@ -2,8 +2,6 @@ import _ from 'lodash'
 
 import { defineStore, defineCollection } from '.'
 
-global.__DEV__ = true
-
 function getQueryIds(query, idField = '_id') {
   if (Array.isArray(query)) return query
   const queryId = query[idField]
@@ -12,6 +10,42 @@ function getQueryIds(query, idField = '_id') {
     return [queryId]
   }
 }
+function echoOnFetch(query) {
+  return _.map(getQueryIds(query), _id => ({ _id, name: `Echo-${_id}` }))
+}
+
+test('consider calcFetchKey', async () => {
+  const coll = new (defineCollection({
+    onFetch: jest.fn(echoOnFetch),
+    calcFetchKey: () => '',
+  }))({})
+  coll.find(['db-1'])
+  expect(coll.onFetch).toHaveBeenCalledTimes(1)
+  coll.find(['db-2'])
+  expect(coll.onFetch).toHaveBeenCalledTimes(1)
+  coll.find(['db-3'])
+  expect(coll.onFetch).toHaveBeenCalledTimes(1)
+})
+
+test('consider localId', async () => {
+  const coll = new (defineCollection({
+    onFetch: jest.fn(echoOnFetch),
+  }))({})
+
+  // won't call onFetch if only null or tmp
+  coll.find(['tmp-123', null, 'tmp-456'])
+  expect(coll.onFetch).toHaveBeenCalledTimes(0)
+
+  // removed tmp-id
+  coll.find(['db-id-abc', 'tmp-123', 'db-id-xyz', 'tmp-456'])
+  expect(coll.onFetch).toHaveBeenCalledTimes(1)
+  expect(_.last(coll.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
+
+  // reverse will use same cacheKey
+  coll.find(['db-id-xyz', 'db-id-abc'])
+  // expect(coll.onFetch).toHaveBeenCalledTimes(2)
+  expect(_.last(coll.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
+})
 
 test('sync get', async () => {
   const createStore = defineStore({
@@ -90,15 +124,10 @@ test('basic', async () => {
   await dv.getPromise()
   expect(dv.users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
-  // // search
-  // expect(dv.users.search('hi')).toEqual([])
-  // await dv.getPromise()
-  // expect(dv.users.search('hi')).toEqual([{ _id: 'u3', name: 'hi Simon' }])
-
   // find again will same as search
-  expect(dv.users.find(null, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
+  expect(dv.users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
   await dv.getPromise()
-  expect(dv.users.find(null, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
+  expect(dv.users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
   // won't affect calledGet, because search or find will fill individual cacheTimes
@@ -115,7 +144,6 @@ test('basic', async () => {
   dv.users.get('u1')
   expect(calledGet).toBe(2)
 
-  // expect(calledSearch).toBe(0)
   expect(calledFind).toBe(1)
   expect(calledGet).toBe(2)
   expect(dv.users.getState()).toEqual({
