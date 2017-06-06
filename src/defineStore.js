@@ -18,6 +18,9 @@ function dvReducer(state, action) {
 // @auto-fold here
 function createCollection(definition, name, preloadedState = {}, context) {
   let newObj
+  if (!definition) {
+    throw new Error(`Collection definition ${name} cannot be ${definition}`)
+  }
   if (isClass(definition)) {
     newObj = new definition(preloadedState) // eslint-disable-line
   } else if (typeof definition === 'function') {

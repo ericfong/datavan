@@ -12,7 +12,7 @@ function parseJson(val) {
 }
 
 // LocalStorage
-export default class LocalStorage extends SubmittingCollection {
+export class LocalStorage extends SubmittingCollection {
   alwaysFetch = true
 
   onFetch(query) {
@@ -28,6 +28,8 @@ export default class LocalStorage extends SubmittingCollection {
     })
   }
 }
+
+export default LocalStorage
 
 // SessionStorage
 export class SessionStorage extends SubmittingCollection {

@@ -30,14 +30,17 @@ function addOnResize(self) {
   }
 }
 
-export default class Browser extends KeyValueStore {
-  getWidth() {
-    ensureListener(this, 'resize', addOnResize)
-    return this.get('width')
-  }
-
-  getHeight() {
-    ensureListener(this, 'resize', addOnResize)
-    return this.get('height')
-  }
+export function getBrowserWidth() {
+  ensureListener(this, 'resize', addOnResize)
+  return this.get('width')
 }
+
+export function getBrowserHeight() {
+  ensureListener(this, 'resize', addOnResize)
+  return this.get('width')
+}
+
+export default class Browser extends KeyValueStore {}
+
+Browser.prototype.getWidth = getBrowserWidth
+Browser.prototype.getHeight = getBrowserHeight
