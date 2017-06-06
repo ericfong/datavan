@@ -76,6 +76,5 @@ export default class SubmittingCollection extends FetchingCollection {
 
   isDirty(key) {
     return key in this.getStagingState()
-    // return this.getStagingState()[key] === undefined
   }
 }

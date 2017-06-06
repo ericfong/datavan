@@ -1,45 +1,55 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-export function normalizeQuery(query, idField) {
+export function normalizeQuery(query, option, idField) {
+  if (option) {
+    if (option.queryNormalized) {
+      return query
+    }
+    option.queryNormalized = true
+  }
+
+  // query = null OR undefined
   if (!query) {
     return {}
   }
+
   // query is array of ids
   if (Array.isArray(query)) {
-    return _.sortedUniq(query.sort())
+    const ids = _.compact(_.sortedUniq(query.sort()))
+    if (ids.length === 0) {
+      return false
+    }
+    return ids
   }
 
-  const norQuery = { ...query }
+  const newQuery = { ...query }
   const entries = Object.entries(query)
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (key === idField) {
       // key=idField, id(s) query muse be truthly
       if (!matcher) {
-        return null
+        return false // return false to stop actual find
       }
       if (typeof matcher === 'string') {
-        norQuery[idField] = { $in: [matcher] }
+        newQuery[idField] = { $in: [matcher] }
       } else if (matcher.$in) {
         const ids = _.compact(_.sortedUniq(matcher.$in.sort()))
-        // if (idExcluder) {
-        //   ids = _.filter(ids, id => !idExcluder(id))
-        // }
         if (ids.length === 0) {
-          return null
+          return false
         }
-        norQuery[key] = { $in: ids }
+        newQuery[key] = { $in: ids }
       }
     } else if (matcher && matcher.$in) {
       const $in = _.sortedUniq(matcher.$in.sort())
       if ($in.length === 0) {
-        return null
+        return false
       }
-      norQuery[key] = { $in }
+      newQuery[key] = { $in }
     }
   }
-  return norQuery
+  return newQuery
 }
 
 export function fetchIdInQuery(query, func) {

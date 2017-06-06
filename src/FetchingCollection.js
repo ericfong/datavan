@@ -3,7 +3,7 @@ import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
-import { normalizeQuery, calcFindKey } from './util/queryUtil'
+import { normalizeQuery, calcFindKey, emptyResultArray } from './util/queryUtil'
 
 // @auto-fold here
 function loopResponse(data, idField, operations) {
@@ -26,6 +26,33 @@ function loopResponse(data, idField, operations) {
   })
 }
 
+// @auto-fold here
+function excludeQueryLocalId(query, idField, isLocalId) {
+  if (Array.isArray(query)) {
+    const ids = _.filter(query, id => !isLocalId(id))
+    if (ids.length === 0) {
+      return false
+    }
+    return ids
+  }
+  if (query[idField]) {
+    const newQuery = { ...query }
+    const idMatcher = query[idField]
+    if (typeof idMatcher === 'string' && isLocalId(idMatcher)) {
+      return false
+    }
+    if (idMatcher.$in) {
+      const ids = _.filter(idMatcher.$in, id => !isLocalId(id))
+      if (ids.length === 0) {
+        return false
+      }
+      newQuery[idField].$in = ids
+    }
+    return newQuery
+  }
+  return query
+}
+
 export default class FetchingCollection extends Collection {
   // Override: onFetch(), alwaysFetch
   _accessAts = {}
@@ -41,25 +68,48 @@ export default class FetchingCollection extends Collection {
     _.each(state.requests, setAccessAtFunc)
   }
 
-  find(_query, option = {}) {
-    const query = normalizeQuery(_query, this.idField)
-    option.queryNormalized = true
-    if (query) {
-      option.cacheKey = calcFindKey(query, option)
-      this._checkFetch(query, option)
-    }
-    return super.find(query, option)
-  }
-
   get(id) {
     if (id && !this.isLocalId(id)) this._checkFetch([id], { cacheKey: id })
     return super.get(id)
+  }
+
+  find(_query, option = {}) {
+    const query = normalizeQuery(_query, option, this.idField)
+    if (query === false) return emptyResultArray
+    option.cacheKey = calcFindKey(query, option)
+    // calc and shortcut remoteQuery
+    const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
+    if (remoteQuery !== false) this._checkFetch(remoteQuery, option)
+    return super.find(query, option)
+  }
+
+  findAsync(_query, option = {}) {
+    const query = normalizeQuery(_query, option, this.idField)
+    // query should be empty
+    if (query === false) return Promise.resolve(emptyResultArray)
+    const cacheKey = (option.cacheKey = calcFindKey(query, option))
+    if (!this._accessAts[cacheKey]) {
+      // calc and shortcut remoteQuery
+      const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
+      if (remoteQuery !== false) {
+        return Promise.resolve(this.fetch(remoteQuery, option)).then(() => super.find(query, option))
+      }
+    }
+    return Promise.resolve(super.find(query, option))
   }
 
   request(req, option = {}) {
     const cacheKey = (option.cacheKey = stringify(req))
     this._checkFetch({ $request: req }, option)
     return this.state.requests[cacheKey]
+  }
+
+  requestAsync(req, option = {}) {
+    const cacheKey = (option.cacheKey = stringify(req))
+    if (!this._accessAts[cacheKey]) {
+      return this.fetch({ $request: req }, option)
+    }
+    return Promise.resolve(this.state.requests[cacheKey])
   }
 
   _checkFetch(query, option) {
@@ -102,27 +152,6 @@ export default class FetchingCollection extends Collection {
   }
 
   _fetchPromises = {}
-
-  findAsync(_query, option = {}) {
-    const query = normalizeQuery(_query, this.idField)
-    option.queryNormalized = true
-    if (query) {
-      const cacheKey = (option.cacheKey = calcFindKey(query, option))
-      if (!this._accessAts[cacheKey]) {
-        const result = this.fetch(query, option)
-        return syncOrThen(result, () => super.find(query, option))
-      }
-    }
-    return Promise.resolve(super.find(query, option))
-  }
-
-  requestAsync(req, option = {}) {
-    const cacheKey = (option.cacheKey = stringify(req))
-    if (!this._accessAts[cacheKey]) {
-      return this.fetch({ $request: req }, option)
-    }
-    return Promise.resolve(this.state.requests[cacheKey])
-  }
 
   invalidate(key) {
     if (key) {

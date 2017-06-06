@@ -62,8 +62,8 @@ export default class Collection extends KeyValueStore {
   _lastById
   _findMemory
   _find(_query, option) {
-    const query = option && option.queryNormalized ? _query : normalizeQuery(_query, this.idField)
-    if (!query) return emptyResultArray
+    const query = normalizeQuery(_query, option, this.idField)
+    if (query === false) return emptyResultArray
     return findHeavyAndMemoize(this, query, option)
   }
 
