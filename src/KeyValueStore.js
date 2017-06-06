@@ -28,7 +28,7 @@ export default class KeyValueStore {
   // Override point: all user mutates should go through this point
   setAll(change) {
     this.mutateState({ byId: change })
-    this.onChange()
+    this.context.duringMapState ? this.onChangeDebounce() : this.onChange()
   }
 
   set(id, value) {

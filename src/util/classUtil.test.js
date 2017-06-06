@@ -1,4 +1,4 @@
-import { composeClass, LocalStorage, SubmittingCollection, FetchingCollection, Collection, KeyValueStore } from '..'
+import { composeClass, SubmittingCollection, FetchingCollection, Collection, KeyValueStore } from '..'
 import { isClass } from './classUtil'
 
 function digProto(Class, num = 1) {
@@ -11,15 +11,13 @@ test('composeClass', async () => {
     {
       idField: 'id',
     },
-    LocalStorage,
     SubmittingCollection
   )
   expect(isClass(Class)).toBe(true)
-  expect(digProto(Class)).toBe(LocalStorage)
-  expect(digProto(Class, 2)).toBe(SubmittingCollection)
-  expect(digProto(Class, 3)).toBe(FetchingCollection)
-  expect(digProto(Class, 4)).toBe(Collection)
-  expect(digProto(Class, 5)).toBe(KeyValueStore)
-  expect(digProto(Class, 7)).toEqual({})
-  expect(digProto(Class, 8)).toBe(null)
+  expect(digProto(Class, 1)).toBe(SubmittingCollection)
+  expect(digProto(Class, 2)).toBe(FetchingCollection)
+  expect(digProto(Class, 3)).toBe(Collection)
+  expect(digProto(Class, 4)).toBe(KeyValueStore)
+  expect(digProto(Class, 6)).toEqual({})
+  expect(digProto(Class, 7)).toBe(null)
 })

@@ -1,55 +1,130 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
+import { processOption } from './util/queryUtil'
+
+function indexOfTerm(term, value) {
+  if (!value) return -1
+  const type = typeof value
+  if (type === 'string') {
+    return value.toLowerCase().indexOf(term)
+  } else if (type === 'number' && !isNaN(term)) {
+    const termWithDot = term.indexOf('.')
+    if (termWithDot < 0) {
+      // match as integer
+      if (Math.trunc(value) === parseInt(term, 10)) {
+        return 0
+      }
+    } else if (`${value}` === term) {
+      // float, full match
+      return 0
+    }
+  }
+  return -1
+}
+
+function getMatch(term, testObj, fieldArr) {
+  for (let i = 0, ii = fieldArr.length; i < ii; i++) {
+    const field = fieldArr[i]
+    const value = _.get(testObj, field)
+    const index = indexOfTerm(term, value)
+    if (index >= 0) {
+      return { term, field, index, value, percentage: term.length / value.length }
+    }
+  }
+  return null
+}
+
+function getMatches(doc, keywords, fieldArr) {
+  return _.map(keywords, keyword => {
+    const { term, exclude } = keyword
+    const fieldIndex = getMatch(term, doc, fieldArr)
+    if (exclude) {
+      return fieldIndex ? null : { term, exclude: true, field: 'exclude', index: 0, percentage: 0.5 }
+    }
+    return fieldIndex
+  })
+}
+
+function matchKeywords(doc, keywords, fieldArr) {
+  const matches = getMatches(doc, keywords, fieldArr)
+
+  if (!_.every(matches)) return false
+
+  let sort = 1000
+  for (let i = 0, ii = matches.length; i < ii; i++) {
+    const match = matches[i]
+
+    if (i > 0) {
+      const lastMatch = matches[i - 1]
+      // same field and after last index
+      if (match.field === lastMatch.field) {
+        // same field, follow sequence of keywords
+        if (match.index >= lastMatch.index + lastMatch.term.length) {
+          sort -= 5 * match.percentage
+          break
+        }
+        // same field, before last index
+        if (match.index !== lastMatch.index) {
+          sort -= 3 * match.percentage
+          break
+        }
+      }
+    }
+
+    // diff field or first field
+    sort -= match.percentage
+  }
+
+  doc._sort = sort
+  return true
+}
+
+function tokenizeKeywords(keywordStr) {
+  // can use tag which extracted from searchTextTokenizer in future
+  // '-car' => [ { term: 'car', exclude: true } ]
+  return _.uniq(searchTextTokenizer(keywordStr))
+}
+
+export function search(docs, keywordStr, getSearchFields) {
+  const fullSearchStr = keywordStr.trim().toLowerCase()
+  if (!fullSearchStr) return docs
+  const keywords = tokenizeKeywords(fullSearchStr)
+  if (keywords.length === 0) return docs
+
+  const results = []
+  _.each(docs, doc => {
+    const fieldArr = getSearchFields(doc)
+
+    const fullMatch = getMatch(fullSearchStr, doc, fieldArr)
+    if (fullMatch) {
+      doc._sort = 1 - fullMatch.percentage
+      results.push(doc)
+      return
+    }
+
+    if (matchKeywords(doc, keywords, fieldArr)) {
+      // matchKeywords will fill-up _sort
+      results.push(doc)
+    }
+  })
+
+  return _.sortBy(results, '_sort')
+}
 
 export default Base =>
   class Searchable extends Base {
     _findImplementation(state, query, option) {
       if ('$search' in query) {
-        // allow directly pass in parsed keywords (Array of objects with term, exclude, tag fields)
-        const keywords = Array.isArray(query.$search) ? query.$search : this._searchParseKeyword(query.$search)
-        if (keywords.length === 0) {
-          FIXME
-          return this._postFind(_.values(state), option)
+        const searchFields = Array.isArray(this.searchFields) ? () => this.searchFields : this.searchFields
+        let result = search(state, query.$search, searchFields)
+        if (!Array.isArray(result)) {
+          result = _.values(result)
         }
-
-        const result = _.filter(state, doc =>
-          _.every(keywords, keyword => {
-            const { tag, exclude, term } = keyword
-            let isHit
-            if (tag) {
-              isHit = this._isSearchHit(term, doc[tag])
-            } else {
-              isHit = _.some(doc, (v, k) => this._isSearchField(k) && this._isSearchHit(term, v))
-            }
-            return exclude ? !isHit : isHit
-          })
-        )
-        FIXME
-        return this._postFind(result, option)
+        return processOption(result, option)
       }
     }
 
-    _searchParseKeyword(search = '') {
-      return _.uniq(searchTextTokenizer(search.toLowerCase()))
-    }
-
-    _isSearchField() {
-      return true
-    }
-
-    _isSearchHit(term, value) {
-      const type = typeof value
-      if (type === 'string') {
-        if (value.toLowerCase().indexOf(term) >= 0) return true
-      } else if (type === 'number' && !isNaN(term)) {
-        const keywordDotIndex = term.indexOf('.')
-        if (keywordDotIndex < 0) {
-          // match as integer
-          if (Math.trunc(value) === parseInt(term)) return true
-        } else {
-          // float, full match
-          if (`${value}` === term) return true
-        }
-      }
+    searchFields(doc) {
+      return _.keys(doc)
     }
   }
