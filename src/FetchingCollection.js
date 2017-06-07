@@ -29,7 +29,7 @@ function loopResponse(data, idField, operations) {
 // @auto-fold here
 function excludeQueryLocalId(query, idField, isLocalId) {
   if (Array.isArray(query)) {
-    const ids = _.filter(query, id => !isLocalId(id))
+    const ids = _.filter(query, id => id && !isLocalId(id))
     if (ids.length === 0) {
       return false
     }
@@ -38,11 +38,14 @@ function excludeQueryLocalId(query, idField, isLocalId) {
   if (query[idField]) {
     const newQuery = { ...query }
     const idMatcher = query[idField]
+    if (!idMatcher) {
+      return false
+    }
     if (typeof idMatcher === 'string' && isLocalId(idMatcher)) {
       return false
     }
     if (idMatcher.$in) {
-      const ids = _.filter(idMatcher.$in, id => !isLocalId(id))
+      const ids = _.filter(idMatcher.$in, id => id && !isLocalId(id))
       if (ids.length === 0) {
         return false
       }
@@ -104,6 +107,7 @@ export default class FetchingCollection extends Collection {
   }
 
   request(req, option = {}) {
+    // TODO may need to combine with find. means have find-only, request-only or find-local-but-request-remote
     const cacheKey = (option.fetchKey = option.cacheKey = stringify(req))
     this._checkFetchSync({ $request: req }, option)
     return this.state.requests[cacheKey]
