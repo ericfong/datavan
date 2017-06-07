@@ -162,6 +162,9 @@ export default class FetchingCollection extends Collection {
     } else {
       this._accessAts = {}
     }
+    // NOTE change state object to force connect to think collection have been updated and re-run
+    // will also invalidate all find memory cache
+    this.state = { ...this.state }
   }
 
   importAll(ops, cacheKey) {
