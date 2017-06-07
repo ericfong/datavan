@@ -146,6 +146,10 @@ export function collectionsEnhancer(definitions) {
         })
         onChange()
       },
+
+      setContext(newContext) {
+        Object.assign(context, newContext)
+      },
     }
     return newStore
   }
