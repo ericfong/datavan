@@ -120,6 +120,7 @@ export default class FetchingCollection extends Collection {
 
   _checkFetchAsync(query, option) {
     if (!this.onFetch) return false
+    if (option.load === 'local') return false
 
     const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
     if (remoteQuery === false) return false
