@@ -58,19 +58,22 @@ export default class Collection extends KeyValueStore {
 
   _lastById
   _findMemory
-  _find(_query, option = {}) {
-    const query = normalizeQueryAndKey(_query, option, this.idField)
-    if (query === false) return emptyResultArray
-    return findHeavyAndMemoize(this, query, option)
+  _findNormalized(filter, option) {
+    if (filter === false) return emptyResultArray
+    return findHeavyAndMemoize(this, filter, option)
+  }
+  _find(_filter, option = {}) {
+    const filter = normalizeQueryAndKey(_filter, option, this.idField)
+    return this._findNormalized(filter, option)
   }
 
   // internal _find, won't trigger re-fetch from backend
-  find(query, option) {
-    return this._find(query, option)
+  find(filter, option) {
+    return this._find(filter, option)
   }
 
-  findOne(query, option) {
-    return syncOrThen(this.find(query, { ...option, limit: 1 }), list => list[0])
+  findOne(filter, option) {
+    return syncOrThen(this.find(filter, { ...option, limit: 1 }), list => list[0])
   }
 
   // search($search, option) {

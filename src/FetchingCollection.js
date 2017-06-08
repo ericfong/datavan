@@ -3,7 +3,7 @@ import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
-import { normalizeQueryAndKey, emptyResultArray, calcQueryKey } from './util/queryUtil'
+import { normalizeQueryAndKey, calcQueryKey } from './util/queryUtil'
 
 // @auto-fold here
 function loopResponse(data, idField, operations) {
@@ -27,17 +27,17 @@ function loopResponse(data, idField, operations) {
 }
 
 // @auto-fold here
-function excludeQueryLocalId(query, idField, isLocalId) {
-  if (Array.isArray(query)) {
-    const ids = _.filter(query, id => id && !isLocalId(id))
+function excludeLocalId(filter, idField, isLocalId) {
+  if (Array.isArray(filter)) {
+    const ids = _.filter(filter, id => id && !isLocalId(id))
     if (ids.length === 0) {
       return false
     }
     return ids
   }
-  if (query[idField]) {
-    const newQuery = { ...query }
-    const idMatcher = query[idField]
+  if (filter[idField]) {
+    const newQuery = { ...filter }
+    const idMatcher = filter[idField]
     if (!idMatcher) {
       return false
     }
@@ -53,108 +53,109 @@ function excludeQueryLocalId(query, idField, isLocalId) {
     }
     return newQuery
   }
-  return query
+  return filter
 }
 
 // @auto-fold here
-function markFetchPromise(fetchPromises, cacheKey, result) {
-  if (isThenable(result)) {
-    fetchPromises[cacheKey] = result
-    result
+function markFetchPromise(fetchPromises, key, promise) {
+  if (isThenable(promise)) {
+    fetchPromises[key] = promise
+    promise
       .then(ret => {
-        if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
+        if (fetchPromises[key] === promise) delete fetchPromises[key]
         return ret
       })
       .catch(err => {
-        if (fetchPromises[cacheKey] === result) delete fetchPromises[cacheKey]
+        if (fetchPromises[key] === promise) delete fetchPromises[key]
         return Promise.reject(err)
       })
   }
-  return result
+  return promise
+}
+
+function _checkFindAsync(fetchQuery, option, fetchKey) {
+  if (fetchKey === false || !this.onFetch) return
+
+  const _fetchAts = this._fetchAts
+  if (!this.alwaysFetch && _fetchAts[fetchKey]) return
+  _fetchAts[fetchKey] = new Date() // prevent async fetch again
+
+  return this.fetch(fetchQuery, option, fetchKey)
+}
+
+function _checkFind(fetchQuery, option, fetchKey) {
+  const { duringServerPreload, serverPreloading } = this.context
+  if (duringServerPreload && !serverPreloading) return
+
+  const promise = _checkFindAsync.call(this, fetchQuery, option, fetchKey)
+  if (promise) {
+    return markFetchPromise(this._fetchPromises, fetchKey, promise)
+  }
+}
+
+function _prepareFind(_filter, option) {
+  const filter = normalizeQueryAndKey(_filter, option, this.idField)
+  if (filter === false) {
+    return { filter, fetchKey: false }
+  }
+  if (filter.$query) {
+    return {
+      filter,
+      fetchKey: option.fetch !== undefined ? option.fetch : this.calcFetchKey(filter, option),
+      fetchQuery: filter,
+      fetchOnly: Object.keys(filter).length === 1,
+    }
+  }
+
+  const fetchQuery = excludeLocalId(filter, this.idField, this.isLocalId)
+  return {
+    filter,
+    fetchKey: option.fetch !== undefined ? option.fetch : fetchQuery !== false && this.calcFetchKey(fetchQuery, option),
+    fetchQuery,
+  }
 }
 
 export default class FetchingCollection extends Collection {
   // Override: onFetch(), alwaysFetch
-  _accessAts = {}
+  _fetchAts = {}
 
   constructor(state) {
     super(state)
-    state.requests = state.requests || {}
+    state.fetches = state.fetches || {}
 
     const now = new Date()
-    const _accessAts = this._accessAts
-    const setAccessAtFunc = (v, cacheKey) => (_accessAts[cacheKey] = now)
-    _.each(state.byId, setAccessAtFunc)
-    _.each(state.requests, setAccessAtFunc)
-  }
-
-  get(id) {
-    this._checkFetchSync([id], { fetchKey: id })
-    return super.get(id)
-  }
-
-  find(_query, option = {}) {
-    const query = normalizeQueryAndKey(_query, option, this.idField)
-    if (query === false) return emptyResultArray
-    this._checkFetchSync(query, option)
-    return super.find(query, option)
-  }
-
-  findAsync(_query, option = {}) {
-    const query = normalizeQueryAndKey(_query, option, this.idField)
-    if (query === false) return Promise.resolve(emptyResultArray)
-    return Promise.resolve(this._checkFetchAsync(query, option)).then(() => super.find(query, option))
-  }
-
-  request(req, option = {}) {
-    // TODO may need to combine with find. means have find-only, request-only or find-local-but-request-remote
-    const cacheKey = (option.fetchKey = option.cacheKey = stringify(req))
-    this._checkFetchSync({ $request: req }, option)
-    return this.state.requests[cacheKey]
-  }
-
-  requestAsync(req, option = {}) {
-    const cacheKey = (option.fetchKey = option.cacheKey = stringify(req))
-    return Promise.resolve(this._checkFetchAsync({ $request: req }, option)).then(() => this.state.requests[cacheKey])
+    const _fetchAts = this._fetchAts
+    const setTimeFunc = (v, key) => (_fetchAts[key] = now)
+    _.each(state.byId, setTimeFunc)
+    _.each(state.fetches, setTimeFunc)
   }
 
   calcFetchKey(remoteQuery, option) {
-    return calcQueryKey(remoteQuery, option)
+    return remoteQuery.$query ? stringify(remoteQuery.$query) : calcQueryKey(remoteQuery, option)
   }
 
-  _checkFetchAsync(query, option) {
-    if (!this.onFetch) return false
-    if (option.load === 'local') return false
-
-    const remoteQuery = excludeQueryLocalId(query, this.idField, this.isLocalId)
-    if (remoteQuery === false) return false
-
-    // calc fetchKey based on remoteQuery
-    if (!option.fetchKey) {
-      option.fetchKey = this.calcFetchKey(remoteQuery, option)
-    }
-    const fetchKey = option.fetchKey
-
-    const _accessAts = this._accessAts
-    // console.log('_checkFetchAsync', fetchKey, !!_accessAts[fetchKey])
-    if (!this.alwaysFetch && _accessAts[fetchKey]) return false
-    _accessAts[fetchKey] = new Date() // prevent async fetch again
-
-    return this.fetch(remoteQuery, option)
+  get(id, option = {}) {
+    _checkFind.call(this, [id], option, id)
+    return super.get(id)
   }
 
-  _checkFetchSync(query, option) {
-    const { duringServerPreload, serverPreloading } = this.context
-    if (duringServerPreload && !serverPreloading) return false
-    const result = this._checkFetchAsync(query, option)
-    if (result) return markFetchPromise(this._fetchPromises, option.cacheKey, result)
-    return result
+  find(_filter, option = {}) {
+    const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
+    _checkFind.call(this, fetchQuery, option, fetchKey)
+    return fetchOnly ? this.state.fetches[fetch] : this._find(filter, option)
   }
 
-  fetch(query, option) {
+  findAsync(_filter, option = {}) {
+    const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
+    return Promise.resolve(_checkFindAsync.call(this, fetchQuery, option, fetchKey)).then(
+      () => (fetchOnly ? this.state.fetches[fetch] : this._find(filter, option))
+    )
+  }
+
+  fetch(query, option, fetchKey) {
     return syncOrThen(this.onFetch(query, option), ret => {
       // console.log('fetch result', ret)
-      this.importAll(ret, option.cacheKey)
+      this.importAll(ret, fetchKey)
       return ret
     })
   }
@@ -163,19 +164,19 @@ export default class FetchingCollection extends Collection {
 
   invalidate(key) {
     if (key) {
-      delete this._accessAts[key]
+      delete this._fetchAts[key]
     } else {
-      this._accessAts = {}
+      this._fetchAts = {}
     }
     // NOTE change state object to force connect to think collection have been updated and re-run
     // will also invalidate all find memory cache
     this.state = { ...this.state }
   }
 
-  importAll(ops, cacheKey) {
+  importAll(ops, fetchKey) {
     const mutation = { byId: {} }
     const byId = mutation.byId
-    const _accessAts = this._accessAts
+    const _fetchAts = this._fetchAts
     const idField = this.idField
     const now = new Date()
     loopResponse(ops, idField, {
@@ -183,13 +184,13 @@ export default class FetchingCollection extends Collection {
       $byId: (doc, id) => {
         if (this.isDirty(id)) return
         byId[id] = this.cast(doc)
-        _accessAts[id] = now
+        _fetchAts[id] = now
       },
       $unset(value) {
         byId.$unset = value
       },
-      $request(value) {
-        mutation.requests = { [cacheKey]: value }
+      $query(value) {
+        mutation.fetches = { [fetchKey]: value }
       },
     })
     // console.log('importAll', mutation)
@@ -212,17 +213,17 @@ export default class FetchingCollection extends Collection {
     this._gcAt = Date.now()
 
     const state = this.state
-    const _accessAts = this._accessAts
+    const _fetchAts = this._fetchAts
     const check = (v, key) => {
       if (this.isDirty(key)) return true
-      const cacheAt = _accessAts[key]
+      const cacheAt = _fetchAts[key]
       // if (!(cacheAt && cacheAt > expire)) {
       //   console.log('gc', this.name, key, cacheAt, expire - cacheAt)
       // }
       return cacheAt && cacheAt > expire
     }
     state.byId = _.pickBy(state.byId, check)
-    state.requests = _.pickBy(state.requests, check)
+    state.fetches = _.pickBy(state.fetches, check)
   }
 
   getPromise() {
