@@ -14,6 +14,26 @@ function echoOnFetch(query) {
   return _.map(getQueryIds(query), _id => ({ _id, name: `Echo-${_id}` }))
 }
 
+test('$query', async () => {
+  const coll = new (defineCollection({
+    onFetch: jest.fn(({ $query }) => {
+      if ($query === 'fetch-only-aggregate-count') {
+        return Promise.resolve({ $query: [$query, 100000] })
+      }
+      if ($query === 'complex-query-1') {
+        return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
+      }
+    }),
+  }))({})
+
+  expect(await coll.findAsync({ $query: 'fetch-only-aggregate-count' })).toEqual(['fetch-only-aggregate-count', 100000])
+
+  const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $query: 'complex-query-1' }
+  coll.find(complexQuery)
+  await coll.getPromise()
+  expect(coll.find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+})
+
 test('consider calcFetchKey', async () => {
   const coll = new (defineCollection({
     onFetch: jest.fn(echoOnFetch),

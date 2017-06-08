@@ -100,7 +100,7 @@ function _prepareFind(_filter, option) {
   }
   if (filter.$query) {
     return {
-      filter,
+      filter: _.omit(filter, '$query'),
       fetchKey: option.fetch !== undefined ? option.fetch : this.calcFetchKey(filter, option),
       fetchQuery: filter,
       fetchOnly: Object.keys(filter).length === 1,
@@ -142,13 +142,13 @@ export default class FetchingCollection extends Collection {
   find(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     _checkFind.call(this, fetchQuery, option, fetchKey)
-    return fetchOnly ? this.state.fetches[fetch] : this._findNormalized(filter, option)
+    return fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option)
   }
 
   findAsync(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     return Promise.resolve(_checkFindAsync.call(this, fetchQuery, option, fetchKey)).then(
-      () => (fetchOnly ? this.state.fetches[fetch] : this._findNormalized(filter, option))
+      () => (fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option))
     )
   }
 
