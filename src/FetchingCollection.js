@@ -142,13 +142,13 @@ export default class FetchingCollection extends Collection {
   find(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     _checkFind.call(this, fetchQuery, option, fetchKey)
-    return fetchOnly ? this.state.fetches[fetch] : this._find(filter, option)
+    return fetchOnly ? this.state.fetches[fetch] : this._findNormalized(filter, option)
   }
 
   findAsync(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     return Promise.resolve(_checkFindAsync.call(this, fetchQuery, option, fetchKey)).then(
-      () => (fetchOnly ? this.state.fetches[fetch] : this._find(filter, option))
+      () => (fetchOnly ? this.state.fetches[fetch] : this._findNormalized(filter, option))
     )
   }
 
