@@ -141,6 +141,7 @@ export default class FetchingCollection extends Collection {
 
   find(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
+    // TODO prevent fetch when array of ids all hit
     _checkFind.call(this, fetchQuery, option, fetchKey)
     return fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option)
   }
@@ -175,7 +176,8 @@ export default class FetchingCollection extends Collection {
 
   importAll(ops, fetchKey) {
     const mutation = { byId: {} }
-    const byId = mutation.byId
+    const stateById = this.state.byId
+    const mutationById = mutation.byId
     const _fetchAts = this._fetchAts
     const idField = this.idField
     const now = new Date()
@@ -183,11 +185,11 @@ export default class FetchingCollection extends Collection {
       // handleById
       $byId: (doc, id) => {
         if (this.isDirty(id)) return
-        byId[id] = this.cast(doc)
+        mutationById[id] = typeof doc === 'object' ? { ...stateById[id], ...this.cast(doc) } : doc
         _fetchAts[id] = now
       },
       $unset(value) {
-        byId.$unset = value
+        mutationById.$unset = value
       },
       $query(value) {
         mutation.fetches = { [fetchKey]: value }

@@ -55,7 +55,7 @@ export default class SubmittingCollection extends FetchingCollection {
           this.mutateState(changes)
 
           if (docs) {
-            // remote should feedback stored object with generated id and other normalized fields
+            // remote should feedback generated id
             this.importAll(docs)
           }
 
