@@ -27,9 +27,9 @@ function loopResponse(data, idField, operations) {
 }
 
 // @auto-fold here
-function excludeLocalId(filter, idField, isLocalId) {
+function excludeDirty(filter, idField, isDirty) {
   if (Array.isArray(filter)) {
-    const ids = _.filter(filter, id => id && !isLocalId(id))
+    const ids = _.filter(filter, id => id && !isDirty(id))
     if (ids.length === 0) {
       return false
     }
@@ -41,11 +41,11 @@ function excludeLocalId(filter, idField, isLocalId) {
     if (!idMatcher) {
       return false
     }
-    if (typeof idMatcher === 'string' && isLocalId(idMatcher)) {
+    if (typeof idMatcher === 'string' && isDirty(idMatcher)) {
       return false
     }
     if (idMatcher.$in) {
-      const ids = _.filter(idMatcher.$in, id => id && !isLocalId(id))
+      const ids = _.filter(idMatcher.$in, id => id && !isDirty(id))
       if (ids.length === 0) {
         return false
       }
@@ -73,21 +73,26 @@ function markFetchPromise(fetchPromises, key, promise) {
   return promise
 }
 
-function _checkFindAsync(fetchQuery, option, fetchKey) {
+function _checkFetchAsync(fetchQuery, option, fetchKey) {
   if (fetchKey === false || !this.onFetch) return
 
+  // gc more to sync with remote
+  // gc before import to make sure new things is not gc
+  this._invalidateForGc()
+
   const _fetchAts = this._fetchAts
+  // console.log('_checkFetchAsync', fetchKey, _fetchAts[fetchKey])
   if (!this.alwaysFetch && _fetchAts[fetchKey]) return
   _fetchAts[fetchKey] = new Date() // prevent async fetch again
 
   return this.fetch(fetchQuery, option, fetchKey)
 }
 
-function _checkFind(fetchQuery, option, fetchKey) {
+function _checkFetch(fetchQuery, option, fetchKey) {
   const { duringServerPreload, serverPreloading } = this.context
   if (duringServerPreload && !serverPreloading) return
 
-  const promise = _checkFindAsync.call(this, fetchQuery, option, fetchKey)
+  const promise = _checkFetchAsync.call(this, fetchQuery, option, fetchKey)
   if (promise) {
     return markFetchPromise(this._fetchPromises, fetchKey, promise)
   }
@@ -107,7 +112,7 @@ function _prepareFind(_filter, option) {
     }
   }
 
-  const fetchQuery = excludeLocalId(filter, this.idField, this.isLocalId)
+  const fetchQuery = excludeDirty(filter, this.idField, this.isDirty.bind(this))
   return {
     filter,
     fetchKey: option.fetch !== undefined ? option.fetch : fetchQuery !== false && this.calcFetchKey(fetchQuery, option),
@@ -135,20 +140,20 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id, option = {}) {
-    _checkFind.call(this, [id], option, id)
+    _checkFetch.call(this, [id], option, id)
     return super.get(id)
   }
 
   find(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     // TODO prevent fetch when array of ids all hit
-    _checkFind.call(this, fetchQuery, option, fetchKey)
+    _checkFetch.call(this, fetchQuery, option, fetchKey)
     return fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option)
   }
 
   findAsync(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
-    return Promise.resolve(_checkFindAsync.call(this, fetchQuery, option, fetchKey)).then(
+    return Promise.resolve(_checkFetchAsync.call(this, fetchQuery, option, fetchKey)).then(
       () => (fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option))
     )
   }
@@ -163,18 +168,9 @@ export default class FetchingCollection extends Collection {
 
   _fetchPromises = {}
 
-  invalidate(key) {
-    if (key) {
-      delete this._fetchAts[key]
-    } else {
-      this._fetchAts = {}
-    }
-    // NOTE change state object to force connect to think collection have been updated and re-run
-    // will also invalidate all find memory cache
-    this.state = { ...this.state }
-  }
-
   importAll(ops, fetchKey) {
+    this._gc()
+
     const mutation = { byId: {} }
     const stateById = this.state.byId
     const mutationById = mutation.byId
@@ -198,8 +194,6 @@ export default class FetchingCollection extends Collection {
     // console.log('importAll', mutation)
     this.mutateState(mutation)
 
-    // TODO GC more to drop backend removals
-    this.gc()
     this.onChangeDebounce()
   }
 
@@ -207,25 +201,41 @@ export default class FetchingCollection extends Collection {
     return true
   }
 
+  invalidate(key) {
+    if (key) {
+      delete this._fetchAts[key]
+    } else {
+      this._fetchAts = {}
+    }
+    // force connect re-run & invalidate all find memory
+    this.state = { ...this.state }
+  }
+
   gcTime = 60 * 1000
   _gcAt = 0
-  gc() {
+  _shouldRunGc = false
+
+  _invalidateForGc() {
     const expire = Date.now() - this.gcTime
     if (this._gcAt > expire) return
     this._gcAt = Date.now()
+    this._fetchAts = _.pickBy(this._fetchAts, fetchAt => fetchAt > expire)
+    this._shouldRunGc = true
+  }
+
+  _gc() {
+    if (!this._shouldRunGc) return
+    this._shouldRunGc = false
 
     const state = this.state
     const _fetchAts = this._fetchAts
-    const check = (v, key) => {
-      if (this.isDirty(key)) return true
-      const cacheAt = _fetchAts[key]
-      // if (!(cacheAt && cacheAt > expire)) {
-      //   console.log('gc', this.name, key, cacheAt, expire - cacheAt)
-      // }
-      return cacheAt && cacheAt > expire
+    const shouldKeep = (v, key) => {
+      const keep = this.isDirty(key) || _fetchAts[key]
+      // if (!keep) console.log('gc', this.name, key)
+      return keep
     }
-    state.byId = _.pickBy(state.byId, check)
-    state.fetches = _.pickBy(state.fetches, check)
+    state.byId = _.pickBy(state.byId, shouldKeep)
+    state.fetches = _.pickBy(state.fetches, shouldKeep)
   }
 
   getPromise() {

@@ -75,6 +75,6 @@ export default class SubmittingCollection extends FetchingCollection {
   }
 
   isDirty(key) {
-    return key in this.getStagingState()
+    return key in this.getStagingState() || this.isLocalId(key)
   }
 }
