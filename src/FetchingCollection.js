@@ -208,6 +208,8 @@ export default class FetchingCollection extends Collection {
     // console.log('importAll', mutation)
     this.mutateState(mutation)
 
+    // force connect re-run to indicate change of isFetching OR gc
+    this.state = { ...this.state }
     this.onChangeDebounce()
   }
 
@@ -223,6 +225,7 @@ export default class FetchingCollection extends Collection {
     }
     // force connect re-run & invalidate all find memory
     this.state = { ...this.state }
+    this.onChangeDebounce()
   }
 
   gcTime = 60 * 1000

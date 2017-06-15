@@ -144,7 +144,6 @@ export function collectionsEnhancer(definitions) {
         _.each(collections, coll => {
           if (coll.invalidate) coll.invalidate()
         })
-        onChange()
       },
 
       setContext(newContext) {
