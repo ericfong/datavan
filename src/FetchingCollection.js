@@ -57,6 +57,16 @@ function excludeDirty(filter, idField, isDirty) {
 }
 
 // @auto-fold here
+function defaultCalcFetchKey(fetchQuery, option) {
+  // $query
+  if (fetchQuery.$query) return stringify(fetchQuery.$query)
+  // get one id
+  if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
+  // normal query
+  return calcQueryKey(fetchQuery, option)
+}
+
+// @auto-fold here
 function markFetchPromise(fetchPromises, key, promise) {
   if (isThenable(promise)) {
     fetchPromises[key] = promise
@@ -136,12 +146,15 @@ export default class FetchingCollection extends Collection {
   }
 
   calcFetchKey(remoteQuery, option) {
-    return remoteQuery.$query ? stringify(remoteQuery.$query) : calcQueryKey(remoteQuery, option)
+    return defaultCalcFetchKey(remoteQuery, option)
   }
 
   get(id, option = {}) {
     if (!id) return undefined
-    if (!this.isDirty(id)) _checkFetch.call(this, [id], option, id)
+    if (!this.isDirty(id)) {
+      const ids = [id]
+      _checkFetch.call(this, ids, option, this.calcFetchKey(ids, option))
+    }
     return super.get(id)
   }
 

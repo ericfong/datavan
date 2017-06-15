@@ -78,6 +78,8 @@ test('consider calcFetchKey', async () => {
   expect(coll.onFetch).toHaveBeenCalledTimes(1)
   coll.find(['db-3'])
   expect(coll.onFetch).toHaveBeenCalledTimes(1)
+  coll.get('db-4')
+  expect(coll.onFetch).toHaveBeenCalledTimes(1)
 })
 
 test('consider localId', async () => {
