@@ -88,6 +88,9 @@ test('consider localId', async () => {
   // won't call onFetch if only null or tmp
   coll.find(['tmp-123', null, 'tmp-456'])
   expect(coll.onFetch).toHaveBeenCalledTimes(0)
+  coll.get(undefined)
+  coll.get(null)
+  expect(coll.onFetch).toHaveBeenCalledTimes(0)
 
   // removed tmp-id
   coll.find(['db-id-abc', 'tmp-123', 'db-id-xyz', 'tmp-456'])

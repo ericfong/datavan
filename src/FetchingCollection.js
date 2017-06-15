@@ -140,7 +140,8 @@ export default class FetchingCollection extends Collection {
   }
 
   get(id, option = {}) {
-    _checkFetch.call(this, [id], option, id)
+    if (!id) return undefined
+    if (!this.isDirty(id)) _checkFetch.call(this, [id], option, id)
     return super.get(id)
   }
 
@@ -197,8 +198,8 @@ export default class FetchingCollection extends Collection {
     this.onChangeDebounce()
   }
 
-  isDirty() {
-    return true
+  isDirty(key) {
+    return this.isLocalId(key)
   }
 
   invalidate(key) {
