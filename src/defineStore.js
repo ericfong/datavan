@@ -141,9 +141,10 @@ export function collectionsEnhancer(definitions) {
       },
 
       invalidate() {
-        _.each(collections, coll => {
-          if (coll.invalidate) coll.invalidate()
-        })
+        _.each(collections, coll => coll.invalidate && coll.invalidate())
+      },
+      autoInvalidate() {
+        _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
       },
 
       setContext(newContext) {

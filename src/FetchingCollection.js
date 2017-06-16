@@ -207,7 +207,10 @@ export default class FetchingCollection extends Collection {
     })
     // console.log('importAll', mutation)
     this.mutateState(mutation)
+    this._forceChangeDebounce()
+  }
 
+  _forceChangeDebounce() {
     // force connect re-run to indicate change of isFetching OR gc
     this.state = { ...this.state }
     this.onChangeDebounce()
@@ -223,9 +226,11 @@ export default class FetchingCollection extends Collection {
     } else {
       this._fetchAts = {}
     }
-    // force connect re-run & invalidate all find memory
-    this.state = { ...this.state }
-    this.onChangeDebounce()
+    this._forceChangeDebounce()
+  }
+
+  autoInvalidate() {
+    if (this._invalidateForGc()) this._forceChangeDebounce()
   }
 
   gcTime = 60 * 1000
@@ -234,10 +239,11 @@ export default class FetchingCollection extends Collection {
 
   _invalidateForGc() {
     const expire = Date.now() - this.gcTime
-    if (this._gcAt > expire) return
+    if (this._gcAt > expire) return false
     this._gcAt = Date.now()
     this._fetchAts = _.pickBy(this._fetchAts, fetchAt => fetchAt > expire)
     this._shouldRunGc = true
+    return true
   }
 
   _gc() {
