@@ -10,18 +10,18 @@ function loopResponse(data, idField, operations) {
   if (!data) return
   const handleById = operations.$byId
 
-  if (Array.isArray(data)) return _.each(data, doc => handleById(doc, doc[idField]))
+  if (Array.isArray(data)) return _.each(data, (doc, i) => handleById(doc, (doc && doc[idField]) || i))
 
-  _.each(data, (value, key) => {
+  _.each(data, (doc, key) => {
     if (key[0] === '$') {
       const opFunc = operations[key]
       if (opFunc) {
-        opFunc(value)
+        opFunc(doc)
       } else {
         throw new Error(`Unknown import operation ${key}`)
       }
     } else {
-      handleById(value, (value && value[idField]) || key)
+      handleById(doc, (doc && doc[idField]) || key)
     }
   })
 }
@@ -195,7 +195,8 @@ export default class FetchingCollection extends Collection {
       // handleById
       $byId: (doc, id) => {
         if (this.isDirty(id)) return
-        mutationById[id] = typeof doc === 'object' ? { ...stateById[id], ...this.cast(doc) } : doc
+        const castedDoc = this.cast(doc)
+        mutationById[id] = typeof castedDoc === 'object' ? { ...stateById[id], ...castedDoc } : castedDoc
         _fetchAts[id] = now
       },
       $unset(value) {
