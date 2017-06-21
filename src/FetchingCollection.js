@@ -222,6 +222,7 @@ export default class FetchingCollection extends Collection {
   }
 
   invalidate(key) {
+    if (!this.onFetch) return
     if (key) {
       delete this._fetchAts[key]
     } else {
@@ -231,6 +232,7 @@ export default class FetchingCollection extends Collection {
   }
 
   autoInvalidate() {
+    if (!this.onFetch) return
     if (this._invalidateForGc()) this._forceChangeDebounce()
   }
 
@@ -248,7 +250,7 @@ export default class FetchingCollection extends Collection {
   }
 
   _gc() {
-    if (!this._shouldRunGc) return
+    if (!this.onFetch || !this._shouldRunGc) return
     this._shouldRunGc = false
 
     const state = this.state
