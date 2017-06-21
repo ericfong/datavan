@@ -32,10 +32,10 @@ __Table of Contents__
 import { connect, defineStore, defineCollection, Provider } from 'datavan'
 
 function PureComponent({ user }) {
-  return <div>{ user.name }</div>
+  return <div>{(user && user.name) || 'No Name'}</div>
 }
 
-export default connect((dv, { username }) => {
+const MyApp = connect((dv, { username }) => {
   // redux mapState, but first argument is datavan store instead of dispatch
   // assume defined a collection called 'users', which can access by dv.users
   return {
@@ -52,8 +52,8 @@ export default connect((dv, { username }) => {
 const createStore = defineStore({
   users: defineCollection({
     onFetch(query, option) {
-      return Promise.resolve([{ _id: 'id', name: 'name' }])
-    }
+      return Promise.resolve([{ _id: 'id', name: 'loaded name' }])
+    },
   }),
 })
 
@@ -61,9 +61,9 @@ const createStore = defineStore({
 const store = createStore()
 
 // Assign to your React context
-ReactDom.render(
-  <DataProvider store={dv}>
-    <PureComponent />
-  </DataProvider>
+render(
+  <Provider store={store}>
+    <MyApp />
+  </Provider>
 )
 ```

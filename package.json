@@ -2,6 +2,7 @@
   "scripts": {
     "build": "babel src --out-dir lib --ignore spec.js,test.js",
     "prepublish": "npm test && rm -rf ./lib && npm run build",
+    "babel": "babel-node",
     "start": "npm run build -- --watch",
     "test": "cross-env NODE_PATH=src jest"
   },
