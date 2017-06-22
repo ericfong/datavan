@@ -1,19 +1,31 @@
 {
   "presets": [
-    "latest",
-    "stage-0",
-    "react"
+    [
+      "env",
+      {
+        "targets": {
+          "node": "current"
+        }
+      }
+    ]
   ],
   "plugins": [
     "transform-runtime",
-    "dev-expression",
+    "transform-export-extensions",
+    "transform-class-properties",
+    "transform-object-rest-spread",
+    "lodash",
+    "dev-expression"
   ],
   "env": {
+    "test": {
+      "presets": [
+        "react"
+      ]
+    },
     "production": {
       "presets": [
-        ["latest", {"es2015": {"modules": false}}],
-        "stage-0"
-      ],
-    },
+      ]
+    }
   }
 }

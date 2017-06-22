@@ -1,6 +1,7 @@
 /lib/
 tmp-*
 *-tmp.*
+/yarn.lock
 
 
 # Logs
