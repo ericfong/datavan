@@ -4,9 +4,10 @@
 
 __Features__
 - based on redux (wrap redux into in-memory mongodb)
-- can access regular http/async api (results are auto cached and auto gc)
+- can access regular http/async/promise api (results are auto cached and auto gc)
+- already have reselect like memoize layer, don't need to think about createSelector
 - also work for sync datasource (ex: localStorage)
-- designed for offline (conflict solve on your own)
+- can be offline (conflict solve on your own)
 - with Searchable mixin
 - lightweight core and persistent on your own
 
@@ -20,6 +21,7 @@ Welcome to extend or hack datavan or other classes to change behaviours
 __Table of Contents__
 <!-- TOC START min:1 max:3 link:true update:true -->
   - [Usage](#usage)
+  - [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
 
@@ -67,3 +69,46 @@ render(
   </Provider>
 )
 ```
+
+
+
+## Server Rendering
+```js
+const MyApp = connect((dv, { username }) => {
+  // following .find() .get() will be server preloaded (within this connect function)
+  dv.serverPreload(true)
+  return {
+    user: dv.users.findOne({ username }),
+  }
+})(PureComponent)
+
+
+// Provider and Store
+const createServerStore = defineStore({
+  users: defineCollection({
+    onFetch(query, option) { /* server side implementation */ },
+  }),
+})
+const serverStore = createServerStore()
+
+// renderToString
+const html = await serverStore.serverRender(() =>
+  ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
+)
+// transfer data to browser
+const json = JSON.stringify(store.getState())
+
+// -------
+
+// browser side
+const createBrowserStore = defineStore({
+  users: defineCollection({
+    onFetch(query, option) { /* browser side implementation */ },
+  }),
+})
+const preloadedState = JSON.parse(json)
+const browserStore = createBrowserStore(null, preloadedState)
+
+ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
+```
+You may use [iso](https://www.npmjs.com/package/iso) to ship data to browser
