@@ -1,15 +1,4 @@
 {
-  "presets": [
-    [
-      "env",
-      {
-        "useBuiltIns": true,
-        "targets": {
-          "node": "current"
-        }
-      }
-    ]
-  ],
   "plugins": [
     "transform-export-extensions",
     "transform-class-properties",
@@ -20,27 +9,17 @@
   "env": {
     "es6": {
       "presets": [
-        [
-          "env",
-          {
-            "modules": false,
-            "useBuiltIns": true,
-            "targets": {
-              "node": "current"
-            }
-          }
-        ]
+        ["env", { "targets": { "node": "current" }, "useBuiltIns": true, "modules": false, "debug": true }]
       ],
-      "plugins": [
-        "transform-export-extensions",
-        "transform-class-properties",
-        "transform-object-rest-spread",
-        "lodash",
-        "dev-expression"
+    },
+    "production": {
+      "presets": [
+        ["env", { "targets": { "node": "current" }, "useBuiltIns": true }]
       ],
     },
     "test": {
       "presets": [
+        ["env", { "targets": { "node": "current" } }],
         "react"
       ]
     }
