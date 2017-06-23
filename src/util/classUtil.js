@@ -3,8 +3,13 @@ import _ from 'lodash'
 function isExportMethod(name, value) {
   return name[0] !== '_' && name !== 'constructor' && typeof value === 'function'
 }
+
+function getOwnPropertyNames(obj) {
+  return obj ? Object.getOwnPropertyNames(obj) : null
+}
+
 function extractExportMethods(obj, methods = {}) {
-  _.each(Object.getOwnPropertyNames(obj), name => {
+  _.each(getOwnPropertyNames(obj), name => {
     const value = obj[name]
     if (isExportMethod(name, value) && !methods[name]) {
       methods[name] = value
@@ -57,7 +62,7 @@ export function isClass(Class) {
   // eslint-disable-next-line
   if (!SuperClass.isPrototypeOf(Object)) return true
 
-  const methods = _.without(Object.getOwnPropertyNames(Class.prototype), 'constructor')
+  const methods = _.without(getOwnPropertyNames(Class.prototype), 'constructor')
   return methods.length > 0
 }
 
