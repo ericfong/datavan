@@ -1,20 +1,19 @@
 {
   "scripts": {
-    "build": "cross-env BABEL_ENV=production babel src --out-dir lib --ignore spec.js,test.js",
+    "build": "npm run build:production && npm run build:es6",
+    "build:production": "cross-env BABEL_ENV=production babel src --out-dir lib --ignore spec.js,test.js",
+    "build:es6": "cross-env BABEL_ENV=es6 babel src --out-dir lib/es6 --ignore spec.js,test.js",
     "prepublish": "npm test && rm -rf ./lib && npm run build",
     "babel": "babel-node",
-    "start": "npm run build -- --watch",
+    "start": "npm run build:es6 -- --watch",
     "test": "cross-env NODE_PATH=src jest"
   },
   "name": "datavan",
   "version": "1.10.4",
   "description": "Define your collections layer over redux state, with mixins to fetch, submit changes to your server",
   "main": "./lib/index.js",
-  "module": "./lib/index.js",
-  "jsnext:main": "./lib/index.js",
-  "directories": {
-    "lib": "./lib"
-  },
+  "browser": "./lib/es6/index.js",
+  "module": "./lib/es6/index.js",
   "jest": {
     "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
@@ -28,57 +27,51 @@
       "/tmp/"
     ]
   },
-  "moduleRoots": [
-    "src"
-  ],
   "dependencies": {
     "fast-stable-stringify": "^0.2.0",
     "immutability-helper": "^2.2.2",
     "js-cookie": "^2.1.4",
     "lodash": "^4.16.4",
     "react-redux": "^5.0.5",
-    "redux": "^3.6.0",
+    "redux": "3.7.0",
     "reselect": "^3.0.1",
     "search-text-tokenizer": "^2.1.1",
-    "sift": "^3.3.10"
+    "sift": "3.3.11"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
+    "babel-core": "6.25.0",
     "babel-eslint": "^7.2.3",
     "babel-jest": "^20.0.3",
     "babel-plugin-dev-expression": "^0.2.1",
-    "babel-plugin-lodash": "''3.2.11",
-    "babel-plugin-transform-class-properties": "''6.24.1",
-    "babel-plugin-transform-export-extensions": "''6.22.0",
-    "babel-plugin-transform-object-rest-spread": "''6.23.0",
+    "babel-plugin-lodash": "3.2.11",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-plugin-transform-export-extensions": "6.22.0",
+    "babel-plugin-transform-object-rest-spread": "6.23.0",
     "babel-plugin-transform-runtime": "^6.15.0",
-    "babel-preset-env": "''1.5.2",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-latest": "^6.24.1",
+    "babel-preset-env": "1.5.2",
     "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
     "babel-runtime": "^6.11.6",
-    "cross-env": "^5.0.0",
-    "enzyme": "^2.8.2",
-    "eslint": "^3.19.0",
+    "cross-env": "5.0.1",
+    "enzyme": "2.9.0",
+    "eslint": "4.0.0",
     "eslint-config-airbnb": "^15.0.1",
     "eslint-plugin-babel": "^4.1.1",
-    "eslint-plugin-import": "^2.3.0",
+    "eslint-plugin-import": "2.5.0",
     "eslint-plugin-jest": "^20.0.3",
     "eslint-plugin-jsx-a11y": "^5.0.3",
-    "eslint-plugin-lodash": "^2.4.2",
-    "eslint-plugin-mocha": "^4.9.0",
-    "eslint-plugin-react": "^7.0.1",
+    "eslint-plugin-lodash": "2.4.3",
+    "eslint-plugin-mocha": "4.11.0",
+    "eslint-plugin-react": "7.1.0",
     "invariant": "^2.2.2",
     "jest": "^20.0.4",
     "jsdom": "^11.0.0",
-    "react": "^15.5.4",
-    "react-addons-test-utils": "^15.5.1",
-    "react-dom": "^15.5.4",
+    "react": "15.6.1",
+    "react-addons-test-utils": "15.6.0",
+    "react-dom": "15.6.1",
     "react-hot-loader": "3.0.0-beta.6",
     "should": "^11.2.1",
-    "sinon": "^2.3.2"
+    "sinon": "2.3.5"
   },
   "repository": {
     "type": "git",
@@ -99,7 +92,7 @@
   "author": "Eric Fong",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ericfong/reget/issues"
+    "url": "https://github.com/ericfong/datavan/issues"
   },
-  "homepage": "https://github.com/ericfong/reget#readme"
+  "homepage": "https://github.com/ericfong/datavan#readme"
 }

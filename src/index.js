@@ -24,4 +24,4 @@ export Cookie from './Cookie'
 export KoaCookie from './KoaCookie'
 
 // TODO datavan-search
-export Searchable from './Searchable'
+export Searchable, { search } from './Searchable'
