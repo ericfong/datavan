@@ -1,27 +1,38 @@
 {
-  "plugins": [
-    "transform-export-extensions",
-    "transform-class-properties",
-    "transform-object-rest-spread",
-    "lodash",
-    "dev-expression"
-  ],
   "env": {
     "es6": {
       "presets": [
-        ["env", { "targets": { "node": "current" }, "useBuiltIns": true, "modules": false, "debug": true }]
+        ["env", { "targets": { "browsers": "> 1%" }, "useBuiltIns": true, "modules": false, "debug": true }]
+      ],
+      "plugins": [
+        "transform-export-extensions",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "lodash",
       ],
     },
     "production": {
       "presets": [
-        ["env", { "targets": { "node": "current" }, "useBuiltIns": true }]
+        ["env", { "targets": { "uglify": true }, "useBuiltIns": true, "debug": true }]
+      ],
+      "plugins": [
+        "transform-export-extensions",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "lodash",
       ],
     },
     "test": {
       "presets": [
         ["env", { "targets": { "node": "current" } }],
         "react"
-      ]
+      ],
+      "plugins": [
+        "transform-export-extensions",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "lodash",
+      ],
     }
   }
 }
