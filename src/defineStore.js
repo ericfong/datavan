@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createStore, compose } from 'redux'
+import { createStore } from 'redux'
 
 import { isClass } from './util/classUtil'
 import { mergeToStore } from './util/mutateUtil'
@@ -52,22 +52,32 @@ function assignDependencies(source, collections) {
       throw new Error(`Required Store Not Found: ${targetName}`)
     }
     if (target.dependencies.indexOf(source) >= 0) {
-      throw new Error(`Circular Dependency: ${name} try to depend on ${targetName} which already depend on ${name}`)
+      throw new Error(
+        `Circular Dependency: ${name} try to depend on ${targetName} which already depend on ${name}`
+      )
     }
     source[localName] = target
-    source.dependencies = source.dependencies.concat([target], target.dependencies)
+    source.dependencies = source.dependencies.concat(
+      [target],
+      target.dependencies
+    )
   })
 }
 
-export function collectionsEnhancer(definitions) {
-  const { enhancers, ...collectionDefinitions } = definitions
-  const ourEnhancer = _createStore => (reducer, preloadedState = {}, enhancer) => {
+export function createDatavanEnhancer(definitions) {
+  return _createStore => (reducer, preloadedState = {}, enhancer) => {
     // create collections
     const context = {}
-    const collections = _.mapValues(collectionDefinitions, (definition, name) => createCollection(definition, name, preloadedState[name], context))
+    const collections = _.mapValues(definitions, (definition, name) =>
+      createCollection(definition, name, preloadedState[name], context)
+    )
 
     // createStore
-    const baseStore = _createStore(reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer, preloadedState, enhancer)
+    const baseStore = _createStore(
+      reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer,
+      preloadedState,
+      enhancer
+    )
 
     // promise for debounce
     let dispatchPromise
@@ -94,7 +104,12 @@ export function collectionsEnhancer(definitions) {
     })
 
     function getPromise() {
-      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
+      const promises = _.compact(
+        _.map(
+          collections,
+          collection => collection.getPromise && collection.getPromise()
+        )
+      )
       if (dispatchPromise) promises.push(dispatchPromise)
       if (promises.length <= 0) return null
       // TODO timeout or have a limit for recursive wait for promise
@@ -127,9 +142,7 @@ export function collectionsEnhancer(definitions) {
         // recursive renderCallback & promise.then (instead of recursive this.wait())
         const promise = this.getPromise()
         if (promise) {
-          return promise.then(() => this.serverRender(renderCallback)).catch(err => {
-            console.error(err)
-          })
+          return promise.then(() => this.serverRender(renderCallback))
         }
 
         context.duringServerPreload = false
@@ -144,7 +157,10 @@ export function collectionsEnhancer(definitions) {
         _.each(collections, coll => coll.invalidate && coll.invalidate())
       },
       autoInvalidate() {
-        _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
+        _.each(
+          collections,
+          coll => coll.autoInvalidate && coll.autoInvalidate()
+        )
       },
 
       setContext(newContext) {
@@ -153,10 +169,8 @@ export function collectionsEnhancer(definitions) {
     }
     return newStore
   }
-
-  return enhancers && enhancers.length > 0 ? compose(...enhancers, ourEnhancer) : ourEnhancer
 }
 
 export default function defineCollections(definitions) {
-  return collectionsEnhancer(definitions)(createStore)
+  return createDatavanEnhancer(definitions)(createStore)
 }

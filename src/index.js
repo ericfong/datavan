@@ -3,7 +3,7 @@ import SubmittingCollection from './SubmittingCollection'
 
 export { composeClass, SubmittingCollection }
 
-export defineStore, { collectionsEnhancer } from './defineStore'
+export defineStore, { createDatavanEnhancer } from './defineStore'
 export connect, { Provider } from './connect'
 export { getSetters } from './util/classUtil'
 
