@@ -116,6 +116,21 @@ export function createDatavanEnhancer(definitions) {
       return Promise.all(promises).then(() => getPromise())
     }
 
+    function serverRender(renderCallback) {
+      context.duringServerPreload = true
+
+      const output = renderCallback()
+
+      // recursive serverRender & promise.then
+      const promise = getPromise()
+      if (promise) {
+        return promise.then(() => serverRender(renderCallback))
+      }
+
+      context.duringServerPreload = false
+      return output
+    }
+
     // new store object
     const newStore = {
       ...collections,
@@ -133,21 +148,7 @@ export function createDatavanEnhancer(definitions) {
 
       context,
       getPromise,
-
-      serverRender(renderCallback) {
-        context.duringServerPreload = true
-
-        const output = renderCallback()
-
-        // recursive renderCallback & promise.then (instead of recursive this.wait())
-        const promise = this.getPromise()
-        if (promise) {
-          return promise.then(() => this.serverRender(renderCallback))
-        }
-
-        context.duringServerPreload = false
-        return output
-      },
+      serverRender,
 
       serverPreload(onOff) {
         context.serverPreloading = onOff !== false
