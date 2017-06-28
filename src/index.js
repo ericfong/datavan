@@ -5,6 +5,7 @@ export { composeClass, SubmittingCollection }
 
 export defineStore, { createDatavanEnhancer } from './defineStore'
 export connect, { Provider } from './connect'
+export connectDatavan from './connect'
 export { getSetters } from './util/classUtil'
 
 export KeyValueStore from './KeyValueStore'

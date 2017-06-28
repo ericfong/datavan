@@ -86,18 +86,24 @@ function tokenizeKeywords(keywordStr) {
 }
 
 export function search(docs, keywordStr, getSearchFields) {
-  const fullSearchStr = keywordStr.trim().toLowerCase()
-  if (!fullSearchStr) return docs
-  const keywords = tokenizeKeywords(fullSearchStr)
+  const wholeSearchStr = keywordStr.trim().toLowerCase()
+  if (!wholeSearchStr) return docs
+  const keywords = _.map(tokenizeKeywords(wholeSearchStr), keyword => {
+    if (keyword.tag) {
+      // kind of remove tag feature
+      keyword.term = `${keyword.tag}:${keyword.term}`
+    }
+    return keyword
+  })
   if (keywords.length === 0) return docs
 
   const results = []
   _.each(docs, doc => {
     const fieldArr = getSearchFields(doc)
 
-    const fullMatch = getMatch(fullSearchStr, doc, fieldArr)
-    if (fullMatch) {
-      doc._sort = 1 - fullMatch.percentage
+    const wholeMatch = getMatch(wholeSearchStr, doc, fieldArr)
+    if (wholeMatch) {
+      doc._sort = 1 - wholeMatch.percentage
       results.push(doc)
       return
     }
