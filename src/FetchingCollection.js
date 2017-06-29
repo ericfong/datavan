@@ -200,7 +200,8 @@ export default class FetchingCollection extends Collection {
       (doc, id) => {
         if (this.isDirty(id)) return
         const castedDoc = this.cast(doc)
-        mutationById[id] = typeof castedDoc === 'object' ? { ...stateById[id], ...castedDoc } : castedDoc
+        // TODO typeof null === 'object'
+        mutationById[id] = castedDoc && typeof castedDoc === 'object' ? { ...stateById[id], ...castedDoc } : castedDoc
         _fetchAts[id] = now
       },
       {

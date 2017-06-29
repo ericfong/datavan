@@ -3,7 +3,9 @@ import LocalStorage from './LocalStorage'
 
 global.localStorage = {
   getItem(id) {
-    return this[id]
+    // NOTE getItem(id) return null instead of undefined?
+    // localStorage[id] return undefined
+    return this[id] || null
   },
   setItem(id, v) {
     this[id] = v
@@ -16,7 +18,7 @@ it('basic', async () => {
   })
   const dvLeft = createStore()
 
-  expect(dvLeft.users.get('u1')).toBe(undefined)
+  expect(dvLeft.users.get('u1')).toBe(null)
   dvLeft.users.set('u1', 'hi')
   expect(dvLeft.users.get('u1')).toBe('hi')
 
