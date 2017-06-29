@@ -17,7 +17,7 @@ export function defineCollection(...args) {
 }
 
 // TODO datavan-browser
-export Browser from './Browser'
+export Browser, { getBrowserWidth, getBrowserHeight } from './Browser'
 export { LocalStorage, SessionStorage } from './LocalStorage'
 export Cookie from './Cookie'
 
