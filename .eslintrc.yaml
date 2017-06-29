@@ -34,6 +34,7 @@ rules:
     - 2
     - amd: true
       commonjs: true
+  jsx-a11y/href-no-hash: 'off'
   linebreak-style: 'off'
   max-len:
     - warn
