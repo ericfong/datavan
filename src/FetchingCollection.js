@@ -6,22 +6,25 @@ import Collection from './Collection'
 import { normalizeQueryAndKey, calcQueryKey } from './util/queryUtil'
 
 // @auto-fold here
-function loopResponse(data, idField, operations) {
+const getId = (doc, idField) => doc && doc[idField]
+
+// @auto-fold here
+function loopResponse(data, idField, importOne, operations) {
   if (!data) return
-  const handleById = operations.$byId
+  if (Array.isArray(data)) return _.each(data, (doc, i) => importOne(doc, getId(doc, idField) || i))
 
-  if (Array.isArray(data)) return _.each(data, (doc, i) => handleById(doc, (doc && doc[idField]) || i))
-
-  _.each(data, (doc, key) => {
-    if (key[0] === '$') {
+  _.each(data, (value, key) => {
+    if (key === '$byId') {
+      _.each(value, (d, k) => importOne(d, getId(d, idField) || k))
+    } else if (key[0] === '$') {
       const opFunc = operations[key]
       if (opFunc) {
-        opFunc(doc)
+        opFunc(value)
       } else {
         throw new Error(`Unknown import operation ${key}`)
       }
     } else {
-      handleById(doc, (doc && doc[idField]) || key)
+      importOne(value, getId(value, idField) || key)
     }
   })
 }
@@ -191,31 +194,38 @@ export default class FetchingCollection extends Collection {
     const _fetchAts = this._fetchAts
     const idField = this.idField
     const now = new Date()
-    loopResponse(ops, idField, {
-      // handleById
-      $byId: (doc, id) => {
+    loopResponse(
+      ops,
+      idField,
+      (doc, id) => {
         if (this.isDirty(id)) return
         const castedDoc = this.cast(doc)
         mutationById[id] = typeof castedDoc === 'object' ? { ...stateById[id], ...castedDoc } : castedDoc
         _fetchAts[id] = now
       },
-      $unset(value) {
-        mutationById.$unset = value
-      },
-      $request(value) {
-        if (fetchKey) {
-          mutation.requests = { [fetchKey]: value }
-        } else {
-          console.error('No fetchKey for $request', value)
-        }
-      },
-      $relations: relations => {
-        _.each(relations, (data, name) => {
-          const relatedCollection = this[name]
-          if (relatedCollection) relatedCollection.importAll(data)
-        })
-      },
-    })
+      {
+        $unset(value) {
+          mutationById.$unset = value
+        },
+        $request(value) {
+          if (fetchKey) {
+            mutation.requests = { [fetchKey]: value }
+          } else {
+            console.error('No fetchKey for $request', value)
+          }
+        },
+        $relations: relations => {
+          _.each(relations, (data, name) => {
+            const relatedCollection = this[name]
+            if (relatedCollection) {
+              relatedCollection.importAll(data)
+            } else {
+              console.error(`Cannot access ${name} when import data into ${name} from ${this.name}. Forget requires: ['${name}'] ?`)
+            }
+          })
+        },
+      }
+    )
     // console.log('importAll', mutation)
     this.mutateState(mutation)
     this._forceChangeDebounce()

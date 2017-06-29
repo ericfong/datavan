@@ -60,7 +60,9 @@ test('$request', async () => {
         }
         if ($request === 'complex-query-2') {
           return Promise.resolve({
-            4: { _id: '4', age: 20, roleId: '2' },
+            $byId: {
+              4: { _id: '4', age: 20, roleId: '2' },
+            },
             $relations: {
               roles: [{ _id: '5', role: 'reader' }],
               blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
