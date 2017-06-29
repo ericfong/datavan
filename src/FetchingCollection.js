@@ -58,8 +58,8 @@ function excludeDirty(filter, idField, isDirty) {
 
 // @auto-fold here
 function defaultCalcFetchKey(fetchQuery, option) {
-  // $query
-  if (fetchQuery.$query) return stringify(fetchQuery.$query)
+  // $request
+  if (fetchQuery.$request) return stringify(fetchQuery.$request)
   // get one id
   if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
   // normal query
@@ -113,9 +113,9 @@ function _prepareFind(_filter, option) {
   if (filter === false) {
     return { filter, fetchKey: false }
   }
-  if (filter.$query) {
+  if (filter.$request) {
     return {
-      filter: _.omit(filter, '$query'),
+      filter: _.omit(filter, '$request'),
       fetchKey: option.fetch !== undefined ? option.fetch : this.calcFetchKey(filter, option),
       fetchQuery: filter,
       fetchOnly: Object.keys(filter).length === 1,
@@ -136,13 +136,13 @@ export default class FetchingCollection extends Collection {
 
   constructor(state) {
     super(state)
-    state.fetches = state.fetches || {}
+    state.requests = state.requests || {}
 
     const now = new Date()
     const _fetchAts = this._fetchAts
     const setTimeFunc = (v, key) => (_fetchAts[key] = now)
     _.each(state.byId, setTimeFunc)
-    _.each(state.fetches, setTimeFunc)
+    _.each(state.requests, setTimeFunc)
   }
 
   calcFetchKey(remoteQuery, option) {
@@ -162,13 +162,13 @@ export default class FetchingCollection extends Collection {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     // TODO prevent fetch when array of ids all hit
     _checkFetch.call(this, fetchQuery, option, fetchKey)
-    return fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option)
+    return fetchOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option)
   }
 
   findAsync(_filter, option = {}) {
     const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
     return Promise.resolve(_checkFetchAsync.call(this, fetchQuery, option, fetchKey)).then(
-      () => (fetchOnly ? this.state.fetches[fetchKey] : this._findNormalized(filter, option))
+      () => (fetchOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option))
     )
   }
 
@@ -202,8 +202,18 @@ export default class FetchingCollection extends Collection {
       $unset(value) {
         mutationById.$unset = value
       },
-      $query(value) {
-        mutation.fetches = { [fetchKey]: value }
+      $request(value) {
+        if (fetchKey) {
+          mutation.requests = { [fetchKey]: value }
+        } else {
+          console.error('No fetchKey for $request', value)
+        }
+      },
+      $relations: relations => {
+        _.each(relations, (data, name) => {
+          const relatedCollection = this[name]
+          if (relatedCollection) relatedCollection.importAll(data)
+        })
       },
     })
     // console.log('importAll', mutation)
@@ -261,7 +271,7 @@ export default class FetchingCollection extends Collection {
       return keep
     }
     state.byId = _.pickBy(state.byId, shouldKeep)
-    state.fetches = _.pickBy(state.fetches, shouldKeep)
+    state.requests = _.pickBy(state.requests, shouldKeep)
   }
 
   getPromise() {

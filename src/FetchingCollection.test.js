@@ -47,24 +47,49 @@ test('fetch: false', async () => {
   expect(coll.onFetch).toHaveBeenCalledTimes(1)
 })
 
-test('$query', async () => {
-  const coll = new (defineCollection({
-    onFetch: jest.fn(({ $query }) => {
-      if ($query === 'fetch-only-aggregate-count') {
-        return Promise.resolve({ $query: [$query, 100000] })
-      }
-      if ($query === 'complex-query-1') {
-        return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
-      }
+test('$request', async () => {
+  const createStore = defineStore({
+    users: defineCollection({
+      requires: ['roles', 'blogs'],
+      onFetch: jest.fn(({ $request }) => {
+        if ($request === 'request-only-aggregate-count') {
+          return Promise.resolve({ $request: [$request, 100000] })
+        }
+        if ($request === 'complex-query-1') {
+          return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
+        }
+        if ($request === 'complex-query-2') {
+          return Promise.resolve({
+            4: { _id: '4', age: 20, roleId: '2' },
+            $relations: {
+              roles: [{ _id: '5', role: 'reader' }],
+              blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
+            },
+          })
+        }
+      }),
     }),
-  }))({})
+    roles: defineCollection(),
+    blogs: defineCollection(),
+  })
+  const dv = createStore()
 
-  expect(await coll.findAsync({ $query: 'fetch-only-aggregate-count' })).toEqual(['fetch-only-aggregate-count', 100000])
+  // $request only
+  expect(await dv.users.findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])
 
-  const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $query: 'complex-query-1' }
-  coll.find(complexQuery)
-  await coll.getPromise()
-  expect(coll.find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+  // complex query 1
+  const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $request: 'complex-query-1' }
+  dv.users.find(complexQuery)
+  await dv.users.getPromise()
+  expect(dv.users.find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+
+  // complex query 2
+  const complexQuery2 = { age: 20, $request: 'complex-query-2' }
+  dv.users.find(complexQuery2)
+  await dv.users.getPromise()
+  expect(dv.users.find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
+  expect(dv.roles.getState()).toEqual({ 5: { _id: '5', role: 'reader' } })
+  expect(dv.blogs.getState()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
 })
 
 test('consider calcFetchKey', async () => {
