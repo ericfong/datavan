@@ -257,11 +257,13 @@ export default class FetchingCollection extends Collection {
     if (this._invalidateForGc()) this._forceChangeDebounce()
   }
 
-  gcTime = 60 * 1000
+  // gcTime = 60 * 1000
+  gcTime = -1
   _gcAt = 0
   _shouldRunGc = false
 
   _invalidateForGc() {
+    if (this.gcTime < 0) return false
     const expire = Date.now() - this.gcTime
     if (this._gcAt > expire) return false
     this._gcAt = Date.now()
