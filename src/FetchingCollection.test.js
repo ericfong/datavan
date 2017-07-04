@@ -128,8 +128,14 @@ test('consider localId', async () => {
 
   // reverse will use same cacheKey
   coll.find(['db-id-xyz', 'db-id-abc'])
-  // expect(coll.onFetch).toHaveBeenCalledTimes(2)
   expect(_.last(coll.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
+
+  // find other fields with tmp id
+  coll.onFetch.mockClear()
+  coll.find({ userId: 'tmp-123', deleted: 0 })
+  expect(coll.onFetch).toHaveBeenCalledTimes(0)
+  coll.find({ userId: { $in: ['tmp-123'] }, deleted: 0 })
+  expect(coll.onFetch).toHaveBeenCalledTimes(0)
 })
 
 test('sync get', async () => {

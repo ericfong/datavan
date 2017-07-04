@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import stringify from 'fast-stable-stringify'
 
 import { isThenable, syncOrThen } from './util/promiseUtil'
 import Collection from './Collection'
@@ -30,7 +29,7 @@ function loopResponse(data, idField, importOne, operations) {
 }
 
 // @auto-fold here
-function excludeDirty(filter, idField, isDirty) {
+function getFetchQuery(filter, isDirty) {
   if (Array.isArray(filter)) {
     const ids = _.filter(filter, id => id && !isDirty(id))
     if (ids.length === 0) {
@@ -38,25 +37,24 @@ function excludeDirty(filter, idField, isDirty) {
     }
     return ids
   }
-  if (filter[idField]) {
-    const newQuery = { ...filter }
-    const idMatcher = filter[idField]
-    if (!idMatcher) {
-      return false
-    }
-    if (typeof idMatcher === 'string' && isDirty(idMatcher)) {
-      return false
-    }
-    if (idMatcher.$in) {
-      const ids = _.filter(idMatcher.$in, id => id && !isDirty(id))
-      if (ids.length === 0) {
+  const newFilter = { ...filter }
+  const entries = Object.entries(filter)
+  for (let i = 0, ii = entries.length; i < ii; i++) {
+    const [key, matcher] = entries[i]
+    // after normalizeQuery, typeof matcher !== 'string', id field always wrap with $in
+    if (matcher) {
+      if (typeof matcher === 'string' && isDirty(matcher)) {
         return false
+      } else if (matcher.$in) {
+        const $in = _.filter(matcher.$in, id => !isDirty(id))
+        if ($in.length === 0) {
+          return false
+        }
+        newFilter[key] = { $in }
       }
-      newQuery[idField].$in = ids
     }
-    return newQuery
   }
-  return filter
+  return newFilter
 }
 
 // @auto-fold here
@@ -87,7 +85,7 @@ function markFetchPromise(fetchPromises, key, promise) {
 }
 
 function _checkFetchAsync(fetchQuery, option, fetchKey) {
-  if (fetchKey === false || !this.onFetch) return
+  if (fetchKey === false) return
 
   // gc more to sync with remote
   // gc before import to make sure new things is not gc
@@ -102,34 +100,44 @@ function _checkFetchAsync(fetchQuery, option, fetchKey) {
 }
 
 function _checkFetch(fetchQuery, option, fetchKey) {
-  const { duringServerPreload, serverPreloading } = this.context
-  if (duringServerPreload && !serverPreloading) return
-
   const promise = _checkFetchAsync.call(this, fetchQuery, option, fetchKey)
   if (promise) {
     return markFetchPromise(this._fetchPromises, fetchKey, promise)
   }
 }
 
+// @auto-fold here
+function mayFetch(option) {
+  if (!this.onFetch || option.fetch === false) return false
+  const { duringServerPreload, serverPreloading } = this.context
+  if (duringServerPreload && !serverPreloading) return false
+  return true
+}
+
 function _prepareFind(_filter, option) {
+  if (!mayFetch.call(this, option)) return { filter: _filter, fetchKey: false }
+
   const filter = normalizeQueryAndKey(_filter, option, this.idField)
-  if (filter === false) {
-    return { filter, fetchKey: false }
-  }
+  if (filter === false) return { filter, fetchKey: false }
+
+  const fetchQuery = getFetchQuery(filter, this.isDirty.bind(this))
+
+  const fetchKey = option.fetch || (fetchQuery === false ? false : this.calcFetchKey(fetchQuery, option))
+  if (fetchKey === false) return { filter, fetchKey: false }
+
   if (filter.$request) {
     return {
       filter: _.omit(filter, '$request'),
-      fetchKey: option.fetch !== undefined ? option.fetch : this.calcFetchKey(filter, option),
-      fetchQuery: filter,
-      fetchOnly: Object.keys(filter).length === 1,
+      fetchQuery,
+      fetchKey,
+      requestOnly: Object.keys(filter).length === 1,
     }
   }
 
-  const fetchQuery = excludeDirty(filter, this.idField, this.isDirty.bind(this))
   return {
     filter,
-    fetchKey: option.fetch !== undefined ? option.fetch : fetchQuery !== false && this.calcFetchKey(fetchQuery, option),
     fetchQuery,
+    fetchKey,
   }
 }
 
@@ -154,7 +162,7 @@ export default class FetchingCollection extends Collection {
 
   get(id, option = {}) {
     if (!id) return undefined
-    if (!this.isDirty(id)) {
+    if (mayFetch.call(this, option) && !this.isDirty(id)) {
       const ids = [id]
       _checkFetch.call(this, ids, option, this.calcFetchKey(ids, option))
     }
@@ -162,16 +170,16 @@ export default class FetchingCollection extends Collection {
   }
 
   find(_filter, option = {}) {
-    const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
+    const { filter, fetchKey, fetchQuery, requestOnly } = _prepareFind.call(this, _filter, option)
     // TODO prevent fetch when array of ids all hit
     _checkFetch.call(this, fetchQuery, option, fetchKey)
-    return fetchOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option)
+    return requestOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option)
   }
 
   findAsync(_filter, option = {}) {
-    const { filter, fetchKey, fetchQuery, fetchOnly } = _prepareFind.call(this, _filter, option)
+    const { filter, fetchKey, fetchQuery, requestOnly } = _prepareFind.call(this, _filter, option)
     return Promise.resolve(_checkFetchAsync.call(this, fetchQuery, option, fetchKey)).then(
-      () => (fetchOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option))
+      () => (requestOnly ? this.state.requests[fetchKey] : this._findNormalized(filter, option))
     )
   }
 
