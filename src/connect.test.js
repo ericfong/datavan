@@ -1,13 +1,14 @@
 /* eslint-disable react/jsx-filename-extension */
 import _ from 'lodash'
 import React from 'react'
+import { Provider } from 'react-redux'
 import { mount, render } from 'enzyme'
 
 import '../tool/test-setup'
 import { defineStore, defineCollection } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
-import connect, { Provider } from './connect'
+import connect from './connect'
 
 const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [query._id])
 
@@ -32,7 +33,11 @@ test('server rendering', async () => {
     }
   })(props => {
     const user = props.user || {}
-    return <span>{user.name}</span>
+    return (
+      <span>
+        {user.name}
+      </span>
+    )
   })
 
   const FriendComp = connect(dv => {
@@ -42,11 +47,21 @@ test('server rendering', async () => {
     }
   })(props => {
     const user = props.user || {}
-    return <span>{user.name} is <UserComp userId={user.friendId} /> friend</span>
+    return (
+      <span>
+        {user.name} is <UserComp userId={user.friendId} /> friend
+      </span>
+    )
   })
 
   // server side render
-  const wrapper = await store.serverRender(() => render(<Provider store={store}><FriendComp /></Provider>))
+  const wrapper = await store.serverRender(() =>
+    render(
+      <Provider store={store}>
+        <FriendComp />
+      </Provider>
+    )
+  )
   expect(wrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
 
   // transfer data to client
@@ -59,7 +74,11 @@ test('server rendering', async () => {
   })
   const browserDb = createBrowserStore(null, isoData)
   // it is sync
-  const browserWrapper = render(<Provider store={browserDb}><FriendComp /></Provider>)
+  const browserWrapper = render(
+    <Provider store={browserDb}>
+      <FriendComp />
+    </Provider>
+  )
   expect(browserWrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
 })
 
@@ -81,7 +100,11 @@ it('basic', async () => {
     })
   )(props => {
     props.onClick()
-    return <span>{props.user1}</span>
+    return (
+      <span>
+        {props.user1}
+      </span>
+    )
   })
 
   store.users.set('u1', 'user 1 name!!')
@@ -109,7 +132,11 @@ it('same state', async () => {
     return {
       user1: dv.users.get('u1'),
     }
-  })(props => <span>{props.user1}</span>)
+  })(props =>
+    <span>
+      {props.user1}
+    </span>
+  )
   const wrapper = mount(
     <Provider store={store}>
       <UserComp />

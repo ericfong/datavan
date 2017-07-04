@@ -5,7 +5,7 @@ import { isClass } from './util/classUtil'
 import { mergeToStore } from './util/mutateUtil'
 
 const DV_MUTATE = 'DV_MUTATE'
-export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
+// export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
 
 // @auto-fold here
 function dvReducer(state, action) {
@@ -52,15 +52,10 @@ function assignDependencies(source, collections) {
       throw new Error(`Required Store Not Found: ${targetName}`)
     }
     if (target.dependencies.indexOf(source) >= 0) {
-      throw new Error(
-        `Circular Dependency: ${name} try to depend on ${targetName} which already depend on ${name}`
-      )
+      throw new Error(`Circular Dependency: ${name} try to depend on ${targetName} which already depend on ${name}`)
     }
     source[localName] = target
-    source.dependencies = source.dependencies.concat(
-      [target],
-      target.dependencies
-    )
+    source.dependencies = source.dependencies.concat([target], target.dependencies)
   })
 }
 
@@ -68,16 +63,10 @@ export function createDatavanEnhancer(definitions) {
   return _createStore => (reducer, preloadedState = {}, enhancer) => {
     // create collections
     const context = {}
-    const collections = _.mapValues(definitions, (definition, name) =>
-      createCollection(definition, name, preloadedState[name], context)
-    )
+    const collections = _.mapValues(definitions, (definition, name) => createCollection(definition, name, preloadedState[name], context))
 
     // createStore
-    const baseStore = _createStore(
-      reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer,
-      preloadedState,
-      enhancer
-    )
+    const baseStore = _createStore(reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer, preloadedState, enhancer)
 
     // promise for debounce
     let dispatchPromise
@@ -104,12 +93,7 @@ export function createDatavanEnhancer(definitions) {
     })
 
     function getPromise() {
-      const promises = _.compact(
-        _.map(
-          collections,
-          collection => collection.getPromise && collection.getPromise()
-        )
-      )
+      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
       if (dispatchPromise) promises.push(dispatchPromise)
       if (promises.length <= 0) return null
       // TODO timeout or have a limit for recursive wait for promise
@@ -137,10 +121,10 @@ export function createDatavanEnhancer(definitions) {
       ...baseStore,
       dispatch(action) {
         // HACK to return whole store object for connect to get connections
-        if (action.type === CONNECT_GET_STORE) {
-          action.store = newStore
-          return action
-        }
+        // if (action.type === CONNECT_GET_STORE) {
+        //   action.store = newStore
+        //   return action
+        // }
         return baseStore.dispatch(action)
       },
 
@@ -158,10 +142,7 @@ export function createDatavanEnhancer(definitions) {
         _.each(collections, coll => coll.invalidate && coll.invalidate())
       },
       autoInvalidate() {
-        _.each(
-          collections,
-          coll => coll.autoInvalidate && coll.autoInvalidate()
-        )
+        _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
       },
 
       setContext(newContext) {
