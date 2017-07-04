@@ -61,8 +61,8 @@ function excludeDirty(filter, idField, isDirty) {
 
 // @auto-fold here
 function defaultCalcFetchKey(fetchQuery, option) {
-  // $request
-  if (fetchQuery.$request) return stringify(fetchQuery.$request)
+  // $request only
+  // if (fetchQuery.$request) return stringify(fetchQuery.$request)
   // get one id
   if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
   // normal query
