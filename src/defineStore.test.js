@@ -1,9 +1,31 @@
-import _ from 'lodash'
+// import _ from 'lodash'
 import mutateHelper from 'immutability-helper'
 
-import { defineStore } from '.'
+import { defineStore, SubmittingCollection, Searchable } from '.'
 import KeyValueStore from './KeyValueStore'
 import { mergeToStore } from './util/mutateUtil'
+
+test('defineCollection as array', async () => {
+  const common = { messages: { bar: 'BAR', func() {} }, users: [{ foo() {}, searchFields: ['name'] }] }
+
+  const store1 = defineStore(common)()
+  expect(store1.messages.bar).toBe('BAR')
+  expect(store1.messages.func).toBe(common.messages.func)
+  expect(typeof store1.users.foo).toBe('function')
+  expect(store1.users.searchFields).toEqual(['name'])
+  expect(store1.users instanceof SubmittingCollection).toBe(true)
+
+  const store2 = defineStore({
+    ...common,
+    users: [...common.users, Searchable],
+  })()
+  expect(store2.messages.bar).toBe(store1.messages.bar)
+  expect(store2.messages.func).toBe(store1.messages.func)
+  expect(typeof store2.users.foo).toBe('function')
+  expect(store2.users.searchFields).toEqual(['name'])
+  expect(store2.users instanceof SubmittingCollection).toBe(true)
+  expect(Object.getPrototypeOf(Object.getPrototypeOf(store2.users)).constructor.name).toBe('Searchable')
+})
 
 test('get & set', async () => {
   const createStore = defineStore({

@@ -1,8 +1,9 @@
 import _ from 'lodash'
 import { createStore } from 'redux'
 
-import { isClass } from './util/classUtil'
+import { isClass, composeClass } from './util/classUtil'
 import { mergeToStore } from './util/mutateUtil'
+import SubmittingCollection from './SubmittingCollection'
 
 const DV_MUTATE = 'DV_MUTATE'
 // export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
@@ -15,21 +16,21 @@ function dvReducer(state, action) {
   return state
 }
 
-// @auto-fold here
+export function defineCollection(...args) {
+  return composeClass(...args, SubmittingCollection)
+}
+
 function createCollection(definition, name, preloadedState = {}, context) {
   let newObj
   if (!definition) {
     throw new Error(`Collection definition ${name} cannot be ${definition}`)
   }
-  if (isClass(definition)) {
-    newObj = new definition(preloadedState) // eslint-disable-line
-  } else if (typeof definition === 'function') {
+  const _isClass = isClass(definition)
+  if (!_isClass && typeof definition === 'function') {
     newObj = definition(preloadedState)
-    // } else if (Array.isArray(definition)) {
-    //   newObj = new (composeClass(definition))
   } else {
-    newObj = Object.create(definition)
-    if (newObj.constructor) newObj.constructor(preloadedState)
+    const Class = _isClass ? definition : defineCollection(definition)
+    newObj = new Class(preloadedState)
   }
 
   Object.assign(newObj, {

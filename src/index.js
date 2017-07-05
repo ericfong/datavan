@@ -3,7 +3,7 @@ import SubmittingCollection from './SubmittingCollection'
 
 export { composeClass, SubmittingCollection }
 
-export defineStore, { createDatavanEnhancer } from './defineStore'
+export defineStore, { createDatavanEnhancer, defineCollection } from './defineStore'
 export connect from './connect'
 export connectDatavan from './connect'
 export { Provider } from 'react-redux'
@@ -12,10 +12,6 @@ export { getSetters } from './util/classUtil'
 export KeyValueStore from './KeyValueStore'
 export Collection from './Collection'
 export FetchingCollection from './FetchingCollection'
-
-export function defineCollection(...args) {
-  return composeClass(...args, SubmittingCollection)
-}
 
 // TODO datavan-browser
 export Browser, { getBrowserWidth, getBrowserHeight } from './Browser'
