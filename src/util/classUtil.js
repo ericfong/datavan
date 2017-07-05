@@ -1,35 +1,35 @@
 import _ from 'lodash'
 
-function isExportMethod(name, value) {
-  return name[0] !== '_' && name !== 'constructor' && typeof value === 'function'
-}
-
 function getOwnPropertyNames(obj) {
   return obj ? Object.getOwnPropertyNames(obj) : null
 }
 
-function extractExportMethods(obj, methods = {}) {
-  _.each(getOwnPropertyNames(obj), name => {
-    const value = obj[name]
-    if (isExportMethod(name, value) && !methods[name]) {
-      methods[name] = value
-    }
-  })
-  return methods
-}
-function getClassMethodsDeep(Class, methods = {}) {
-  // eslint-disable-next-line
-  while (Class && !Class.isPrototypeOf(Object)) {
-    extractExportMethods(Class.prototype, methods)
-    Class = Object.getPrototypeOf(Class)
-  }
-  return methods
-}
-function getObjectMethodsDeep(obj, methods = {}) {
-  extractExportMethods(obj, methods)
-  getClassMethodsDeep(Object.getPrototypeOf(obj), methods)
-  return methods
-}
+// NOTE less recursive code
+// function isExportMethod(name, value) {
+//   return name[0] !== '_' && name !== 'constructor' && typeof value === 'function'
+// }
+// function extractExportMethods(obj, methods = {}) {
+//   _.each(getOwnPropertyNames(obj), name => {
+//     const value = obj[name]
+//     if (isExportMethod(name, value) && !methods[name]) {
+//       methods[name] = value
+//     }
+//   })
+//   return methods
+// }
+// function getClassMethodsDeep(Class, methods = {}) {
+//   // eslint-disable-next-line
+//   while (Class && !Class.isPrototypeOf(Object)) {
+//     extractExportMethods(Class.prototype, methods)
+//     Class = Object.getPrototypeOf(Class)
+//   }
+//   return methods
+// }
+// function getObjectMethodsDeep(obj, methods = {}) {
+//   extractExportMethods(obj, methods)
+//   getClassMethodsDeep(Object.getPrototypeOf(obj), methods)
+//   return methods
+// }
 function convertObjectToMixin(mixin) {
   return Base => {
     // convert object to mixin
@@ -40,17 +40,18 @@ function convertObjectToMixin(mixin) {
         Object.assign(this, props)
       }
     }
-    if (_.isPlainObject(mixin)) {
-      _.each(mixin, (v, k) => {
-        if (typeof v === 'function') {
-          Class.prototype[k] = v
-        } else {
-          props[k] = v
-        }
-      })
-    } else {
-      _.assign(Class.prototype, getObjectMethodsDeep(mixin))
-    }
+    // if (_.isPlainObject(mixin)) {
+    //   _.each(...)
+    // } else {
+    //   _.assign(Class.prototype, getObjectMethodsDeep(mixin))
+    // }
+    _.each(mixin, (v, k) => {
+      if (typeof v === 'function') {
+        Class.prototype[k] = v
+      } else {
+        props[k] = v
+      }
+    })
     return Class
   }
 }
