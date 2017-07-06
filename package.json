@@ -17,15 +17,8 @@
   "jest": {
     "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/bower_components/",
-      "/lib/",
-      "/tmp/"
-    ]
+    "roots": ["<rootDir>/src"],
+    "testPathIgnorePatterns": ["/node_modules/", "/bower_components/", "/lib/", "/tmp/"]
   },
   "dependencies": {
     "fast-stable-stringify": "^0.2.0",
@@ -68,7 +61,6 @@
     "jest": "^20.0.4",
     "jsdom": "^11.0.0",
     "react": "15.6.1",
-    "react-addons-test-utils": "15.6.0",
     "react-dom": "15.6.1",
     "react-hot-loader": "3.0.0-beta.6",
     "should": "^11.2.1"
@@ -77,18 +69,7 @@
     "type": "git",
     "url": "git+https://github.com/ericfong/datavan.git"
   },
-  "keywords": [
-    "database",
-    "collection",
-    "react",
-    "redux",
-    "reactive",
-    "ajax",
-    "fetch",
-    "http",
-    "sync",
-    "async"
-  ],
+  "keywords": ["database", "collection", "react", "redux", "reactive", "ajax", "fetch", "http", "sync", "async"],
   "author": "Eric Fong",
   "license": "MIT",
   "bugs": {
