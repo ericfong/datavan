@@ -9,7 +9,7 @@
     "test": "cross-env NODE_PATH=src jest"
   },
   "name": "datavan",
-  "version": "1.10.11",
+  "version": "1.10.12",
   "description": "Define your collections layer over redux state, with mixins to fetch, submit changes to your server",
   "main": "./lib/index.js",
   "browser": "./lib/es6/index.js",
@@ -17,8 +17,15 @@
   "jest": {
     "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
-    "roots": ["<rootDir>/src"],
-    "testPathIgnorePatterns": ["/node_modules/", "/bower_components/", "/lib/", "/tmp/"]
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/bower_components/",
+      "/lib/",
+      "/tmp/"
+    ]
   },
   "dependencies": {
     "fast-stable-stringify": "^0.2.0",
@@ -69,7 +76,18 @@
     "type": "git",
     "url": "git+https://github.com/ericfong/datavan.git"
   },
-  "keywords": ["database", "collection", "react", "redux", "reactive", "ajax", "fetch", "http", "sync", "async"],
+  "keywords": [
+    "database",
+    "collection",
+    "react",
+    "redux",
+    "reactive",
+    "ajax",
+    "fetch",
+    "http",
+    "sync",
+    "async"
+  ],
   "author": "Eric Fong",
   "license": "MIT",
   "bugs": {
