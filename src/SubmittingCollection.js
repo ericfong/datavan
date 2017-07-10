@@ -2,6 +2,7 @@ import _ from 'lodash'
 
 import FetchingCollection from './FetchingCollection'
 import { syncOrThen } from './util/promiseUtil'
+import { findDirectly } from './Collection'
 
 export default class SubmittingCollection extends FetchingCollection {
   // Override: onSubmit()
@@ -26,6 +27,17 @@ export default class SubmittingCollection extends FetchingCollection {
     } else {
       super.setAll(change)
     }
+  }
+
+  reset(filter) {
+    if (!this.onFetch) return
+    const docs = findDirectly(this, this.state.submits, filter, {})
+    const docIds = _.map(docs, this.idField)
+    _.each(docIds, key => delete this._fetchAts[key])
+    const unsets = { $unset: docIds }
+    this.mutateState({ byId: unsets, submits: unsets })
+    this.onChange()
+    return docs
   }
 
   submit(onSubmit = this.onSubmit) {

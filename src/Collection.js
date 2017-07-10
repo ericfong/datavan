@@ -15,29 +15,35 @@ function filterStateByIds(state, ids) {
   }, [])
 }
 
-function findHeavy(self, byId, query, option) {
+function doFind(self, docs, filter, option) {
   // should after memoize to prevent return new Array all the time
-  if (Array.isArray(query)) {
-    return processOption(filterStateByIds(byId, query), option)
+  if (Array.isArray(filter)) {
+    return processOption(filterStateByIds(docs, filter), option)
   }
 
-  if (Object.keys(query).length === 0) {
-    return processOption(_.values(byId), option)
+  if (Object.keys(filter).length === 0) {
+    return processOption(_.values(docs), option)
   }
 
   // can contain other matchers, so consider as heavy
-  const idQuery = query[self.idField]
-  const filteredState = idQuery && idQuery.$in ? filterStateByIds(byId, idQuery.$in) : byId
+  const idQuery = filter[self.idField]
+  const filteredState = idQuery && idQuery.$in ? filterStateByIds(docs, idQuery.$in) : docs
 
-  const result = self._findImplementation && self._findImplementation(filteredState, query, option)
+  const result = self._findImplementation && self._findImplementation(filteredState, filter, option)
   if (result !== undefined) {
     return result
   }
 
-  return processOption(_.filter(filteredState, sift(query)), option)
+  return processOption(_.filter(filteredState, sift(filter)), option)
 }
 
-function findHeavyAndMemoize(self, query, option) {
+export function findDirectly(self, docs, filter, option) {
+  const _filter = normalizeQueryAndKey(filter, option, self.idField)
+  if (_filter === false) return emptyResultArray
+  return doFind(self, docs, _filter, option)
+}
+
+function findMemoize(self, query, option) {
   const byId = self.state.byId
   // setup memory
   if (byId !== self._lastById) self._findMemory = {}
@@ -50,7 +56,7 @@ function findHeavyAndMemoize(self, query, option) {
   if (lastResult) return lastResult
 
   // gen new result and put into cache
-  return (_findMemory[cacheKey] = findHeavy(self, byId, query, option))
+  return (_findMemory[cacheKey] = doFind(self, byId, query, option))
 }
 
 export default class Collection extends KeyValueStore {
@@ -60,7 +66,7 @@ export default class Collection extends KeyValueStore {
   _findMemory
   _findNormalized(filter, option) {
     if (filter === false) return emptyResultArray
-    return findHeavyAndMemoize(this, filter, option)
+    return findMemoize(this, filter, option)
   }
   _find(_filter, option = {}) {
     const filter = normalizeQueryAndKey(_filter, option, this.idField)
@@ -75,10 +81,6 @@ export default class Collection extends KeyValueStore {
   findOne(filter, option) {
     return syncOrThen(this.find(filter, { ...option, limit: 1 }), list => list[0])
   }
-
-  // search($search, option) {
-  //   return this.find({ $search }, option)
-  // }
 
   isLocalId(docId) {
     return _.startsWith(docId, 'tmp-')
