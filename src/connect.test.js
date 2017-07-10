@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { mount, render } from 'enzyme'
 
 import '../tool/test-setup'
-import { defineStore, defineCollection } from '.'
+import { defineStore, defineCollection, serverPreload, serverRender } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
 import connect from './connect'
@@ -27,7 +27,7 @@ test('server rendering', async () => {
   const store = createStore()
 
   const UserComp = connect((dv, props) => {
-    dv.serverPreload(true)
+    serverPreload(dv, true)
     return {
       user: dv.users.findOne({ _id: props.userId }),
     }
@@ -41,7 +41,7 @@ test('server rendering', async () => {
   })
 
   const FriendComp = connect(dv => {
-    dv.serverPreload(true)
+    serverPreload(dv, true)
     return {
       user: dv.users.findOne({ _id: 'u2' }),
     }
@@ -55,7 +55,7 @@ test('server rendering', async () => {
   })
 
   // server side render
-  const wrapper = await store.serverRender(() =>
+  const wrapper = await serverRender(store, () =>
     render(
       <Provider store={store}>
         <FriendComp />

@@ -69,19 +69,16 @@ export function createDatavanEnhancer(definitions) {
     // createStore
     const baseStore = _createStore(reducer ? (s, a) => dvReducer(reducer(s, a), a) : dvReducer, preloadedState, enhancer)
 
-    // promise for debounce
-    let dispatchPromise
-
     // onChange & onChangeDebounce for inject to collection
     function onChange() {
       baseStore.dispatch({ type: DV_MUTATE, collections })
-      dispatchPromise = null
+      context.dispatchPromise = null
     }
     function onChangeDebounce() {
-      if (dispatchPromise) return dispatchPromise
-      const curP = (dispatchPromise = new Promise(resolve =>
+      if (context.dispatchPromise) return context.dispatchPromise
+      const curP = (context.dispatchPromise = new Promise(resolve =>
         setTimeout(() => {
-          if (curP === dispatchPromise) onChange()
+          if (curP === context.dispatchPromise) onChange()
           resolve()
         })
       ))
@@ -93,61 +90,16 @@ export function createDatavanEnhancer(definitions) {
       Object.assign(collection, passIntoCollections)
     })
 
-    function getPromise() {
-      const promises = _.compact(_.map(collections, collection => collection.getPromise && collection.getPromise()))
-      if (dispatchPromise) promises.push(dispatchPromise)
-      if (promises.length <= 0) return null
-      // TODO timeout or have a limit for recursive wait for promise
-      return Promise.all(promises).then(() => getPromise())
-    }
-
-    function serverRender(renderCallback) {
-      context.duringServerPreload = true
-
-      const output = renderCallback()
-
-      // recursive serverRender & promise.then
-      const promise = getPromise()
-      if (promise) {
-        return promise.then(() => serverRender(renderCallback))
-      }
-
-      context.duringServerPreload = false
-      return output
-    }
-
     // new store object
     const newStore = {
       ...collections,
+
       ...baseStore,
-      dispatch(action) {
-        // HACK to return whole store object for connect to get connections
-        // if (action.type === CONNECT_GET_STORE) {
-        //   action.store = newStore
-        //   return action
-        // }
-        return baseStore.dispatch(action)
-      },
 
-      definitions,
-
+      collections,
       context,
-      getPromise,
-      serverRender,
-
-      serverPreload(onOff) {
-        context.serverPreloading = onOff !== false
-      },
-
-      invalidate() {
-        _.each(collections, coll => coll.invalidate && coll.invalidate())
-      },
-      autoInvalidate() {
-        _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
-      },
-
       setContext(newContext) {
-        Object.assign(context, newContext)
+        return Object.assign(context, newContext)
       },
     }
     return newStore

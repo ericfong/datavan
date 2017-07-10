@@ -4,6 +4,7 @@ import SubmittingCollection from './SubmittingCollection'
 export { composeClass, SubmittingCollection }
 
 export defineStore, { createDatavanEnhancer, defineCollection } from './defineStore'
+export * from './store-functions'
 export connect from './connect'
 export connectDatavan from './connect'
 export { Provider } from 'react-redux'

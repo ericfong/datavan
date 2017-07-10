@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { defineStore, defineCollection } from '.'
+import { defineStore, defineCollection, allPending } from '.'
 
 function getQueryIds(query, idField = '_id') {
   if (Array.isArray(query)) return query
@@ -212,23 +212,23 @@ test('basic', async () => {
 
   // normal get
   expect(dv.users.get('u1')).toBe(undefined)
-  await dv.getPromise()
+  await allPending(dv)
   expect(dv.users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
   expect(dv.users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
-  await dv.getPromise()
+  await allPending(dv)
   expect(dv.users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
   // won't affect calledGet, because search or find will fill individual cacheTimes
   dv.users.get('u2')
-  await dv.getPromise()
+  await allPending(dv)
   expect(calledGet).toBe(1)
 
   // load something missing
   dv.users.get('not_exists')
-  await dv.getPromise()
+  await allPending(dv)
   expect(calledGet).toBe(2)
 
   // load local won't affect

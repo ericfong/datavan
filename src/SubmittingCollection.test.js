@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { defineStore, defineCollection } from '.'
+import { defineStore, defineCollection, allPending } from '.'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
@@ -90,6 +90,6 @@ test('basic', async () => {
 
   // mix data from server
   dv.users.get('u1')
-  await dv.getPromise()
+  await allPending(dv)
   expect(_.map(dv.users.getState(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })
