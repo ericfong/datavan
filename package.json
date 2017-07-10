@@ -4,7 +4,7 @@
     "build:production": "cross-env BABEL_ENV=production babel src --out-dir lib --ignore spec.js,test.js",
     "build:es6": "cross-env BABEL_ENV=es6 babel src --out-dir lib/es6 --ignore spec.js,test.js",
     "prepublish": "npm test && rm -rf ./lib && npm run build",
-    "babel": "babel-node",
+    "babel": "cross-env NODE_ENV=test babel-node",
     "start": "npm run build:es6 -- --watch",
     "test": "cross-env NODE_PATH=src jest"
   },
@@ -17,15 +17,8 @@
   "jest": {
     "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/bower_components/",
-      "/lib/",
-      "/tmp/"
-    ]
+    "roots": ["<rootDir>/src"],
+    "testPathIgnorePatterns": ["/node_modules/", "/bower_components/", "/lib/", "/tmp/"]
   },
   "dependencies": {
     "fast-stable-stringify": "^0.2.0",
@@ -77,18 +70,7 @@
     "type": "git",
     "url": "git+https://github.com/ericfong/datavan.git"
   },
-  "keywords": [
-    "database",
-    "collection",
-    "react",
-    "redux",
-    "reactive",
-    "ajax",
-    "fetch",
-    "http",
-    "sync",
-    "async"
-  ],
+  "keywords": ["database", "collection", "react", "redux", "reactive", "ajax", "fetch", "http", "sync", "async"],
   "author": "Eric Fong",
   "license": "MIT",
   "bugs": {

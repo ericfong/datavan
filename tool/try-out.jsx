@@ -1,9 +1,13 @@
-const { connect, defineStore, defineCollection, Provider } = require('../src')
-const React = require('react')
-const { renderToString: render } = require('react-dom/server')
+const { connect, defineStore, defineCollection, Provider, serverRender } = require('../lib')
+const React = require('react') // eslint-disable-line
+const { renderToString: render } = require('react-dom/server') // eslint-disable-line
 
 function PureComponent({ user }) {
-  return <div>{(user && user.name) || 'No Name'}</div>
+  return (
+    <div>
+      {(user && user.name) || 'No Name'}
+    </div>
+  )
 }
 
 const MyApp = connect((dv, { username }) =>
@@ -38,13 +42,13 @@ console.log(
     </Provider>
   )
 )
+// log: <div data-reactroot="" data-reactid="" data-react-checksum="">No Name</div>
 
-store.getPromise().then(() => {
-  console.log(
-    render(
-      <Provider store={store}>
-        <MyApp />
-      </Provider>
-    )
+serverRender(store, () =>
+  render(
+    <Provider store={store}>
+      <MyApp />
+    </Provider>
   )
-})
+).then(output => console.log(output))
+// log: <div data-reactroot="" data-reactid="" data-react-checksum="">loaded name</div>
