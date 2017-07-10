@@ -295,10 +295,8 @@ export default class FetchingCollection extends Collection {
     state.requests = _.pickBy(state.requests, shouldKeep)
   }
 
-  getPromise() {
+  allPending() {
     const promises = _.values(this._fetchPromises)
-    const superPromise = super.getPromise && super.getPromise()
-    if (superPromise) promises.push(superPromise)
     return promises.length > 0 ? Promise.all(promises) : null
   }
 

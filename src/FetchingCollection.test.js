@@ -82,13 +82,13 @@ test('$request', async () => {
   // complex query 1
   const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $request: 'complex-query-1' }
   dv.users.find(complexQuery)
-  await dv.users.getPromise()
+  await dv.users.allPending()
   expect(dv.users.find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
 
   // complex query 2
   const complexQuery2 = { age: 20, $request: 'complex-query-2' }
   dv.users.find(complexQuery2)
-  await dv.users.getPromise()
+  await dv.users.allPending()
   expect(dv.users.find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
   expect(dv.roles.getState()).toEqual({ 5: { _id: '5', role: 'reader' } })
   expect(dv.blogs.getState()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
@@ -151,7 +151,7 @@ test('sync get', async () => {
 
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(db.users.get('2')).toEqual({ _id: '2', name: 'Echo-2' })
-  expect(db.users.getPromise()).toBe(null)
+  expect(db.users.allPending()).toBe(null)
 })
 
 test('batch get failback to find', async () => {
@@ -168,7 +168,7 @@ test('batch get failback to find', async () => {
 
   db.users.get('1')
   const p1 = db.users.findAsync({ _id: '2' }).then(r => r[0])
-  await db.users.getPromise()
+  await db.users.allPending()
   expect(db.users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
   expect(await p1).toEqual({ _id: '2', name: 'Echo-2' })
 })
