@@ -71,8 +71,10 @@ export function createDatavanEnhancer(definitions) {
 
     // onChange & onChangeDebounce for inject to collection
     function onChange() {
+      // console.time('onChange')
       baseStore.dispatch({ type: DV_MUTATE, collections })
       context.dispatchPromise = null
+      // console.timeEnd('onChange')
     }
     function onChangeDebounce() {
       if (context.dispatchPromise) return context.dispatchPromise

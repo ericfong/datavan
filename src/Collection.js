@@ -16,6 +16,9 @@ function filterStateByIds(state, ids) {
 }
 
 function doFind(self, docs, filter, option) {
+  // const key = _.truncate(`doFind-${self.name} ${option.cacheKey}`, { length: 100, omission: '' })
+  // console.time(key)
+
   // should after memoize to prevent return new Array all the time
   if (Array.isArray(filter)) {
     return processOption(filterStateByIds(docs, filter), option)
@@ -34,7 +37,9 @@ function doFind(self, docs, filter, option) {
     return result
   }
 
-  return processOption(_.filter(filteredState, sift(filter)), option)
+  const ret = processOption(_.filter(filteredState, sift(filter)), option)
+  // console.timeEnd(key)
+  return ret
 }
 
 export function findDirectly(self, docs, filter, option) {
@@ -51,7 +56,7 @@ function findMemoize(self, query, option) {
   const _findMemory = self._findMemory
 
   // return cache if exists
-  const cacheKey = option.cacheKey || calcQueryKey(query, option)
+  const cacheKey = (option.cacheKey = option.cacheKey || calcQueryKey(query, option))
   const lastResult = _findMemory[cacheKey]
   if (lastResult) return lastResult
 
