@@ -14,7 +14,7 @@ export function autoInvalidate({ collections }) {
 
 export function allPending(store) {
   const { collections, context } = store
-  const promises = _.compact(_.map(collections, collection => collection.allPending && collection.allPending()))
+  const promises = _.compact(_.flatMap(collections, collection => collection.allPendings && collection.allPendings()))
   if (context.dispatchPromise) promises.push(context.dispatchPromise)
   if (promises.length <= 0) return null
   // TODO timeout or have a limit for recursive wait for promise
