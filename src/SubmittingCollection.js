@@ -87,6 +87,6 @@ export default class SubmittingCollection extends FetchingCollection {
   }
 
   isDirty(key) {
-    return key in this.getStagingState() || super.isDirty(key)
+    return key in this.getStagingState()
   }
 }
