@@ -21,32 +21,40 @@ Welcome to extend or hack datavan or other classes to change behaviours
 __Table of Contents__
 <!-- TOC START min:1 max:3 link:true update:true -->
 - [Getting Started](#getting-started)
-- [Server Rendering](#server-rendering)
-- [API Reference](#api-reference)
-  - [Definitions](#definitions)
-    - [defineStore(definitions)](#definestoredefinitions)
-    - [createStore(reducer, preloadedState, enhancer)](#createstorereducer-preloadedstate-enhancer)
+- [Define Store or Enhancer for redux](#define-store-or-enhancer-for-redux)
+    - [defineStore(definitions) and createStore](#definestoredefinitions-and-createstore)
     - [defineCollection(...mixins)](#definecollectionmixins)
-  - [Connect with React](#connect-with-react)
+    - [createStore(reducer, preloadedState, enhancer)](#createstorereducer-preloadedstate-enhancer)
+    - [Use with other redux middlewares/enhancer](#use-with-other-redux-middlewaresenhancer)
+- [Collection Interface](#collection-interface)
+  - [Methods](#methods)
+    - [find(query, option)](#findquery-option)
+    - [findOne(query, option)](#findonequery-option)
+    - [insert(doc | docs)](#insertdoc--docs)
+    - [update(query, update)](#updatequery-update)
+    - [remove(query)](#removequery)
+    - [get(id)](#getid)
+    - [setAll(change)](#setallchange)
+    - [set(id, doc) | set(doc)](#setid-doc--setdoc)
+    - [del(id)](#delid)
+  - [props](#props)
+    - [idField](#idfield)
+    - [cast(doc)](#castdoc)
+- [Connect with React](#connect-with-react)
     - [connect(mapPropsFunc, mapActionsFunc)](#connectmappropsfunc-mapactionsfunc)
     - [Provider Component](#provider-component)
-    - [createDatavanEnhancer(definitions)](#createdatavanenhancerdefinitions)
-  - [Classes for directly use](#classes-for-directly-use)
+- [Other exports](#other-exports)
+  - [Classes for directly use in collection definitions](#classes-for-directly-use-in-collection-definitions)
     - [Browser Class](#browser-class)
     - [LocalStorage Class](#localstorage-class)
     - [SessionStorage Class](#sessionstorage-class)
     - [Cookie Class](#cookie-class)
     - [KoaCookie Class](#koacookie-class)
     - [Searchable Mixin](#searchable-mixin)
-  - [Classes for extend](#classes-for-extend)
-    - [KeyValueStore Class](#keyvaluestore-class)
-    - [Collection Class](#collection-class)
-    - [FetchingCollection Class](#fetchingcollection-class)
-    - [SubmittingCollection Class](#submittingcollection-class)
   - [Util functions](#util-functions)
     - [getSetters(...names)](#getsettersnames)
-    - [composeClass(...mixins)](#composeclassmixins)
     - [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
+- [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
 
@@ -77,15 +85,19 @@ const MyApp = connect((dv, { username }) => {
 // Setup
 
 const createStore = defineStore({
+  // define 'users' collection
   users: {
     onFetch(query, option) {
       return Promise.resolve([{ _id: 'id', name: 'loaded name' }])
     },
   },
+  // define 'blogs' collection
+  blogs: {},
 })
 
 // regular redux's createStore
 const store = createStore()
+// can use store.users.find() to find data
 
 // Assign to your React context
 render(
@@ -98,72 +110,34 @@ render(
 
 
 
+# Define Store or Enhancer for redux
 
-# Server Rendering
-```js
-const MyApp = connect((dv, { username }) => {
-  // following .find() .get() will be server preloaded (within this connect function)
-  dv.serverPreload(true)
-  return {
-    user: dv.users.findOne({ username }),
-  }
-})(PureComponent)
-
-
-// Provider and Store
-const createServerStore = defineStore({
-  users: {
-    onFetch(query, option) { /* server side implementation */ },
-  },
-})
-const serverStore = createServerStore()
-
-// renderToString
-const html = await serverStore.serverRender(() =>
-  ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
-)
-// transfer data to browser
-const json = JSON.stringify(store.getState())
-
-// -------
-
-// browser side
-const createBrowserStore = defineStore({
-  users: {
-    onFetch(query, option) { /* browser side implementation */ },
-  },
-})
-const preloadedState = JSON.parse(json)
-const browserStore = createBrowserStore(null, preloadedState)
-
-ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
-```
-You may use [iso](https://www.npmjs.com/package/iso) to ship data to browser
-
-
-
-
-
-# API Reference
-datavan exported the following functions or classes. You can use ```import { XX } from 'datavan'``` to import.
-
-## Definitions
-
-### defineStore(definitions)
+### defineStore(definitions) and createStore
 create store factory function by collection definitions
 ```js
 const createStore = defineStore({
-  // collection definition
-  users: Class / Object / Array / Function,
+  // table of collection definition
+  collection1: Class / Object / Array / Function,
+  collection2: Class / Object / Array / Function,
 })
 // create store instance and all collection instances
-const store = createStore()
-// access collection instance 'users'
-store.users.find()
+const store = createStore(reducer, preloadedState, enhancer)
+// access collection instance 'collection1'
+store.collection1.find()
 ```
 - if definition is Class, will be new by `new Class(preloadedState)`
 - if definition is Object / Array, will be converted to Class by [defineCollection( Object / Array )](#definecollectionmixins), then `new Class(preloadedState)`
 - if definition is Function, will be called by `function(preloadedState)`
+
+
+### defineCollection(...mixins)
+flatten and compose arguments into a es6 Class and default extend datavan Collection Class
+- argument can be Plain-Object / Array / Class / Mixin-Function
+- Mixin-Function is "a function with a superclass as input and a subclass extending that superclass as output"
+- for Plain-Object, it will be converted to Mixin-Function
+- for Array, it will be deep flatten and converted to Mixin-Function
+- for Class, the leftmost Class will become the superclass, all the things that after leftmost Class will be ignored
+Return: es6 Class that can be `new Class(preloadedState)`
 
 
 ### createStore(reducer, preloadedState, enhancer)
@@ -176,12 +150,55 @@ enhanced createStore that generated by defineStore or datavanEnhancer
 | enhancer | `function` | `null` | regular redux enhancer |
 
 
-### defineCollection(...mixins)
-usage same as [composeClass(...mixins)](#composeclassmixins) but default last mixin is SubmittingCollection
-- mixin is a function with a superclass as input and a subclass extending that superclass as output
+### Use with other redux middlewares/enhancer
+You can use `createDatavanEnhancer(definitions)` instead of `defineStore(definitions)`
+```js
+import { createStore, compose } from 'redux'
+const datavanEnhancer = createDatavanEnhancer({
+  collection1: ...,
+  collection2: ...,
+})
+const store = createStore(reducer, preloadedState, compose(datavanEnhancer, otherEnhancer / appliedMiddlewares))
+```
 
 
-## Connect with React
+
+
+# Collection Interface
+
+## Methods
+
+### find(query, option)
+Return: Array of document
+- query: Array<id> | Object (mongodb like query object, we use [sift](https://www.npmjs.com/package/sift) to filter documents)
+
+### findOne(query, option)
+Return: single document
+
+### insert(doc | docs)
+
+### update(query, update)
+
+### remove(query)
+
+### get(id)
+
+### setAll(change)
+
+### set(id, doc) | set(doc)
+
+### del(id)
+
+## props
+props that can pass-in to override the default functionality
+
+### idField
+
+### cast(doc)
+
+
+
+# Connect with React
 
 ### connect(mapPropsFunc, mapActionsFunc)
 alias: `connectDatavan()`
@@ -207,11 +224,14 @@ same as redux's Provider
 <Provider store={store}>...</Provider>
 ```
 
-### createDatavanEnhancer(definitions)
-create redux enhancer, refer to [defineStore(definitions)](#definestoredefinitions)
 
 
-## Classes for directly use
+
+
+# Other exports
+datavan exported the following functions or classes. You can use ```import { XX } from 'datavan'``` to import.
+
+## Classes for directly use in collection definitions
 Can use following classes as definitions
 ```js
 defineStore({
@@ -250,25 +270,10 @@ defineStore({
 
 
 
-## Classes for extend
-
-### KeyValueStore Class
-### Collection Class
-### FetchingCollection Class
-### SubmittingCollection Class
-
-
-
 ## Util functions
 
 ### getSetters(...names)
 generate getters and setters for names
-
-### composeClass(...mixins)
-- mixin is a function with a superclass as input and a subclass extending that superclass as output
-- if argument is plain object, it will be converted to mixin
-- if argument is array, it will be deep flatten
-- if argument is es6 class, the leftmost class will become the superclass, all the things that after leftmost class will be ignored
 
 ### search(docs, keywordStr, getSearchFields)
 | Name | Type | Default | Description |
@@ -276,3 +281,49 @@ generate getters and setters for names
 | docs | `[doc]` | __required__ | the source of searching docs |
 | keywordStr | `string` | __required__ | search keyword string |
 | getSearchFields | `function` | __required__ | `function(doc) { return ['name', 'search-field', ...] }` function that return array of field names for searching per doc |
+
+
+
+
+
+# Server Rendering
+```js
+import { serverPreload, serverRender } from '.'
+
+const MyApp = connect((dv, { username }) => {
+  // following .find() .get() will be server preloaded (within this connect function)
+  serverPreload(dv, true)
+  return {
+    user: dv.users.findOne({ username }),
+  }
+})(PureComponent)
+
+
+// Provider and Store
+const createServerStore = defineStore({
+  users: {
+    onFetch(query, option) { /* server side implementation */ },
+  },
+})
+const serverStore = createServerStore()
+
+// renderToString
+const html = await serverRender(serverStore, () =>
+  ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
+)
+// transfer data to browser
+const json = JSON.stringify(store.getState())
+
+// -------
+
+// browser side
+const createBrowserStore = defineStore({
+  users: {
+    onFetch(query, option) { /* browser side implementation */ },
+  },
+})
+const preloadedState = JSON.parse(json)
+const browserStore = createBrowserStore(null, preloadedState)
+
+ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
+```
