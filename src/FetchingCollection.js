@@ -115,10 +115,9 @@ function mayFetch(option) {
 }
 
 function _prepareFind(_filter, option) {
-  if (!mayFetch.call(this, option)) return { filter: _filter, fetchKey: false }
-
   const filter = normalizeQueryAndKey(_filter, option, this.idField)
-  if (filter === false) return { filter, fetchKey: false }
+
+  if (filter === false || !mayFetch.call(this, option)) return { filter, fetchKey: false }
 
   const fetchQuery = getFetchQuery(filter, this.isDirty.bind(this))
 

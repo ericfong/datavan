@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { defineStore, defineCollection, allPending } from '.'
+import { defineStore, defineCollection, allPending, FetchingCollection } from '.'
 
 function getQueryIds(query, idField = '_id') {
   if (Array.isArray(query)) return query
@@ -92,6 +92,13 @@ test('$request', async () => {
   expect(dv.users.find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
   expect(dv.roles.getState()).toEqual({ 5: { _id: '5', role: 'reader' } })
   expect(dv.blogs.getState()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
+})
+
+test('normalizeQuery', async () => {
+  const coll = new FetchingCollection({})
+  expect(coll.find(null)).toEqual([])
+  expect(coll.find()).toEqual([])
+  expect(coll.find({})).toEqual([])
 })
 
 test('consider calcFetchKey', async () => {
