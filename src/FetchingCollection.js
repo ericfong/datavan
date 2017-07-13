@@ -237,6 +237,7 @@ export default class FetchingCollection extends Collection {
     // console.log('importAll', mutation)
     this.mutateState(mutation)
     this._forceChangeDebounce()
+    return mutationById
   }
 
   _forceChangeDebounce() {
