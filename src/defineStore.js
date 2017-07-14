@@ -59,6 +59,8 @@ export function createDatavanEnhancer(definitions) {
   }
 }
 
+export const datavanEnhancer = createDatavanEnhancer()
+
 export default function defineCollections(definitions) {
   return createDatavanEnhancer(definitions)(createStore)
 }

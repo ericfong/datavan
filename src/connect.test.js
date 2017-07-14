@@ -1,31 +1,20 @@
 /* eslint-disable react/jsx-filename-extension */
 import _ from 'lodash'
 import React from 'react'
+import { createStore as createReduxStore } from 'redux'
 import { Provider } from 'react-redux'
 import { mount, render } from 'enzyme'
 
 import '../tool/test-setup'
-import { defineStore, withCollections, serverPreload, serverRender } from '.'
+import { defineStore, datavanEnhancer, withCollections, serverPreload, serverRender } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
 import connect from './connect'
 
 const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [query._id])
 
-test.only('server rendering', async () => {
-  const definitions = {
-    users: {
-      onFetch(query) {
-        if (query && query._id) {
-          const ids = getQueryIds(query)
-          return Promise.resolve(_.map(ids, _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
-        }
-        return Promise.resolve([])
-      },
-    },
-  }
-  const createStore = defineStore()
-  const store = createStore()
+test('server rendering', async () => {
+  const store = datavanEnhancer(createReduxStore)()
 
   const UserComp = connect((dv, props) => {
     serverPreload(dv, true)
@@ -56,7 +45,17 @@ test.only('server rendering', async () => {
   })
 
   // server side render
-  const FriendServer = withCollections(definitions)(FriendComp)
+  const FriendServer = withCollections({
+    users: {
+      onFetch(query) {
+        if (query && query._id) {
+          const ids = getQueryIds(query)
+          return Promise.resolve(_.map(ids, _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
+        }
+        return Promise.resolve([])
+      },
+    },
+  })(FriendComp)
   const wrapper = await serverRender(store, () =>
     render(
       <Provider store={store}>
@@ -71,8 +70,7 @@ test.only('server rendering', async () => {
   const isoData = JSON.parse(json)
 
   // client side
-  const createBrowserStore = defineStore()
-  const browserDb = createBrowserStore(null, isoData)
+  const browserDb = datavanEnhancer(createReduxStore)(null, isoData)
   // it is sync
   const FriendBrowser = withCollections({ users: Collection })(FriendComp)
   const browserWrapper = render(
