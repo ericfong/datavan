@@ -42,9 +42,9 @@ function doFind(self, docs, filter, option) {
   const mingoQuery = new Mingo.Query(filter)
   const filterFunc = doc => doc && mingoQuery.test(doc)
   // const sifter = sift(filter)
-  if (BENCHMARK) console.time(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
+  if (BENCHMARK) console.time(`BENCHMARK ${self.name}.doFind-filter ${option.cacheKey}`)
   const filteredDocs = _.filter(filteredState, filterFunc)
-  if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
+  if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind-filter ${option.cacheKey}`)
 
   const ret = processOption(filteredDocs, option)
   if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind ${option.cacheKey}`)
@@ -158,12 +158,7 @@ export default class Collection extends KeyValueStore {
 
   remove(query) {
     const removedDocs = this._find(query)
-    const change = {}
-    const idField = this.idField
-    _.each(removedDocs, doc => {
-      change[doc[idField]] = undefined
-    })
-    this.setAll(change)
+    this.setAll({ $unset: _.map(removedDocs, this.idField) })
     return removedDocs
   }
 }

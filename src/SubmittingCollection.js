@@ -18,9 +18,15 @@ export default class SubmittingCollection extends FetchingCollection {
 
   setAll(change) {
     if (this.onFetch) {
+      let submitsChange = change
+      if (change.$unset) {
+        submitsChange = { ...change }
+        delete submitsChange.$unset
+        _.each(change.$unset, id => (submitsChange[id] = undefined))
+      }
       this.mutateState({
         byId: change,
-        submits: change,
+        submits: submitsChange,
       })
       this.onChange()
       if (this.onSubmit) this.submit()
