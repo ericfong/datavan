@@ -5,16 +5,16 @@ import { Provider } from 'react-redux'
 import { mount, render } from 'enzyme'
 
 import '../tool/test-setup'
-import { defineStore, defineCollection, serverPreload, serverRender } from '.'
+import { defineStore, withCollections, serverPreload, serverRender } from '.'
 import KeyValueStore from './KeyValueStore'
 import Collection from './Collection'
 import connect from './connect'
 
 const getQueryIds = query => (Array.isArray(query._id.$in) ? query._id.$in : [query._id])
 
-test('server rendering', async () => {
-  const createStore = defineStore({
-    users: defineCollection({
+test.only('server rendering', async () => {
+  const definitions = {
+    users: {
       onFetch(query) {
         if (query && query._id) {
           const ids = getQueryIds(query)
@@ -22,8 +22,9 @@ test('server rendering', async () => {
         }
         return Promise.resolve([])
       },
-    }),
-  })
+    },
+  }
+  const createStore = defineStore()
   const store = createStore()
 
   const UserComp = connect((dv, props) => {
@@ -55,10 +56,11 @@ test('server rendering', async () => {
   })
 
   // server side render
+  const FriendServer = withCollections(definitions)(FriendComp)
   const wrapper = await serverRender(store, () =>
     render(
       <Provider store={store}>
-        <FriendComp />
+        <FriendServer />
       </Provider>
     )
   )
@@ -69,14 +71,13 @@ test('server rendering', async () => {
   const isoData = JSON.parse(json)
 
   // client side
-  const createBrowserStore = defineStore({
-    users: Collection,
-  })
+  const createBrowserStore = defineStore()
   const browserDb = createBrowserStore(null, isoData)
   // it is sync
+  const FriendBrowser = withCollections({ users: Collection })(FriendComp)
   const browserWrapper = render(
     <Provider store={browserDb}>
-      <FriendComp />
+      <FriendBrowser />
     </Provider>
   )
   expect(browserWrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
