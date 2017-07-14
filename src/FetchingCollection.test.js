@@ -117,9 +117,10 @@ test('consider calcFetchKey', async () => {
 })
 
 test('consider localId', async () => {
-  const coll = new (defineCollection({
+  const Coll = defineCollection({
     onFetch: jest.fn(echoOnFetch),
-  }))({})
+  })
+  const coll = new Coll({ submits: { 'tmp-123': {}, 'tmp-456': {} } })
 
   // won't call onFetch if only null or tmp
   coll.find(['tmp-123', null, 'tmp-456'])
