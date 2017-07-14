@@ -38,7 +38,12 @@ function doFind(self, docs, filter, option) {
     return result
   }
 
-  const ret = processOption(_.filter(filteredState, sift(filter)), option)
+  const sifter = sift(filter)
+  if (BENCHMARK) console.time(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
+  const filteredDocs = _.filter(filteredState, sifter)
+  if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
+
+  const ret = processOption(filteredDocs, option)
   if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind ${option.cacheKey}`)
   return ret
 }

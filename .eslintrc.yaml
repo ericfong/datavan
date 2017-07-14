@@ -46,6 +46,7 @@ rules:
         - error
         - time
         - timeEnd
+  no-mixed-operators: off
   no-multi-assign: off
   no-param-reassign: off
   no-plusplus: off
