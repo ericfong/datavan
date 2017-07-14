@@ -6,6 +6,8 @@ import KeyValueStore from './KeyValueStore'
 import { syncOrThen } from './util/promiseUtil'
 import { normalizeQueryAndKey, processOption, emptyResultArray, calcQueryKey } from './util/queryUtil'
 
+const BENCHMARK = process.env.NODE_ENV !== 'production' && process.env.BENCHMARK
+
 // @auto-fold here
 function filterStateByIds(state, ids) {
   return ids.reduce((result, id) => {
@@ -16,8 +18,7 @@ function filterStateByIds(state, ids) {
 }
 
 function doFind(self, docs, filter, option) {
-  // const key = _.truncate(`doFind-${self.name} ${option.cacheKey}`, { length: 100, omission: '' })
-  // console.time(key)
+  if (BENCHMARK) console.time(`BENCHMARK ${self.name}.doFind ${option.cacheKey}`)
 
   // should after memoize to prevent return new Array all the time
   if (Array.isArray(filter)) {
@@ -38,7 +39,7 @@ function doFind(self, docs, filter, option) {
   }
 
   const ret = processOption(_.filter(filteredState, sift(filter)), option)
-  // console.timeEnd(key)
+  if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind ${option.cacheKey}`)
   return ret
 }
 

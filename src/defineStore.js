@@ -6,7 +6,8 @@ import { mergeToStore } from './util/mutateUtil'
 import SubmittingCollection from './SubmittingCollection'
 
 const DV_MUTATE = 'DV_MUTATE'
-// export const CONNECT_GET_STORE = 'CONNECT_GET_STORE'
+
+const BENCHMARK = process.env.NODE_ENV !== 'production' && process.env.BENCHMARK
 
 // @auto-fold here
 function dvReducer(state, action) {
@@ -71,10 +72,10 @@ export function createDatavanEnhancer(definitions) {
 
     // onChange & onChangeDebounce for inject to collection
     function onChange() {
-      // console.time('onChange')
+      if (BENCHMARK) console.time('BENCHMARK datavan dispatch collections changes')
       baseStore.dispatch({ type: DV_MUTATE, collections })
       context.dispatchPromise = null
-      // console.timeEnd('onChange')
+      if (BENCHMARK) console.timeEnd('BENCHMARK datavan dispatch collections changes')
     }
     function onChangeDebounce() {
       if (context.dispatchPromise) return context.dispatchPromise
