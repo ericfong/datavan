@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import mutateHelper from 'immutability-helper'
-import sift from 'sift'
+import Mingo from 'mingo'
+// import sift from 'sift'
 
 import KeyValueStore from './KeyValueStore'
 import { syncOrThen } from './util/promiseUtil'
@@ -38,9 +39,11 @@ function doFind(self, docs, filter, option) {
     return result
   }
 
-  const sifter = sift(filter)
+  const mingoQuery = new Mingo.Query(filter)
+  const filterFunc = doc => doc && mingoQuery.test(doc)
+  // const sifter = sift(filter)
   if (BENCHMARK) console.time(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
-  const filteredDocs = _.filter(filteredState, sifter)
+  const filteredDocs = _.filter(filteredState, filterFunc)
   if (BENCHMARK) console.timeEnd(`BENCHMARK ${self.name}.doFind-sift ${option.cacheKey}`)
 
   const ret = processOption(filteredDocs, option)

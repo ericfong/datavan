@@ -94,8 +94,9 @@ it('loki', () => {
 
 it('mingo', () => {
   const start = Date.now()
-  const query = new Mingo.Query({ parentId: { $in: parentIds }, deleted: 0 })
-  result.mingo = time(() => query.find(docs).all(), 'mingo')
+  const mingoQuery = new Mingo.Query({ parentId: { $in: parentIds }, deleted: 0 })
+  const querier = doc => mingoQuery.test(doc)
+  result.mingo = time(() => _.filter(docs, querier), 'mingo')
   result.mingoTotal = Date.now() - start
 })
 
