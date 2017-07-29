@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
-import { processOption } from './util/queryUtil'
+import { processOption } from '../SyncTable/Finder'
 
 function indexOfTerm(term, value) {
   if (!value) return -1
@@ -117,20 +117,21 @@ export function search(docs, keywordStr, getSearchFields) {
   return _.sortBy(results, '_sort')
 }
 
-export default Base =>
-  class Searchable extends Base {
-    _findImplementation(state, query, option) {
+function defaultFields(doc) {
+  return _.keys(doc)
+}
+
+export default function Searchable({ fields = defaultFields }) {
+  return {
+    onFind(state, query, option) {
       if ('$search' in query) {
-        const searchFields = Array.isArray(this.searchFields) ? () => this.searchFields : this.searchFields
-        let result = search(state, query.$search, searchFields)
+        const getSearchFields = Array.isArray(fields) ? () => fields : fields
+        let result = search(state, query.$search, getSearchFields)
         if (!Array.isArray(result)) {
           result = _.values(result)
         }
         return processOption(result, option)
       }
-    }
-
-    searchFields(doc) {
-      return _.keys(doc)
-    }
+    },
   }
+}

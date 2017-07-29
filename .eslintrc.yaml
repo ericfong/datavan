@@ -2,7 +2,6 @@ env:
   browser: true
   es6: true
   jest: true
-  mocha: true
   node: true
 extends: airbnb
 globals:
@@ -15,9 +14,8 @@ plugins:
   - react
 root: true
 rules:
-  angular/definedundefined: 0
   arrow-parens: off
-  class-methods-use-this: off
+  class-methods-use-this: warn
   comma-dangle:
     - warn
     - arrays: always-multiline
@@ -34,6 +32,7 @@ rules:
     - 2
     - amd: true
       commonjs: true
+  import/prefer-default-export: off
   jsx-a11y/href-no-hash: off
   linebreak-style: off
   max-len:
@@ -46,10 +45,16 @@ rules:
         - error
         - time
         - timeEnd
+  no-invalid-this: error
   no-mixed-operators: off
   no-multi-assign: off
   no-param-reassign: off
   no-plusplus: off
+  no-restricted-globals:
+    - warn
+    - self
+    - find
+    - this
   no-trailing-spaces: 1
   no-underscore-dangle: off
   no-unused-expressions: 1

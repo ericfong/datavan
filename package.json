@@ -33,13 +33,13 @@
     "immutability-helper": "2.3.0",
     "js-cookie": "^2.1.4",
     "lodash": "^4.16.4",
+    "mingo": "1.1.2",
     "prop-types": "15.5.10",
     "react-redux": "^5.0.5",
     "recompose": "0.24.0",
     "redux": "3.7.2",
     "reselect": "^3.0.1",
     "search-text-tokenizer": "^2.1.1",
-    "mingo": "1.1.2",
     "sift": "3.3.12"
   },
   "devDependencies": {
