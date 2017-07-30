@@ -25,22 +25,6 @@ function Emitter(dv, onChange) {
   }
 }
 
-export function serverPreload(store, renderCallback) {
-  const dv = store.datavan()
-  dv.duringServerPreload = true
-
-  const output = renderCallback()
-
-  // recursive serverRender & promise.then
-  const promise = dv.allPending(dv)
-  if (promise) {
-    return promise.then(() => serverPreload(store, renderCallback))
-  }
-
-  dv.duringServerPreload = false
-  return output
-}
-
 export default function createDatavan({ getState, onChange, adapters = {} }) {
   const collections = {}
   const dv = { getState, onChange, adapters, collections }
@@ -58,7 +42,7 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
     if (emitPromise) promises.push(emitPromise)
     if (promises.length <= 0) return null
     // TODO timeout or have a limit for recursive wait for promise
-    return Promise.all(promises).then(() => allPending(dv))
+    return Promise.all(promises).then(allPending)
   }
 
   return Object.assign(dv, {

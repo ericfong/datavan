@@ -61,7 +61,7 @@ export default function asyncResponse(table, res, fetchKey) {
     }
   )
   // enforce update even null?
-  // console.log('asyncResponse', mutation.byId)
+  // console.log('asyncResponse', res, mutation.byId)
   table.addMutation(mutation)
   // console.log('asyncResponse', table.getState())
   return res

@@ -5,17 +5,17 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import { serverPreload } from './createDatavan'
+import serverPreload from './serverPreload'
 import createEnhancer, { collect } from './createEnhancer'
 import { getQueryIds } from './Collection/SyncFinder'
 
-test.skip('server preload', async () => {
+test('server preload', async () => {
   const Users = collect('users')
   const adapters = {
     users: {
       onFetch(collection, query) {
         if (query && query._id) {
-          return Promise.resolve(_.map(getQueryIds(query), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
+          return Promise.resolve(_.map(getQueryIds(query, collection.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
         }
         return Promise.resolve([])
       },

@@ -7,7 +7,8 @@ const sortUniq = ids => _.sortedUniq(ids.sort())
 const notTmpId = (id, tmpIdPrefix) => id && !_.startsWith(id, tmpIdPrefix)
 const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(sortUniq(ids), id => notTmpId(id, tmpIdPrefix))
 
-function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
+// @auto-fold here
+function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   if (Array.isArray(query)) {
     const ids = sortUniqFilter(query, tmpIdPrefix)
     if (ids.length === 0) {
@@ -21,7 +22,7 @@ function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (matcher) {
-      if (typeof matcher === 'string' && !notTmpId(matcher, tmpIdPrefix)) {
+      if (typeof matcher === 'string' && _.startsWith(matcher, tmpIdPrefix)) {
         return false
       } else if (matcher.$in) {
         const $in = sortUniqFilter(matcher.$in, tmpIdPrefix)
@@ -30,6 +31,9 @@ function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
         }
         fetchQuery[key] = { $in }
       }
+    } else if (key === idField) {
+      // idField is falsy
+      return false
     }
   }
   return fetchQuery
@@ -37,14 +41,15 @@ function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
 
 function calcFetchKey(fetchQuery, option) {
   if (fetchQuery === false) return false
-  if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
+  // if (option.missIds) return Object.keys(option.missIds).sort().join()
+  // if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
   return calcQueryKey(fetchQuery, option)
 }
 
-export default function (table) {
-  _.defaults(table, {
+export default function (collection) {
+  _.defaults(collection, {
     getFetchQuery(query) {
-      return withoutTmpId(query)
+      return withoutTmpId(query, collection.idField)
     },
 
     getFetchKey(fetchQuery, option) {
@@ -52,7 +57,7 @@ export default function (table) {
     },
   })
 
-  return Object.assign(table, {
+  return Object.assign(collection, {
     onGet(data, id, option) {
       if (option && !(id in data)) {
         if (!option.missIds) option.missIds = {}

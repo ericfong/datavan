@@ -51,6 +51,8 @@ export default function (collection) {
     const fetchKey = getFetchKey(fetchQuery, option)
     if (fetchKey === false) return DONT_FETCH
 
+    // console.log('tryGetFetchQueryKey', option.missIds, option.missQuery, fetchKey, fetchAts[fetchKey], query)
+
     if (option.missQuery) {
       if (fetchAts[fetchKey]) return DONT_FETCH
       markFetchAt(fetchKey)
