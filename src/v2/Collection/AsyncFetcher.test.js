@@ -24,8 +24,8 @@ test('without tmp-id', async () => {
   expect(_.last(Users.onFetch.mock.calls)[1]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // reverse will use same cacheKey??
-  // Users.find(['db-id-xyz', 'db-id-abc'])
-  // expect(_.last(Users.onFetch.mock.calls)[1]).toEqual(['db-id-abc', 'db-id-xyz'])
+  Users.find(['db-id-xyz', 'db-id-abc'])
+  expect(_.last(Users.onFetch.mock.calls)[1]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // find other fields with tmp id
   Users.onFetch.mockClear()
@@ -35,7 +35,7 @@ test('without tmp-id', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
 })
 
-test('consider calcFetchKey', async () => {
+test('consider getFetchQuery', async () => {
   const Users = Collection({ onFetch: jest.fn(echo), getFetchQuery: () => ({}) })
   Users.find(['db-1'])
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
@@ -58,12 +58,13 @@ test('fetch: false', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
 })
 
-test('batch get failback to find', async () => {
+test.skip('batch get failback to find', async () => {
   const Users = Collection({ onFetch: jest.fn(echo) })
   Users.get('1')
   Users.get('2')
   await Promise.all(Users.allPendings())
   expect(Users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
+
   // TODO expect(Users.onFetch).toHaveBeenCalledTimes(1)
 
   expect(await Users.findAsync({ _id: '3' })).toEqual([{ _id: '3', name: 'Echo-3' }])

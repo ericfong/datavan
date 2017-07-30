@@ -3,9 +3,13 @@ import _ from 'lodash'
 import { calcQueryKey } from './SyncMemory'
 import { TMP_ID_PREFIX } from './SyncDefaults'
 
+const sortUniq = ids => _.sortedUniq(ids.sort())
+const notTmpId = (id, tmpIdPrefix) => id && !_.startsWith(id, tmpIdPrefix)
+const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(sortUniq(ids), id => notTmpId(id, tmpIdPrefix))
+
 function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
   if (Array.isArray(query)) {
-    const ids = _.filter(query, id => id && !_.startsWith(id, tmpIdPrefix))
+    const ids = sortUniqFilter(query, tmpIdPrefix)
     if (ids.length === 0) {
       return false
     }
@@ -17,10 +21,10 @@ function withoutTmpId(query, tmpIdPrefix = TMP_ID_PREFIX) {
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (matcher) {
-      if (typeof matcher === 'string' && _.startsWith(matcher, tmpIdPrefix)) {
+      if (typeof matcher === 'string' && !notTmpId(matcher, tmpIdPrefix)) {
         return false
       } else if (matcher.$in) {
-        const $in = _.filter(matcher.$in, id => !_.startsWith(id, tmpIdPrefix))
+        const $in = sortUniqFilter(matcher.$in, tmpIdPrefix)
         if ($in.length === 0) {
           return false
         }
