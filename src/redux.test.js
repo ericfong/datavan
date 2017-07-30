@@ -5,8 +5,8 @@ import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
-import '../../tool/test-setup'
-import createEnhancer, { collect } from './createEnhancer'
+import '../tool/test-setup'
+import { createEnhancer, collect } from '.'
 
 it('same state', async () => {
   const Users = collect('users')

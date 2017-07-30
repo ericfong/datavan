@@ -5,17 +5,23 @@ const DATAVAN = 'DATAVAN'
 
 const collectAction = { type: DATAVAN }
 export function collect(name) {
-  // TODO gen uniq id to prevent use same global namespace
+  // gen uniq id to prevent use same global namespace
   const uniqId = Math.random()
-  // TODO rename base on middle HOC
   return stateOrDispatch => {
+    // dispatch
     if (typeof stateOrDispatch === 'function') {
-      // dispatch
       return stateOrDispatch(collectAction).getCollection(name, uniqId)
     }
     // state or store
-    const readonly = true
-    return stateOrDispatch.datavan().getCollection(name, uniqId, readonly)
+    const datavan = stateOrDispatch.datavan
+    if (datavan) {
+      return datavan().getCollection(name, uniqId)
+    }
+    // collection
+    const dv = stateOrDispatch.dv
+    if (dv) {
+      return dv.getCollection(name, uniqId)
+    }
   }
 }
 
@@ -40,7 +46,10 @@ export default function createEnhancer(adapters) {
       onChange: mutation => dispatch({ type: DATAVAN_MUTATE, mutation }),
       adapters,
     })
-    const datavanFunc = () => datavanObj
+    const datavanFunc = (name, ...args) => {
+      if (typeof name === 'string') return datavanObj.getCollection(name, ...args)
+      return datavanObj
+    }
 
     // inject store.datavan(name)
     store.datavan = datavanFunc
@@ -62,10 +71,8 @@ export default function createEnhancer(adapters) {
 
     // const subscribe = store.subscribe
     // store.subscribe = function _subscribe(listener) {
-    //   // context.duringMapState = true
-    //   // // always set back to normal mode, if some find / queries set as serverPreloading
-    //   // context.serverPreloading = false
-    //   // context.duringMapState = false
+    //   // dv.duringMapState = true
+    //   // dv.duringMapState = false
     //   return subscribe(listener)
     // }
 

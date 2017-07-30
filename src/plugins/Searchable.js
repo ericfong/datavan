@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
-import { processOption } from '../SyncTable/Finder'
+import { processOption } from '../Collection/SyncFinder'
 
 function indexOfTerm(term, value) {
   if (!value) return -1

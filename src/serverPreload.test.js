@@ -5,8 +5,7 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import serverPreload from './serverPreload'
-import createEnhancer, { collect } from './createEnhancer'
+import { createEnhancer, collect, serverPreload } from '.'
 import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
