@@ -25,8 +25,25 @@ function Emitter(dv, onChange) {
   }
 }
 
+export function serverPreload(store, renderCallback) {
+  const dv = store.datavan()
+  dv.duringServerPreload = true
+
+  const output = renderCallback()
+
+  // recursive serverRender & promise.then
+  const promise = dv.allPending(dv)
+  if (promise) {
+    return promise.then(() => serverPreload(store, renderCallback))
+  }
+
+  dv.duringServerPreload = false
+  return output
+}
+
 export default function createDatavan({ getState, onChange, adapters = {} }) {
   const collections = {}
+  const dv = { getState, onChange, adapters, collections }
 
   function invalidate(query) {
     _.each(collections, coll => coll.invalidate && coll.invalidate(query))
@@ -35,7 +52,14 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
   //   _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
   // }
 
-  const dv = { getState, onChange, adapters, collections, invalidate }
+  function allPending() {
+    const { emitPromise } = dv
+    const promises = _.compact(_.flatMap(collections, collection => collection.allPendings && collection.allPendings()))
+    if (emitPromise) promises.push(emitPromise)
+    if (promises.length <= 0) return null
+    // TODO timeout or have a limit for recursive wait for promise
+    return Promise.all(promises).then(() => allPending(dv))
+  }
 
   return Object.assign(dv, {
     emit: Emitter(dv, onChange),
@@ -52,5 +76,8 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
       }
       return collection
     },
+
+    invalidate,
+    allPending,
   })
 }

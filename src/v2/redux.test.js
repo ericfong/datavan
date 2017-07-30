@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-filename-extension */
-// import _ from 'lodash'
+
 import React from 'react'
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'

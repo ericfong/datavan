@@ -13,7 +13,7 @@ export function collect(name) {
       // dispatch
       return stateOrDispatch(collectAction).getCollection(name, uniqId)
     }
-    // state
+    // state or store
     const readonly = true
     return stateOrDispatch.datavan().getCollection(name, uniqId, readonly)
   }
