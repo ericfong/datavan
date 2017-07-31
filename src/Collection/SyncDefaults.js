@@ -12,7 +12,7 @@ export function toMutation(change) {
   return mutation
 }
 
-export const TMP_ID_PREFIX = '$tmp-'
+export const TMP_ID_PREFIX = 'dvtmp-'
 
 export default function (table) {
   const { getState, addMutation } = table
