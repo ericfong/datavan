@@ -1,4 +1,4 @@
-export createEnhancer, { collect } from './createEnhancer'
+export createEnhancer, { getCollection } from './createEnhancer'
 
 export createDatavan from './createDatavan'
 

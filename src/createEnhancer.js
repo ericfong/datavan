@@ -4,25 +4,32 @@ import createDatavan from './createDatavan'
 const DATAVAN = 'DATAVAN'
 
 const collectAction = { type: DATAVAN }
-export function collect(name) {
-  // gen uniq id to prevent use same global namespace
-  const uniqId = Math.random()
-  return stateOrDispatch => {
-    // dispatch
-    if (typeof stateOrDispatch === 'function') {
-      return stateOrDispatch(collectAction).getCollection(name, uniqId)
-    }
-    // state or store
-    const datavan = stateOrDispatch.datavan
-    if (datavan) {
-      return datavan().getCollection(name, uniqId)
-    }
-    // collection
-    const dv = stateOrDispatch.dv
-    if (dv) {
-      return dv.getCollection(name, uniqId)
-    }
+function _getCollection(stateOrDispatch, name, uniqId) {
+  // dispatch
+  if (typeof stateOrDispatch === 'function') {
+    return stateOrDispatch(collectAction).getCollection(name, uniqId)
   }
+  // state or store
+  const datavan = stateOrDispatch.datavan
+  if (datavan) {
+    return datavan().getCollection(name, uniqId)
+  }
+  // collection
+  const dv = stateOrDispatch.dv
+  if (dv) {
+    return dv.getCollection(name, uniqId)
+  }
+}
+
+export function getCollection(_host, _name) {
+  if (typeof _host !== 'string') {
+    return _getCollection(_host, _name)
+  }
+
+  // gen uniq id to prevent use same global namespace
+  const name = _host
+  const uniqId = Math.random()
+  return host => _getCollection(host, name, uniqId)
 }
 
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
