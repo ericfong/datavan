@@ -63,5 +63,7 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
 
     invalidate,
     allPending,
+
+    setAdapters: newAdapters => Object.assign(adapters, newAdapters),
   })
 }

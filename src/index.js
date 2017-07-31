@@ -3,6 +3,7 @@ export createEnhancer, { collect } from './createEnhancer'
 export createDatavan from './createDatavan'
 
 export serverPreload from './serverPreload'
+export { setAdapters } from './redux-setters'
 
 export Browser from './plugins/Browser'
 export Cookie from './plugins/Cookie'
