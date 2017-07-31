@@ -16,12 +16,13 @@ function addOnResize(self) {
       width: window.innerWidth,
       height: window.innerHeight,
     })
+  } else {
+    // default value for node
+    self.setData({
+      width: 360,
+      height: 640,
+    })
   }
-  // default value for node
-  self.setData({
-    width: 360,
-    height: 640,
-  })
 }
 
 export default {

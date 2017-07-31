@@ -12,36 +12,34 @@ import AsyncSubmit from './AsyncSubmit'
 
 import SyncInterface from './SyncInterface'
 
-export default function (table, adapter) {
-  const adapterType = typeof adapter
-  if (adapterType === 'object') {
-    _.defaults(table, adapter)
-  }
-
-  const { onFetch } = table
+function Collection(collection) {
+  const { onFetch } = collection
 
   if (onFetch) {
-    AsyncDefaults(table)
+    AsyncDefaults(collection)
   }
 
-  SyncState(table)
-  SyncDefaults(table)
-  SyncFinder(table)
+  SyncState(collection)
+  SyncDefaults(collection)
+  SyncFinder(collection)
 
-  if (onFetch) AsyncSubmit(table)
+  if (onFetch) AsyncSubmit(collection)
 
-  SyncSetters(table)
-  SyncMemory(table)
+  SyncSetters(collection)
+  SyncMemory(collection)
 
   if (onFetch) {
-    AsyncFetcher(table)
+    AsyncFetcher(collection)
   }
 
-  if (adapterType === 'function') {
-    adapter(table)
+  SyncInterface(collection)
+  return collection
+}
+
+export default function (collection, adapter) {
+  if (typeof adapter === 'function') {
+    return adapter(collection, Collection)
   }
 
-  SyncInterface(table)
-
-  return table
+  return Collection(_.defaults(collection, adapter))
 }
