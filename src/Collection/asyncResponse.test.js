@@ -1,13 +1,13 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import createEnhancer, { getCollection } from '../createEnhancer'
+import createEnhancer, { defCollection } from '../createEnhancer'
 
 const onFetch = () => Promise.resolve([])
 
 test('$request', async () => {
-  const Users = getCollection('users')
-  const Roles = getCollection('roles')
-  const Blogs = getCollection('blogs')
+  const Users = defCollection('users')
+  const Roles = defCollection('roles')
+  const Blogs = defCollection('blogs')
   const adapters = {
     users: {
       onFetch: jest.fn((collection, { $request }) => {

@@ -1,9 +1,11 @@
-export createEnhancer, { getCollection } from './createEnhancer'
+export createEnhancer, { getCollection, defCollection } from './createEnhancer'
 
 export createDatavan from './createDatavan'
 
 export serverPreload from './serverPreload'
 export { setAdapters } from './redux-setters'
+
+export combineWrappers from './util/combineWrappers'
 
 export Browser from './plugins/Browser'
 export Cookie from './plugins/Cookie'

@@ -1,5 +1,5 @@
 export default function serverPreload(store, renderCallback) {
-  const dv = store.datavan()
+  const dv = store.dv
   dv.duringServerPreload = true
 
   const output = renderCallback()

@@ -12,6 +12,8 @@ import AsyncSubmit from './AsyncSubmit'
 
 import SyncInterface from './SyncInterface'
 
+import combineWrappers from '../util/combineWrappers'
+
 function Collection(collection) {
   const { onFetch } = collection
 
@@ -36,10 +38,11 @@ function Collection(collection) {
   return collection
 }
 
-export default function (collection, adapter) {
-  if (typeof adapter === 'function') {
-    return adapter(collection, Collection)
-  }
+export default function (collection, wrappers) {
+  // if (typeof next === 'function') {
+  //   return next(collection, Collection)
+  // }
+  // Collection(_.defaults(collection, next))
 
-  return Collection(_.defaults(collection, adapter))
+  return combineWrappers(wrappers)(collection, Collection)
 }

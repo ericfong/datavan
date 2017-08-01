@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
-function normalizeWrapper(wrapper) {
+export function normalizeWrapper(wrapper) {
   if (typeof wrapper === 'function') return wrapper
-  return (ctx, next) => next({ ctx, ...wrapper })
+  return (ctx, next) => next({ ...ctx, ...wrapper })
 }
 
 // Wrapper: (ctx, next) => next(ctx) | ctx
@@ -17,7 +17,7 @@ function runMiddlewares(ctx, middlewares, i = 0) {
 }
 
 export default function (..._wrappers) {
-  const wrappers = _.map(_.flattenDeep(_wrappers), normalizeWrapper)
+  const wrappers = _.map(_.compact(_.flattenDeep(_wrappers)), normalizeWrapper)
 
   if (wrappers.length === 0) {
     return (ctx, next) => next(ctx)

@@ -1,35 +1,28 @@
 import mutateUtil from 'immutability-helper'
 import createDatavan from './createDatavan'
 
-const DATAVAN = 'DATAVAN'
+const GET_DATAVAN = 'DATAVAN'
+const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 
-const collectAction = { type: DATAVAN }
-function _getCollection(stateOrDispatch, name, uniqId) {
+function getDv(host) {
   // dispatch
-  if (typeof stateOrDispatch === 'function') {
-    return stateOrDispatch(collectAction).getCollection(name, uniqId)
-  }
-  // state or store
-  const datavan = stateOrDispatch.datavan
-  if (datavan) {
-    return datavan().getCollection(name, uniqId)
-  }
-  // collection
-  const dv = stateOrDispatch.dv
-  if (dv) {
-    return dv.getCollection(name, uniqId)
-  }
+  if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
+  // state
+  const datavan = host.datavan
+  if (datavan) return datavan()
+  // collection | store
+  return host.dv
 }
 
-export function getCollection(_host, _name) {
-  if (typeof _host !== 'string') {
-    return _getCollection(_host, _name)
-  }
-
+export function defCollection(name, wrapper) {
   // gen uniq id to prevent use same global namespace
-  const name = _host
   const uniqId = Math.random()
-  return host => _getCollection(host, name, uniqId)
+  return host => getDv(host).getCollection(name, { uniqId, wrapper })
+}
+
+export function getCollection(host, name) {
+  console.log(host)
+  return getDv(host).getCollection(name)
 }
 
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
@@ -53,15 +46,15 @@ export default function createEnhancer(adapters) {
       onChange: mutation => dispatch({ type: DATAVAN_MUTATE, mutation }),
       adapters,
     })
+
+    // inject store.datavan(name)
+    store.dv = datavanObj
+
+    // inject state.datavan(name)
     const datavanFunc = (name, ...args) => {
       if (typeof name === 'string') return datavanObj.getCollection(name, ...args)
       return datavanObj
     }
-
-    // inject store.datavan(name)
-    store.datavan = datavanFunc
-
-    // inject state.datavan(name)
     store.getState = function _getState() {
       const state = getState()
       state.datavan = datavanFunc
@@ -70,7 +63,7 @@ export default function createEnhancer(adapters) {
 
     // inject dispatch
     store.dispatch = function _dispatch(action) {
-      if (action.type === DATAVAN) {
+      if (action.type === GET_DATAVAN) {
         return datavanObj
       }
       return dispatch(action)

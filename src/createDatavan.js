@@ -48,11 +48,11 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
   return Object.assign(dv, {
     emit: Emitter(dv, onChange),
 
-    getCollection(name, uniqId, readonly) {
+    getCollection(name, { uniqId, wrapper } = {}) {
       let collection = collections[name]
       if (!collection) {
         // createCollection
-        collection = collections[name] = Collection({ dv, name, uniqId }, adapters[name])
+        collection = collections[name] = Collection({ dv, name, uniqId }, [adapters[name], wrapper])
 
         if (!dv[name]) dv[name] = collection
       } else if (uniqId && collection.uniqId && uniqId !== collection.uniqId) {

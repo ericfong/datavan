@@ -6,10 +6,10 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { createEnhancer, getCollection } from '.'
+import { createEnhancer, defCollection } from '.'
 
 it('same state', async () => {
-  const Users = getCollection('users')
+  const Users = defCollection('users')
   const store = createStore(null, null, createEnhancer())
   Users(store).set('u1', 'user 1 name!!')
 
@@ -42,7 +42,7 @@ it('same state', async () => {
 })
 
 it('basic', async () => {
-  const Users = getCollection('users')
+  const Users = defCollection('users')
   const store = createStore(null, null, createEnhancer())
 
   let lastClickValue

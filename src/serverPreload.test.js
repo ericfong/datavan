@@ -5,11 +5,11 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import { createEnhancer, getCollection, serverPreload } from '.'
+import { createEnhancer, defCollection, serverPreload } from '.'
 import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
-  const Users = getCollection('users')
+  const Users = defCollection('users')
   const adapters = {
     users: {
       onFetch(collection, query) {
