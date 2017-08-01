@@ -21,7 +21,6 @@ export function defCollection(name, wrapper) {
 }
 
 export function getCollection(host, name) {
-  console.log(host)
   return getDv(host).getCollection(name)
 }
 

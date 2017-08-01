@@ -50,7 +50,7 @@ export function getQueryIds(query, idField) {
   const idQuery = query[idField]
   if (idQuery) {
     if (Array.isArray(idQuery.$in)) return idQuery.$in
-    return [idQuery]
+    if (typeof idQuery === 'string') return [idQuery]
   }
 }
 
