@@ -9,18 +9,15 @@ import { createEnhancer, defCollection, serverPreload } from '.'
 import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
-  const Users = defCollection('users')
-  const adapters = {
-    users: {
-      onFetch(collection, query) {
-        if (query && query._id) {
-          return Promise.resolve(_.map(getQueryIds(query, collection.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
-        }
-        return Promise.resolve([])
-      },
+  const Users = defCollection('users', {
+    onFetch(collection, query) {
+      if (query && query._id) {
+        return Promise.resolve(_.map(getQueryIds(query, collection.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
+      }
+      return Promise.resolve([])
     },
-  }
-  const store = createEnhancer(adapters)(createStore)()
+  })
+  const store = createEnhancer()(createStore)()
 
   const UserComp = connect((state, props) => ({
     user: Users(state).findOne({ _id: props.userId }, { serverPreload: true }),

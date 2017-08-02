@@ -5,11 +5,11 @@ import createEnhancer, { defCollection } from '../createEnhancer'
 const onFetch = () => Promise.resolve([])
 
 test('$request', async () => {
-  const Users = defCollection('users')
-  const Roles = defCollection('roles')
-  const Blogs = defCollection('blogs')
-  const adapters = {
-    users: {
+  const Roles = defCollection('roles', { onFetch })
+  const Blogs = defCollection('blogs', { onFetch })
+  const Users = defCollection(
+    'users',
+    {
       onFetch: jest.fn((collection, { $request }) => {
         if ($request === 'request-only-aggregate-count') {
           return Promise.resolve({ $request: [$request, 100000] })
@@ -30,10 +30,9 @@ test('$request', async () => {
         }
       }),
     },
-    roles: { onFetch },
-    blogs: { onFetch },
-  }
-  const store = createEnhancer(adapters)(createStore)()
+    [Roles, Blogs]
+  )
+  const store = createEnhancer()(createStore)()
 
   // $request only
   expect(await Users(store).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])

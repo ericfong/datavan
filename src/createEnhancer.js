@@ -5,19 +5,25 @@ const GET_DATAVAN = 'DATAVAN'
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 
 function getDv(host) {
-  // dispatch
+  // host = dispatch
   if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
-  // state
+
+  // host = state
   const datavan = host.datavan
   if (datavan) return datavan()
-  // collection | store
-  return host.dv
+
+  // host = collection | store
+  const dv = host.dv
+  if (dv) return dv
+
+  // host = dv
+  return host
 }
 
-export function defCollection(name, wrapper) {
+export function defCollection(name, wrapper, dependencies) {
   // gen uniq id to prevent use same global namespace
   const uniqId = Math.random()
-  return host => getDv(host).getCollection(name, { uniqId, wrapper })
+  return host => getDv(host).getCollection(name, { uniqId, wrapper, dependencies })
 }
 
 export function getCollection(host, name) {
