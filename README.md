@@ -1,14 +1,15 @@
 ![https://img.shields.io/npm/v/datavan.svg](https://img.shields.io/npm/v/datavan.svg?style=flat-square) [![state](https://img.shields.io/badge/state-alpha-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/datavan.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/datavan.svg?style=flat-square)]()
 
-> mongo-like collections, can customize fetching and submiting logic to remote
+> define mongo-like collections, and customize fetching and submiting logic to remote
 
 __Features__
-- based on redux (wrap redux into in-memory mongodb)
-- can access regular http/async/promise api (results are auto cached and auto gc)
+- based on redux & react-redux (wrap redux state into in-memory mongodb)
+- can access regular http/async/promise api
+- results are auto cached and auto gc
 - already have reselect like memoize layer, don't need to think about createSelector
 - also work for sync datasource (ex: localStorage)
 - can be offline (conflict solve on your own)
-- with Searchable mixin
+- with searchable plugin
 - lightweight core and persistent on your own
 
 __How It works?__
@@ -21,10 +22,10 @@ Welcome to extend or hack datavan or other classes to change behaviours
 __Table of Contents__
 <!-- TOC START min:1 max:3 link:true update:true -->
 - [Getting Started](#getting-started)
-- [Define Store or Enhancer for redux](#define-store-or-enhancer-for-redux)
-    - [defineStore(definitions) and createStore](#definestoredefinitions-and-createstore)
-    - [defineCollection(...mixins)](#definecollectionmixins)
-    - [createStore(reducer, preloadedState, enhancer)](#createstorereducer-preloadedstate-enhancer)
+- [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
+    - [defCollection(name, wrapper, dependencies)](#defcollectionname-wrapper-dependencies)
+    - [createEnhancer()](#createenhancer)
+    - [Use of collection definition](#use-of-collection-definition)
     - [Use with other redux middlewares/enhancer](#use-with-other-redux-middlewaresenhancer)
 - [Collection Interface](#collection-interface)
   - [Methods](#methods)
@@ -64,102 +65,90 @@ __Table of Contents__
 
 # Getting Started
 ```js
-import { connect, defineStore, Provider } from 'datavan'
+import { createStore } from 'redux'
+import { Provider, connect } from 'react-redux'
+import { createEnhancer, defCollection } from 'datavan'
 
-function PureComponent({ user }) {
-  return <div>{(user && user.name) || 'No Name'}</div>
-}
+const PureComponent = ({ user }) => <div>{(user && user.name) || 'No Name'}</div>
 
-const MyApp = connect((dv, { username }) => {
-  // redux mapState, but first argument is datavan store instead of dispatch
-  // assume defined a collection called 'users', which can access by dv.users
+// defined collection called 'users'
+const Users = defCollection('users', {
+  onFetch(query, option) {
+    return Promise.resolve([{ _id: 'id', name: 'loaded name' }])
+  },
+})
+
+// connect
+const MyApp = connect((state, { username }) => {
   return {
-    user: dv.users.findOne({ username }),
+    user: Users(state).findOne({ username }),
     // first call result will be undefined
     // after HTTP response and cached, connect will be re-run
     // so, second result will get user object
   }
 })(PureComponent)
 
+// createStore
+const store = createEnhancer()(createStore)()
 
-// Setup
-
-const createStore = defineStore({
-  // define 'users' collection
-  users: {
-    onFetch(query, option) {
-      return Promise.resolve([{ _id: 'id', name: 'loaded name' }])
-    },
-  },
-  // define 'blogs' collection
-  blogs: {},
-})
-
-// regular redux's createStore
-const store = createStore()
-// can use store.users.find() to find data
-
-// Assign to your React context
-render(
-  <Provider store={store}>
-    <MyApp />
-  </Provider>
-)
+render(<Provider store={store}><MyApp /></Provider>)
 ```
 
 
 
 
-# Define Store or Enhancer for redux
+# Define Collections and Enhancer for redux
 
-### defineStore(definitions) and createStore
-create store factory function by collection definitions
-```js
-const createStore = defineStore({
-  // table of collection definition
-  collection1: Class / Object / Array / Function,
-  collection2: Class / Object / Array / Function,
-})
-// create store instance and all collection instances
-const store = createStore(reducer, preloadedState, enhancer)
-// access collection instance 'collection1'
-store.collection1.find()
-```
-- if definition is Class, will be new by `new Class(preloadedState)`
-- if definition is Object / Array, will be converted to Class by [defineCollection( Object / Array )](#definecollectionmixins), then `new Class(preloadedState)`
-- if definition is Function, will be called by `function(preloadedState)`
-
-
-### defineCollection(...mixins)
-flatten and compose arguments into a es6 Class and default extend datavan Collection Class
-- argument can be Plain-Object / Array / Class / Mixin-Function
-- Mixin-Function is "a function with a superclass as input and a subclass extending that superclass as output"
-- for Plain-Object, it will be converted to Mixin-Function
-- for Array, it will be deep flatten and converted to Mixin-Function
-- for Class, the leftmost Class will become the superclass, all the things that after leftmost Class will be ignored
-Return: es6 Class that can be `new Class(preloadedState)`
-
-
-### createStore(reducer, preloadedState, enhancer)
-enhanced createStore that generated by defineStore or datavanEnhancer
+### defCollection(name, wrapper, dependencies)
+define collection
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| reducer | `function` | `undefined` | regular redux reducer |
-| preloadedState | `object` | `{}` | regular redux preloadedState |
-| enhancer | `function` | `null` | regular redux enhancer |
+| name | `string` | `required` | collection name |
+| wrapper | `function` / `object` | `null` | default values or wrapper function to inject new functions |
+| dependencies | `[collection-definition]` | `null` | other collection definitions |
 
-
-### Use with other redux middlewares/enhancer
-You can use `createDatavanEnhancer(definitions)` instead of `defineStore(definitions)`
+- name
+- wrapper as `object`: will become defaults values or functions for collection
+- wrapper as `function`: can provide defaults or assign overrides
 ```js
-import { createStore, compose } from 'redux'
-const datavanEnhancer = createDatavanEnhancer({
-  collection1: ...,
-  collection2: ...,
-})
-const store = createStore(reducer, preloadedState, compose(datavanEnhancer, otherEnhancer / appliedMiddlewares))
+wrapper = (props, next) => {
+  const defaultedCollection = { ...props, ...newDefaults }
+  const collection = next(defaultedCollection)
+  const newCollection = { ...collection, ...newOverrides }
+  return newCollection
+}
+const Users = defCollection('users', wrapper)
 ```
+- dependencies: depended collections will be created before this collection created.
+
+
+### createEnhancer()
+create redux enhancer
+```js
+const enhancer = createEnhancer()
+// createStore
+const store = createStore(reducer, preloadedState, enhancer)
+// or
+const store = enhancer(createStore)(reducer, preloadedState)
+
+// first use of collection definition will create that collection
+Users(store).find()
+```
+
+
+### Use of collection definition
+Can use collection definition function to access or create collection instance. By passing redux state or dispatch or store or collection into the function and get back collection instance.
+
+```js
+Users(state | dispatch | store | collection)
+```
+
+
+### combineWrappers(...wrapper)
+
+combineWrappers wrappers into wrapper. wrapper = `(obj, nextWrapper) => newObj`
+
 
 
 
