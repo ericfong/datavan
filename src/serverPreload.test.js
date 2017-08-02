@@ -5,7 +5,7 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import { createEnhancer, defCollection, serverPreload } from '.'
+import { datavanEnhancer, defCollection, serverPreload } from '.'
 import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
@@ -17,7 +17,7 @@ test('server preload', async () => {
       return Promise.resolve([])
     },
   })
-  const store = createEnhancer()(createStore)()
+  const store = datavanEnhancer(createStore)()
 
   const UserComp = connect((state, props) => ({
     user: Users(state).findOne({ _id: props.userId }, { serverPreload: true }),
@@ -56,7 +56,7 @@ test('server preload', async () => {
   const isoData = JSON.parse(json)
 
   // client side
-  const browserDb = createEnhancer()(createStore)(null, isoData)
+  const browserDb = datavanEnhancer(createStore)(null, isoData)
   const browserWrapper = render(
     <Provider store={browserDb}>
       <FriendComp />

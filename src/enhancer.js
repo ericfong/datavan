@@ -39,8 +39,8 @@ function reducer(state, action) {
   return state
 }
 
-export default function createEnhancer(adapters) {
-  return _createStore => (_reducer, preloadedState, enhancer) => {
+export default function datavanEnhancer(_createStore) {
+  return (_reducer, preloadedState, enhancer) => {
     const finalReducer = _reducer ? (s, a) => reducer(_reducer(s, a), a) : reducer
     const store = _createStore(finalReducer, preloadedState || {}, enhancer)
 
@@ -49,17 +49,15 @@ export default function createEnhancer(adapters) {
     const datavanObj = createDatavan({
       getState,
       onChange: mutation => dispatch({ type: DATAVAN_MUTATE, mutation }),
-      adapters,
     })
 
     // inject store.datavan(name)
     store.dv = datavanObj
 
     // inject state.datavan(name)
-    const datavanFunc = (name, ...args) => {
-      if (typeof name === 'string') return datavanObj.getCollection(name, ...args)
-      return datavanObj
-    }
+    const datavanFunc = () => datavanObj
+    // if (typeof name === 'string') return datavanObj.getCollection(name, ...args)
+
     store.getState = function _getState() {
       const state = getState()
       state.datavan = datavanFunc

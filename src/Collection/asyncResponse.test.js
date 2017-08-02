@@ -1,11 +1,11 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import createEnhancer, { defCollection } from '../createEnhancer'
+import { datavanEnhancer, defCollection, setAdapters } from '..'
 
 const onFetch = () => Promise.resolve([])
 
 test('$request', async () => {
-  const Roles = defCollection('roles', { onFetch })
+  const Roles = defCollection('roles')
   const Blogs = defCollection('blogs', { onFetch })
   const Users = defCollection(
     'users',
@@ -32,7 +32,9 @@ test('$request', async () => {
     },
     [Roles, Blogs]
   )
-  const store = createEnhancer()(createStore)()
+  const store = datavanEnhancer(createStore)()
+  // test setAdapters
+  setAdapters(store, { roles: { onFetch } })
 
   // $request only
   expect(await Users(store).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])

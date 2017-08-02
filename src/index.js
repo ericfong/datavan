@@ -1,9 +1,9 @@
-export createEnhancer, { getCollection, defCollection } from './createEnhancer'
+export datavanEnhancer, { getCollection, defCollection } from './enhancer'
 
 export createDatavan from './createDatavan'
 
 export serverPreload from './serverPreload'
-export { setAdapters } from './redux-setters'
+export { setAdapters } from './store-setters'
 
 export combineWrappers from './util/combineWrappers'
 
