@@ -21,14 +21,9 @@ function addFetchingPromise(fetchingPromises, fetchKey, promise) {
 const DONT_FETCH = { fetchKey: false }
 
 export default function (collection) {
-  const { dv, onFetch, findMemory, prepareFindData, getDataById, getFetchQuery, getFetchKey, getState } = collection
+  const { dv, onFetch, findMemory, prepareFindData, getDataById, getFetchQuery, getFetchKey, getState, hasFetchAt, markFetchAt } = collection
 
-  const fetchAts = {}
   const fetchingPromises = {}
-
-  function markFetchAt(fetchKey) {
-    fetchAts[fetchKey] = 1
-  }
 
   // init
   // _.each(pendingState.byId, setTimeFunc)
@@ -54,7 +49,7 @@ export default function (collection) {
     // console.log('tryGetFetchQueryKey', option.missIds, option.missQuery, fetchKey, fetchAts[fetchKey], query)
 
     if (option.missQuery) {
-      if (fetchAts[fetchKey]) return DONT_FETCH
+      if (hasFetchAt(fetchKey)) return DONT_FETCH
       markFetchAt(fetchKey)
     }
 
@@ -106,8 +101,6 @@ export default function (collection) {
     find,
     findAsync,
     get,
-
-    markFetchAt,
 
     allPendings() {
       return Object.values(fetchingPromises)

@@ -8,7 +8,7 @@ import SyncMemory from './SyncMemory'
 
 import AsyncDefaults from './AsyncDefaults'
 import AsyncFetcher from './AsyncFetcher'
-import AsyncSubmit from './AsyncSubmit'
+import AsyncState from './AsyncState'
 
 import SyncInterface from './SyncInterface'
 
@@ -25,7 +25,7 @@ function Collection(collection) {
   SyncDefaults(collection)
   SyncFinder(collection)
 
-  if (onFetch) AsyncSubmit(collection)
+  if (onFetch) AsyncState(collection)
 
   SyncSetters(collection)
   SyncMemory(collection)

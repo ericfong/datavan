@@ -5,15 +5,38 @@ import asyncResponse from './asyncResponse'
 export default function (collection) {
   const { getState, setData, addMutation, onSubmit } = collection
 
+  let fetchAts = {}
+
+  function markFetchAt(fetchKey) {
+    fetchAts[fetchKey] = 1
+  }
+
+  function hasFetchAt(fetchKey) {
+    return fetchAts[fetchKey]
+  }
+
+  function invalidateFetchAt(keys) {
+    if (keys) {
+      // fetchAts is for query fetchKey
+      // finding ids related query is too complicated
+      // user should pass in query, option, and calc fetchKey again to invalidate
+      _.each(keys, k => delete fetchAts[k])
+    } else {
+      fetchAts = {}
+    }
+  }
+
   function invalidate(ids, option) {
     let mutation
     if (ids) {
+      // use query?
       const mut = { $unset: ids }
       mutation = { byId: mut, submits: mut }
     } else {
       mutation = { byId: { $set: {} }, submits: { $set: {} } }
     }
     addMutation(mutation, option)
+    invalidateFetchAt(ids)
   }
 
   function getSubmits() {
@@ -53,7 +76,12 @@ export default function (collection) {
       return id in getState().submits
     },
 
+    markFetchAt,
+    hasFetchAt,
+    invalidateFetchAt,
+
     invalidate,
+    reset: invalidate, // consider use same function all the time?
 
     getSubmits,
 
