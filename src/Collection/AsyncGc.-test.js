@@ -1,8 +1,8 @@
 // test('gc', async () => {
-//   const coll = new (defineCollection({
+//   const coll = {
 //     gcTime: 0,
 //     onFetch: jest.fn(echoOnFetch),
-//   }))({})
+//   }
 //   const gcSpy = jest.spyOn(coll, '_gc')
 //
 //   expect(await coll.findAsync(['db-1'])).toEqual([{ _id: 'db-1', name: 'Echo-db-1' }])

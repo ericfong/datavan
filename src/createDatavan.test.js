@@ -1,9 +1,9 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import { datavanEnhancer, defCollection } from '.'
+import { datavanEnhancer, defineCollection } from '.'
 
 test('merge collections states again will not trigger new dispatch', async () => {
-  const Users = defCollection('users')
+  const Users = defineCollection('users')
   const store = datavanEnhancer(createStore)()
 
   const mySubscribe = jest.fn()

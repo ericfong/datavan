@@ -6,10 +6,10 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanEnhancer, defCollection } from '.'
+import { datavanEnhancer, defineCollection } from '.'
 
 it('same state', async () => {
-  const Users = defCollection('users')
+  const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer)
   Users(store).set('u1', 'user 1 name!!')
 
@@ -42,7 +42,7 @@ it('same state', async () => {
 })
 
 it('basic', async () => {
-  const Users = defCollection('users')
+  const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer)
 
   let lastClickValue

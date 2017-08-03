@@ -5,11 +5,11 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import { datavanEnhancer, defCollection, serverPreload } from '.'
+import { datavanEnhancer, defineCollection, serverPreload } from '.'
 import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
-  const Users = defCollection('users', {
+  const Users = defineCollection('users', {
     onFetch(collection, query) {
       if (query && query._id) {
         return Promise.resolve(_.map(getQueryIds(query, collection.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
