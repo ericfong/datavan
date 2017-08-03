@@ -3,7 +3,7 @@
 > define mongo-like collections, and customize fetching and submiting logic to remote
 
 __Features__
-- based on redux & react-redux (wrap redux state into in-memory mongodb)
+- based on [redux](https://www.npmjs.com/package/redux) & [react-redux](https://www.npmjs.com/package/react-redux) (wrap redux state into in-memory mongodb)
 - can access regular http/async/promise api
 - results are auto cached and auto gc
 - already have reselect like memoize layer, don't need to think about createSelector
@@ -23,10 +23,10 @@ __Table of Contents__
 <!-- TOC START min:1 max:3 link:true update:true -->
 - [Getting Started](#getting-started)
 - [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
-    - [defCollection(name, wrapper, dependencies)](#defcollectionname-wrapper-dependencies)
-    - [createEnhancer()](#createenhancer)
+    - [defineCollection(name, mixin, dependencies)](#definecollectionname-mixin-dependencies)
+    - [datavanEnhancer](#datavanenhancer)
     - [Use of collection definition](#use-of-collection-definition)
-    - [Use with other redux middlewares/enhancer](#use-with-other-redux-middlewaresenhancer)
+    - [composeMixins(...mixins)](#composemixinsmixins)
 - [Collection Interface](#collection-interface)
   - [Methods](#methods)
     - [find(query, option)](#findquery-option)
@@ -35,26 +35,27 @@ __Table of Contents__
     - [update(query, update)](#updatequery-update)
     - [remove(query)](#removequery)
     - [get(id)](#getid)
-    - [setAll(change)](#setallchange)
+    - [setData(change)](#setdatachange)
     - [set(id, doc) | set(doc)](#setid-doc--setdoc)
     - [del(id)](#delid)
-  - [props](#props)
+  - [Mixin props](#mixin-props)
     - [idField](#idfield)
     - [cast(doc)](#castdoc)
-- [Connect with React](#connect-with-react)
-    - [connect(mapPropsFunc, mapActionsFunc)](#connectmappropsfunc-mapactionsfunc)
-    - [Provider Component](#provider-component)
-- [Other exports](#other-exports)
-  - [Classes for directly use in collection definitions](#classes-for-directly-use-in-collection-definitions)
-    - [Browser Class](#browser-class)
-    - [LocalStorage Class](#localstorage-class)
-    - [SessionStorage Class](#sessionstorage-class)
-    - [Cookie Class](#cookie-class)
-    - [KoaCookie Class](#koacookie-class)
+    - [getData()](#getdata)
+    - [getDataById(id, option)](#getdatabyidid-option)
+    - [setData(change, option)](#setdatachange-option)
+    - [genId()](#genid)
+    - [getFetchQuery()](#getfetchquery)
+    - [getFetchKey(fetchQuery, option)](#getfetchkeyfetchquery-option)
+- [Built-in mixins](#built-in-mixins)
+    - [Browser Mixin](#browser-mixin)
+    - [createStorage(localStorage | sessionStorage)](#createstoragelocalstorage--sessionstorage)
+    - [Cookie Mixin](#cookie-mixin)
+    - [KoaCookie Mixin](#koacookie-mixin)
     - [Searchable Mixin](#searchable-mixin)
   - [Util functions](#util-functions)
-    - [getSetters(...names)](#getsettersnames)
     - [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
+    - [getSetters(...names)](#getsettersnames)
 - [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
@@ -67,13 +68,13 @@ __Table of Contents__
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { createEnhancer, defCollection } from 'datavan'
+import { datavanEnhancer, defineCollection } from 'datavan'
 
 const PureComponent = ({ user }) => <div>{(user && user.name) || 'No Name'}</div>
 
 // defined collection called 'users'
-const Users = defCollection('users', {
-  onFetch(query, option) {
+const Users = defineCollection('users', {
+  onFetch(collection, query, option) {
     return Promise.resolve([{ _id: 'id', name: 'loaded name' }])
   },
 })
@@ -89,7 +90,7 @@ const MyApp = connect((state, { username }) => {
 })(PureComponent)
 
 // createStore
-const store = createEnhancer()(createStore)()
+const store = datavanEnhancer(createStore)()
 
 render(<Provider store={store}><MyApp /></Provider>)
 ```
@@ -99,38 +100,40 @@ render(<Provider store={store}><MyApp /></Provider>)
 
 # Define Collections and Enhancer for redux
 
-### defCollection(name, wrapper, dependencies)
+### defineCollection(name, mixin, dependencies)
 define collection
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | name | `string` | `required` | collection name |
-| wrapper | `function` / `object` | `null` | default values or wrapper function to inject new functions |
-| dependencies | `[collection-definition]` | `null` | other collection definitions |
+| mixin | `object` / `function`| `null` | default props or mixin function to inject new functions |
+| dependencies | `Array of [collection-definition]` | `null` | other collection definitions |
 
 - name
-- wrapper as `object`: will become defaults values or functions for collection
-- wrapper as `function`: can provide defaults or assign overrides
+- mixin as `object`: will become defaults props
+- mixin as `function`: can provide defaults or assign overrides
+- dependencies: depended collections will be created before this collection created.
 ```js
-wrapper = (props, next) => {
+mixin = (props, next) => {
   const defaultedCollection = { ...props, ...newDefaults }
   const collection = next(defaultedCollection)
   const newCollection = { ...collection, ...newOverrides }
   return newCollection
 }
-const Users = defCollection('users', wrapper)
+const Users = defineCollection('users', mixin)
+
+// Blogs depend on Users, create Blogs collection will alsog create Blogs collection
+const Blogs = defineCollection('blogs', null, [Users])
 ```
-- dependencies: depended collections will be created before this collection created.
 
 
-### createEnhancer()
-create redux enhancer
+### datavanEnhancer
+datavan enhancer for redux
 ```js
-const enhancer = createEnhancer()
 // createStore
-const store = createStore(reducer, preloadedState, enhancer)
+const store = createStore(reducer, preloadedState, datavanEnhancer)
 // or
-const store = enhancer(createStore)(reducer, preloadedState)
+const store = datavanEnhancer(createStore)(reducer, preloadedState)
 
 // first use of collection definition will create that collection
 Users(store).find()
@@ -141,13 +144,13 @@ Users(store).find()
 Can use collection definition function to access or create collection instance. By passing redux state or dispatch or store or collection into the function and get back collection instance.
 
 ```js
-Users(state | dispatch | store | collection)
+Users(state | dispatch | store | collection).find()
 ```
 
 
-### combineWrappers(...wrapper)
+### composeMixins(...mixins)
 
-combineWrappers wrappers into wrapper. wrapper = `(obj, nextWrapper) => newObj`
+composeMixins mixins into mixin. mixin = `(obj, nextMixin) => newObj`
 
 
 
@@ -158,111 +161,77 @@ combineWrappers wrappers into wrapper. wrapper = `(obj, nextWrapper) => newObj`
 ## Methods
 
 ### find(query, option)
-Return: Array of document
-- query: Array<id> | Object (mongodb like query object, we use [sift](https://www.npmjs.com/package/sift) to filter documents)
+Return: Array of documents
+- query: Array<id> | query-object (mongodb like query object, we use [mingo](https://www.npmjs.com/package/mingo) to filter documents)
 
 ### findOne(query, option)
 Return: single document
 
 ### insert(doc | docs)
+Return: inserted docs
 
 ### update(query, update)
+- update operations based on [immutability-helper](https://www.npmjs.com/package/immutability-helper)
 
 ### remove(query)
 
 ### get(id)
 
-### setAll(change)
+### setData(change)
 
 ### set(id, doc) | set(doc)
 
 ### del(id)
 
-## props
+## Mixin props
 props that can pass-in to override the default functionality
 
 ### idField
 
 ### cast(doc)
 
+### getData()
 
+### getDataById(id, option)
 
-# Connect with React
+### setData(change, option)
 
-### connect(mapPropsFunc, mapActionsFunc)
-alias: `connectDatavan()`
-both first argument of `mapPropsFunc`, `mapActionsFunc` is datavan store (dv in below)
-```js
-connect(
-  dv => {
-    return { name: dv.memory.get('name') }
-  },
-  dv => {
-    return {
-      setName(name) {
-        dv.memory.set('name', name)
-      }
-    }
-  },
-)
-```
+### genId()
 
-### Provider Component
-same as redux's Provider
-```js
-<Provider store={store}>...</Provider>
-```
+### getFetchQuery()
+
+### getFetchKey(fetchQuery, option)
 
 
 
 
 
-# Other exports
-datavan exported the following functions or classes. You can use ```import { XX } from 'datavan'``` to import.
+# Built-in mixins
+You can use ```import { XX } from 'datavan'``` to import and use the following mixins
 
-## Classes for directly use in collection definitions
-Can use following classes as definitions
-```js
-defineStore({
-  browser: Browser,
-  local: LocalStorage,
-  session: SessionStorage,
-  cookie: Cookie,
-  koaCookie: KoaCookie,
-})
-```
+### Browser Mixin
+get and listen to browser resize, will mixin `getWidth()` and `getHeight()` functions
 
-### Browser Class
-get and listen to browser resize. You can also import `getBrowserWidth()` and `getBrowserHeight()` to any collection.
+### createStorage(localStorage | sessionStorage)
+read, write localStorage or sessionStorage
 
-### LocalStorage Class
-read, write localStorage
-
-### SessionStorage Class
-read, write sessionStorage
-
-### Cookie Class
+### Cookie Mixin
 read, write browser cookie
 
-### KoaCookie Class
+### KoaCookie Mixin
 read, write cookie in koa
 
 ### Searchable Mixin
 add simple full-text search to collection
 ```js
-defineStore({
-  users: [{ searchFields: ['firstName', 'lastName', ...] }, Searchable],
-})
+Searchable({ fields: ['firstName', 'lastName', ...] })
 ```
-- Mixin is function with a superclass as input and a subclass extending that superclass as output
-- You can also use the search function by import [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
+
+
 
 
 
 ## Util functions
-
-### getSetters(...names)
-generate getters and setters for names
 
 ### search(docs, keywordStr, getSearchFields)
 | Name | Type | Default | Description |
@@ -271,48 +240,49 @@ generate getters and setters for names
 | keywordStr | `string` | __required__ | search keyword string |
 | getSearchFields | `function` | __required__ | `function(doc) { return ['name', 'search-field', ...] }` function that return array of field names for searching per doc |
 
+### getSetters(...names)
+generate getters and setters for names
+
 
 
 
 
 # Server Rendering
 ```js
-import { serverPreload, serverRender } from '.'
+import { createStore } from 'redux'
+import { Provider, connect } from 'react-redux'
+import { datavanEnhancer, serverPreload } from '.'
 
-const MyApp = connect((dv, { username }) => {
-  // following .find() .get() will be server preloaded (within this connect function)
-  serverPreload(dv, true)
+// define collection
+const Users = defineCollection('users', {
+  onFetch(collection, query, option) { /* server side implementation */ },
+})
+
+// connect react component
+const MyApp = connect((state, { username }) => {
   return {
-    user: dv.users.findOne({ username }),
+    user: Users(state).findOne({ username }, { serverPreload: true }),
   }
 })(PureComponent)
 
-
-// Provider and Store
-const createServerStore = defineStore({
-  users: {
-    onFetch(query, option) { /* server side implementation */ },
-  },
-})
-const serverStore = createServerStore()
+// create store
+const serverStore = datavanEnhancer(createStore)()
 
 // renderToString
 const html = await serverRender(serverStore, () =>
   ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
 )
+
 // transfer data to browser
 const json = JSON.stringify(store.getState())
 
 // -------
 
 // browser side
-const createBrowserStore = defineStore({
-  users: {
-    onFetch(query, option) { /* browser side implementation */ },
-  },
-})
 const preloadedState = JSON.parse(json)
-const browserStore = createBrowserStore(null, preloadedState)
+const browserStore = datavanEnhancer(createStore)(null, preloadedState)
+
+
 
 ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
 ```

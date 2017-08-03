@@ -1,3 +1,3 @@
-export function setAdapters(store, newAdapters) {
-  return store.dv.setAdapters(newAdapters)
+export function setMixins(store, newAdapters) {
+  return store.dv.setMixins(newAdapters)
 }
