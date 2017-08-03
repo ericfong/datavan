@@ -2,6 +2,12 @@
 
 > mongo-like collections, can customize fetching and submiting logic to remote
 
+
+# datavan v2 beta has arrived!
+
+datavan v2 will have a lot of breaking changes. Sorry. Please follow [next](https://github.com/ericfong/datavan/tree/next) to upgrade.
+
+
 __Features__
 - based on redux (wrap redux into in-memory mongodb)
 - can access regular http/async/promise api (results are auto cached and auto gc)
