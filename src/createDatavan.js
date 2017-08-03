@@ -45,14 +45,14 @@ export default function createDatavan({ getState, onChange, adapters = {} }) {
     return Promise.all(promises).then(allPending)
   }
 
-  function getCollection(name, { uniqId, wrapper, dependencies } = {}) {
+  function getCollection(name, { uniqId, mixin, dependencies } = {}) {
     let collection = collections[name]
     if (!collection) {
       // create dependencies
       _.each(dependencies, dependency => dependency(dv))
 
       // createCollection
-      collection = collections[name] = Collection({ dv, name, uniqId }, [adapters[name], wrapper])
+      collection = collections[name] = Collection({ dv, name, uniqId }, [adapters[name], mixin])
 
       if (!dv[name]) dv[name] = collection
     } else if (uniqId && collection.uniqId && uniqId !== collection.uniqId) {

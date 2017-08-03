@@ -20,10 +20,10 @@ function getDv(host) {
   return host
 }
 
-export function defineCollection(name, wrapper, dependencies) {
+export function defineCollection(name, mixin, dependencies) {
   // gen uniq id to prevent use same global namespace
   const uniqId = Math.random()
-  return host => getDv(host).getCollection(name, { uniqId, wrapper, dependencies })
+  return host => getDv(host).getCollection(name, { uniqId, mixin, dependencies })
 }
 
 export function getCollection(host, name) {

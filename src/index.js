@@ -1,11 +1,10 @@
+export createDatavan from './createDatavan'
 export datavanEnhancer, { getCollection, defineCollection } from './enhancer'
 
-export createDatavan from './createDatavan'
+export composeMixins from './util/composeMixins'
 
 export serverPreload from './serverPreload'
 export { setAdapters } from './store-setters'
-
-export combineWrappers from './util/combineWrappers'
 
 export Browser from './plugins/Browser'
 export Cookie from './plugins/Cookie'
