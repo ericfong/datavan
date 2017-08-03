@@ -3,7 +3,7 @@
 > mongo-like collections, can customize fetching and submiting logic to remote
 
 
-# datavan v2 beta has arrived!
+__datavan v2 beta has arrived!__
 
 datavan v2 will have a lot of breaking changes. Sorry. Please follow [next](https://github.com/ericfong/datavan/tree/next) to upgrade.
 
