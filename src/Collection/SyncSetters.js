@@ -1,28 +1,29 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-export default function (table) {
-  const { idField, genId, cast, setData, findData } = table
-
-  function withId(doc) {
-    if (!doc[idField]) {
-      doc[idField] = genId()
-    }
-    return doc
+function withId(self, doc) {
+  const idField = self.idField
+  if (!doc[idField]) {
+    doc[idField] = self.genId()
   }
+  return doc
+}
 
-  return Object.assign(table, {
+export default function (self) {
+  const { findData } = self
+
+  Object.assign(self, {
     set(id, value, option) {
       if (typeof id === 'object') {
-        const castedDoc = withId(cast(id))
-        setData({ [castedDoc[idField]]: castedDoc }, value)
+        const castedDoc = withId(self, self.cast(id))
+        self.setData({ [castedDoc[self.idField]]: castedDoc }, value)
       } else {
-        setData({ [id]: cast(value) }, option)
+        self.setData({ [id]: self.cast(value) }, option)
       }
     },
 
     del(id, option) {
-      setData({ $unset: [id] }, option)
+      self.setData({ $unset: [id] }, option)
     },
 
     insert(docs, option) {
@@ -31,11 +32,11 @@ export default function (table) {
 
       const change = {}
       const castedDocs = _.map(inserts, d => {
-        const castedDoc = withId(cast(d))
-        change[castedDoc[idField]] = castedDoc
+        const castedDoc = withId(self, self.cast(d))
+        change[castedDoc[self.idField]] = castedDoc
         return castedDoc
       })
-      setData(change, option)
+      self.setData(change, option)
 
       return inputIsArray ? castedDocs : castedDocs[0]
     },
@@ -43,6 +44,7 @@ export default function (table) {
     update(query, updates, option = {}) {
       const oldDocs = findData(query, option)
       const change = {}
+      const idField = self.idField
       _.each(oldDocs, doc => {
         // TODO use mongo operators like $set, $push...
         const newDoc = mutateUtil(doc, updates)
@@ -53,13 +55,13 @@ export default function (table) {
           change[newDoc[idField]] = newDoc
         }
       })
-      setData(change, option)
+      self.setData(change, option)
       return oldDocs
     },
 
     remove(query, option = {}) {
       const removedDocs = findData(query, option)
-      setData({ $unset: _.map(removedDocs, idField) }, option)
+      self.setData({ $unset: _.map(removedDocs, self.idField) }, option)
       return removedDocs
     },
   })

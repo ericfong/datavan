@@ -2,8 +2,8 @@ import _ from 'lodash'
 import { toMutation } from './SyncDefaults'
 import asyncResponse from './asyncResponse'
 
-export default function (collection) {
-  const { getState, setData, addMutation, onSubmit } = collection
+export default function (self) {
+  const { getState, setData, addMutation, onSubmit } = self
 
   let fetchAts = {}
 
@@ -45,7 +45,7 @@ export default function (collection) {
 
   function submit(_submit = onSubmit) {
     const snapshotState = getSubmits()
-    return Promise.resolve(_submit(collection, snapshotState)).then(
+    return Promise.resolve(_submit(self, snapshotState)).then(
       docs => {
         if (docs !== false) {
           // return === false means don't consider current staging is submitted
@@ -54,7 +54,7 @@ export default function (collection) {
           invalidate(_.keys(snapshotState))
 
           if (docs) {
-            asyncResponse(collection, docs)
+            asyncResponse(self, docs)
           }
         }
         return docs
@@ -70,7 +70,7 @@ export default function (collection) {
     )
   }
 
-  return Object.assign(collection, {
+  Object.assign(self, {
     // NOTE for asyncResponse
     isDirty(id) {
       return id in getState().submits

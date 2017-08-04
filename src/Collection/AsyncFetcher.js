@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import asyncResponse from './asyncResponse'
+import { prepareFindData } from './SyncFinder'
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
@@ -20,30 +21,30 @@ function addFetchingPromise(fetchingPromises, fetchKey, promise) {
 
 const DONT_FETCH = { fetchKey: false }
 
-export default function (collection) {
-  const { dv, onFetch, findMemory, prepareFindData, getDataById, getFetchQuery, getFetchKey, getState, hasFetchAt, markFetchAt } = collection
+export default function (self) {
+  const { findMemory, hasFetchAt, markFetchAt } = self
 
   const fetchingPromises = {}
 
   // init
   // _.each(pendingState.byId, setTimeFunc)
-  _.keys(getState().requests).forEach(markFetchAt)
+  _.keys(self.getState().requests).forEach(markFetchAt)
 
   function checkOption({ fetch, serverPreload }) {
     if (fetch === false) return false
-    if (dv && dv.duringServerPreload && !serverPreload) return false
+    if (self.dv && self.dv.duringServerPreload && !serverPreload) return false
     return true
   }
 
   function tryGetFetchQueryKey(query, option) {
     // ensure run prepareFindData to determine some data is missing or not
-    prepareFindData(query, option)
+    prepareFindData(self, query, option)
     // shouldFetch if (not-all-ids-hit || key-no-query-cache) && key-not-fetching
     // TODO || key-expired
     if (!option.missIds && !option.missQuery) return DONT_FETCH
 
-    const fetchQuery = getFetchQuery(query, option)
-    const fetchKey = getFetchKey(fetchQuery, option)
+    const fetchQuery = self.getFetchQuery(query, option)
+    const fetchKey = self.getFetchKey(fetchQuery, option)
     if (fetchKey === false) return DONT_FETCH
 
     // console.log('tryGetFetchQueryKey', option.missIds, option.missQuery, fetchKey, fetchAts[fetchKey], query)
@@ -59,7 +60,7 @@ export default function (collection) {
   }
 
   function _fetch(query, option, fetchKey) {
-    return onFetch(collection, query, option).then(res => asyncResponse(collection, res, fetchKey))
+    return self.onFetch(self, query, option).then(res => asyncResponse(self, res, fetchKey))
     // .catch(err => handleError to switch off isFetching)
   }
 
@@ -94,10 +95,10 @@ export default function (collection) {
         addFetchingPromise(fetchingPromises, fetchKey, p)
       }
     }
-    return getDataById(id, option)
+    return self.getDataById(id, option)
   }
 
-  return Object.assign(collection, {
+  Object.assign(self, {
     find,
     findAsync,
     get,

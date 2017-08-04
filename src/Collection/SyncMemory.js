@@ -5,15 +5,15 @@ export function calcQueryKey(query, option) {
   return stringify([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
 }
 
-export default function (table) {
-  const { getData, findData } = table
+export default function (self) {
+  const { findData } = self
 
   let queryCacheById = null
   let queryCaches = {}
 
   function findMemory(query, option) {
     // reset cache or not
-    const byId = getData()
+    const byId = self.getData()
     const shouldReset = byId !== queryCacheById
     queryCacheById = byId
     if (shouldReset) queryCaches = {}
@@ -33,7 +33,7 @@ export default function (table) {
     return (queryCaches[queryKey] = findData(query, option))
   }
 
-  return Object.assign(table, {
+  Object.assign(self, {
     findMemory,
     find: findMemory,
 

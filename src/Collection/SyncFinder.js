@@ -54,67 +54,62 @@ export function getQueryIds(query, idField) {
   }
 }
 
-export default function (table) {
-  const { idField, getState, getData, getDataById, onGet, onFind } = table
+function filterDataByIds(self, data, ids, option) {
+  return ids.reduce((result, id) => {
+    self.onGet(data, id, option)
+    const doc = data[id]
+    if (doc) result.push(doc)
+    return result
+  }, [])
+}
 
-  function filterDataByIds(data, ids, option) {
-    return ids.reduce((result, id) => {
-      onGet(data, id, option)
-      const doc = data[id]
-      if (doc) result.push(doc)
-      return result
-    }, [])
+export function prepareFindData(self, query, option) {
+  if (option.preparedData) return
+  const data = self.getData()
+  const ids = getQueryIds(query, self.idField)
+  if (ids) {
+    option.preparedData = filterDataByIds(self, data, ids, option)
+  } else {
+    option.preparedData = data
+
+    // signal Fetcher to refetch
+    option.missQuery = true
+  }
+}
+
+function doFindData(self, query, option) {
+  const preparedData = option.preparedData
+
+  // id Array
+  if (Array.isArray(query)) {
+    return processOption(preparedData, option)
   }
 
-  function prepareFindData(query, option) {
-    if (option.preparedData) return
-    const data = getData()
-    const ids = getQueryIds(query, idField)
-    if (ids) {
-      option.preparedData = filterDataByIds(data, ids, option)
-    } else {
-      option.preparedData = data
-
-      // signal Fetcher to refetch
-      option.missQuery = true
+  // request-only (only for Fetcher case?)
+  if (query.$request) {
+    if (Object.keys(query).length === 1) {
+      return self.getState().requests[option.queryKey]
     }
+    query = _.omit(query, '$request')
   }
 
-  function doFindData(query, option) {
-    const preparedData = option.preparedData
-
-    // id Array
-    if (Array.isArray(query)) {
-      return processOption(preparedData, option)
-    }
-
-    // request-only (only for Fetcher case?)
-    if (query.$request) {
-      if (Object.keys(query).length === 1) {
-        return getState().requests[option.queryKey]
-      }
-      query = _.omit(query, '$request')
-    }
-
-    const result = onFind(preparedData, query, option)
-    if (result !== undefined) {
-      return result
-    }
-
-    return processOption(doQuery(preparedData, query), option)
+  const result = self.onFind(preparedData, query, option)
+  if (result !== undefined) {
+    return result
   }
 
-  return Object.assign(table, {
+  return processOption(doQuery(preparedData, query), option)
+}
+
+export default function (self) {
+  Object.assign(self, {
     get(id, option = {}) {
-      return getDataById(id, option)
+      return self.getDataById(id, option)
     },
 
-    prepareFindData,
-
     findData(query, option) {
-      prepareFindData(query, option)
-      // console.log('findData', option.preparedData, getData())
-      return doFindData(query, option)
+      prepareFindData(self, query, option)
+      return doFindData(self, query, option)
     },
   })
 }

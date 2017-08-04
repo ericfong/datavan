@@ -46,10 +46,10 @@ function calcFetchKey(fetchQuery, option) {
   return calcQueryKey(fetchQuery, option)
 }
 
-export default function (collection) {
-  _.defaults(collection, {
+export default function (self) {
+  _.defaults(self, {
     getFetchQuery(query) {
-      return withoutTmpId(query, collection.idField)
+      return withoutTmpId(query, self.idField)
     },
 
     getFetchKey(fetchQuery, option) {
@@ -57,7 +57,7 @@ export default function (collection) {
     },
   })
 
-  return Object.assign(collection, {
+  Object.assign(self, {
     onGet(data, id, option) {
       if (option && !(id in data)) {
         if (!option.missIds) option.missIds = {}

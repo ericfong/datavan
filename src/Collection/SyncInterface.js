@@ -1,7 +1,7 @@
-export default function (table) {
-  const { get, find } = table
+export default function (self) {
+  const { get, find } = self
 
-  return Object.assign(table, {
+  Object.assign(self, {
     get(id, option) {
       return get(id, option || {})
     },

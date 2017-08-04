@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-export default function (table) {
-  const { dv, name } = table
+export default function (self) {
+  const { name } = self
 
   let pendingState
 
   function getState() {
-    return pendingState || (dv && dv.getState()[name])
+    return pendingState || (self.dv && self.dv.getState()[name])
   }
 
   // initState
@@ -19,7 +19,7 @@ export default function (table) {
     pendingState = _.defaults({ ...collState }, pendingState)
   }
 
-  return _.assign(table, {
+  _.assign(self, {
     getState,
 
     addMutation(mutation, option) {
@@ -28,7 +28,7 @@ export default function (table) {
       if (nextData !== prevData) {
         pendingState = nextData
       }
-      if (dv) dv.emit(option && option.flush)
+      if (self.dv) self.dv.emit(option && option.flush)
       return nextData
     },
 
