@@ -1,15 +1,15 @@
 import composeMixins from './composeMixins'
 
 test('basic', () => {
-  const a = (obj, next) => Object.assign(next({ defaultName: 'a', ...obj, forceDefault: 'a' }), { override: 'A' })
-  const b = (obj, next) => Object.assign(next({ defaultName: 'b', ...obj, forceDefault: 'b' }), { override: 'B' })
-  const base = obj => Object.assign(obj, { func() {} })
+  const a = self => Object.assign(self, { name: 'A', a: true })
+  const b = self => Object.assign(self, { name: 'B', b: true })
+  const base = self => Object.assign(self, { func() {} })
 
   expect(typeof composeMixins(a, b)).toBe('function')
   expect(typeof composeMixins(a, b, base)({}).func).toBe('function')
   expect(composeMixins(a, b, base)({})).toMatchObject({
-    defaultName: 'a',
-    forceDefault: 'b',
-    override: 'A',
+    name: 'A',
+    a: true,
+    b: true,
   })
 })

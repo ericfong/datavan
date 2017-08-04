@@ -74,25 +74,29 @@ export default function (self) {
   }
 
   function find(query, option) {
-    if (checkOption(option)) {
-      const { fetchQuery, fetchKey } = tryGetFetchQueryKey(query, option)
-      if (fetchKey !== false) {
-        const p = _fetch(fetchQuery, option, fetchKey)
-        addFetchingPromise(fetchingPromises, fetchKey, p)
+    if (self.onFetch) {
+      if (checkOption(option)) {
+        const { fetchQuery, fetchKey } = tryGetFetchQueryKey(query, option)
+        if (fetchKey !== false) {
+          const p = _fetch(fetchQuery, option, fetchKey)
+          addFetchingPromise(fetchingPromises, fetchKey, p)
+        }
       }
     }
     return findMemory(query, option)
   }
 
   function get(id, option) {
-    if (!id) return undefined
-    if (checkOption(option)) {
-      const query = [id]
-      // batch when option.missIds and use getIdFetchKey?
-      const { fetchQuery, fetchKey } = tryGetFetchQueryKey(query, option)
-      if (fetchKey !== false) {
-        const p = _fetch(fetchQuery, option, fetchKey)
-        addFetchingPromise(fetchingPromises, fetchKey, p)
+    if (self.onFetch) {
+      if (!id) return undefined
+      if (checkOption(option)) {
+        const query = [id]
+        // batch when option.missIds and use getIdFetchKey?
+        const { fetchQuery, fetchKey } = tryGetFetchQueryKey(query, option)
+        if (fetchKey !== false) {
+          const p = _fetch(fetchQuery, option, fetchKey)
+          addFetchingPromise(fetchingPromises, fetchKey, p)
+        }
       }
     }
     return self.getDataById(id, option)

@@ -89,6 +89,7 @@ export default function (self) {
 
     setData(change, option) {
       setData(change, option)
+      if (!self.onFetch) return
 
       let submitsChange = change
       // convert $unset to undefined in submits

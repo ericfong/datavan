@@ -14,35 +14,30 @@ import SyncInterface from './SyncInterface'
 
 import composeMixins from '../util/composeMixins'
 
-function Collection(collection) {
-  const { onFetch } = collection
+function Collection(self) {
+  AsyncDefaults(self)
 
-  if (onFetch) {
-    AsyncDefaults(collection)
-  }
+  SyncState(self)
+  SyncDefaults(self)
+  SyncFinder(self)
 
-  SyncState(collection)
-  SyncDefaults(collection)
-  SyncFinder(collection)
+  AsyncState(self)
 
-  if (onFetch) AsyncState(collection)
+  SyncSetters(self)
+  SyncMemory(self)
 
-  SyncSetters(collection)
-  SyncMemory(collection)
+  AsyncFetcher(self)
 
-  if (onFetch) {
-    AsyncFetcher(collection)
-  }
-
-  SyncInterface(collection)
-  return collection
+  SyncInterface(self)
 }
 
-export default function (collection, mixins) {
+export default function (self, mixins) {
   // if (typeof next === 'function') {
   //   return next(collection, Collection)
   // }
   // Collection(_.defaults(collection, next))
 
-  return composeMixins(mixins)(collection, Collection)
+  Collection(self)
+  composeMixins(mixins)(self)
+  return self
 }
