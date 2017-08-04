@@ -3,7 +3,7 @@ import { toMutation } from './SyncDefaults'
 import asyncResponse from './asyncResponse'
 
 export default function (self) {
-  const { getState, setData, addMutation, onSubmit } = self
+  const { getState, setData, addMutation } = self
 
   let fetchAts = {}
 
@@ -43,9 +43,10 @@ export default function (self) {
     return getState().submits
   }
 
-  function submit(_submit = onSubmit) {
+  function submit(_submit) {
     const snapshotState = getSubmits()
-    return Promise.resolve(_submit(self, snapshotState)).then(
+    const p = _submit ? _submit(snapshotState, self) : self.onSubmit(snapshotState, self)
+    return Promise.resolve(p).then(
       docs => {
         if (docs !== false) {
           // return === false means don't consider current staging is submitted

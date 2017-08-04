@@ -12,14 +12,14 @@ function onFetch(query, option, collection) {
 
 test('onSubmit', async () => {
   let lastSubmit
-  let doSubmit = (collection, changes) => {
+  let doSubmit = changes => {
     lastSubmit = changes
     return false
   }
   const Users = Collection({
     name: 'users',
     onFetch,
-    onSubmit: (collection, changes) => doSubmit(collection, changes),
+    onSubmit: changes => doSubmit(changes),
   })
 
   Users.insert({ name: 'Apple' })
@@ -49,7 +49,7 @@ test('onSubmit', async () => {
 
   // onSubmit with feedback
 
-  doSubmit = (collection, changes) => {
+  doSubmit = changes => {
     lastSubmit = changes
     return _.reduce(
       changes,
