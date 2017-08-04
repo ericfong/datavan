@@ -25,9 +25,9 @@ function Emitter(dv, onChange) {
   }
 }
 
-export default function createDatavan({ getState, onChange, mixins = {} }) {
+export default function createDatavan({ getState, onChange, overrides = {} }) {
   const collections = {}
-  const dv = { getState, onChange, mixins, collections }
+  const dv = { getState, onChange, overrides, collections }
 
   function invalidate(query) {
     _.each(collections, coll => coll.invalidate && coll.invalidate(query))
@@ -45,14 +45,14 @@ export default function createDatavan({ getState, onChange, mixins = {} }) {
     return Promise.all(promises).then(allPending)
   }
 
-  function getCollection(name, { uniqId, mixin, dependencies } = {}) {
+  function getCollection(name, { uniqId, definition, dependencies } = {}) {
     let collection = collections[name]
     if (!collection) {
       // create dependencies
       _.each(dependencies, dependency => dependency(dv))
 
       // createCollection
-      collection = collections[name] = Collection({ dv, name, uniqId }, [mixins[name], mixin])
+      collection = collections[name] = Collection({ dv, name, uniqId }, overrides[name], definition)
 
       if (!dv[name]) dv[name] = collection
     } else if (uniqId && collection.uniqId && uniqId !== collection.uniqId) {
@@ -69,6 +69,6 @@ export default function createDatavan({ getState, onChange, mixins = {} }) {
     invalidate,
     allPending,
 
-    setMixins: newMixins => Object.assign(mixins, newMixins),
+    setOverrides: _overrides => Object.assign(overrides, _overrides),
   })
 }

@@ -1,3 +1,3 @@
-export function setMixins(store, newAdapters) {
-  return store.dv.setMixins(newAdapters)
+export function setOverrides(store, _overrides) {
+  return store.dv.setOverrides(_overrides)
 }

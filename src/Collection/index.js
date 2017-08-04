@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 import SyncDefaults from './SyncDefaults'
 import SyncState from './SyncState'
 import SyncFinder from './SyncFinder'
@@ -11,8 +9,6 @@ import AsyncFetcher from './AsyncFetcher'
 import AsyncState from './AsyncState'
 
 import SyncInterface from './SyncInterface'
-
-import composeMixins from '../util/composeMixins'
 
 function Collection(self) {
   AsyncDefaults(self)
@@ -31,13 +27,18 @@ function Collection(self) {
   SyncInterface(self)
 }
 
-export default function (self, mixins) {
-  // if (typeof next === 'function') {
-  //   return next(collection, Collection)
-  // }
-  // Collection(_.defaults(collection, next))
+function fixMixin(mixin) {
+  if (typeof mixin === 'function') return mixin
+  return self => Object.assign(self, mixin)
+}
 
+export default function create(self, override, definition) {
   Collection(self)
-  composeMixins(mixins)(self)
+  if (definition) {
+    fixMixin(definition)(self)
+  }
+  if (override) {
+    fixMixin(override)(self)
+  }
   return self
 }

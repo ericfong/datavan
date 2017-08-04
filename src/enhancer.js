@@ -4,7 +4,7 @@ import createDatavan from './createDatavan'
 const GET_DATAVAN = 'DATAVAN'
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 
-function getDv(host) {
+export function getDv(host) {
   // host = dispatch
   if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
 
@@ -18,16 +18,6 @@ function getDv(host) {
 
   // host = dv
   return host
-}
-
-export function defineCollection(name, mixin, dependencies) {
-  // gen uniq id to prevent use same global namespace
-  const uniqId = Math.random()
-  return host => getDv(host).getCollection(name, { uniqId, mixin, dependencies })
-}
-
-export function getCollection(host, name) {
-  return getDv(host).getCollection(name)
 }
 
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
