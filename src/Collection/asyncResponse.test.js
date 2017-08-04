@@ -10,7 +10,7 @@ test('$request', async () => {
   const Users = defineCollection(
     'users',
     {
-      onFetch: jest.fn((collection, { $request }) => {
+      onFetch: jest.fn(({ $request }) => {
         if ($request === 'request-only-aggregate-count') {
           return Promise.resolve({ $request: [$request, 100000] })
         }

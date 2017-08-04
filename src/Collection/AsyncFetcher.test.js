@@ -3,7 +3,7 @@ import Collection from '.'
 import { getQueryIds } from './SyncFinder'
 import { TMP_ID_PREFIX as TMP } from './SyncDefaults'
 
-function echo(collection, query) {
+function echo(query) {
   const ids = getQueryIds(query, '_id')
   // console.log('echo', ids)
   return Promise.resolve(_.map(ids, _id => ({ _id, name: `Echo-${_id}` })))
@@ -21,11 +21,11 @@ test('without tmp-id', async () => {
   // removed tmp-id
   Users.find(['db-id-abc', `${TMP}-123`, 'db-id-xyz', `${TMP}-456`])
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  expect(_.last(Users.onFetch.mock.calls)[1]).toEqual(['db-id-abc', 'db-id-xyz'])
+  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // reverse will use same cacheKey??
   Users.find(['db-id-xyz', 'db-id-abc'])
-  expect(_.last(Users.onFetch.mock.calls)[1]).toEqual(['db-id-abc', 'db-id-xyz'])
+  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // find other fields with tmp id
   Users.onFetch.mockClear()
@@ -75,7 +75,7 @@ test('basic', async () => {
   let calledGet = 0
   const Users = Collection({
     name: 'users',
-    onFetch: jest.fn((collection, query) => {
+    onFetch: jest.fn((query, option, collection) => {
       if (query) {
         const ids = getQueryIds(query)
         if (ids) {

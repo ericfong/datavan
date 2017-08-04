@@ -60,7 +60,7 @@ export default function (self) {
   }
 
   function _fetch(query, option, fetchKey) {
-    return self.onFetch(self, query, option).then(res => asyncResponse(self, res, fetchKey))
+    return self.onFetch(query, option, self).then(res => asyncResponse(self, res, fetchKey))
     // .catch(err => handleError to switch off isFetching)
   }
 

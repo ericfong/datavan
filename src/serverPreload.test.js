@@ -10,9 +10,9 @@ import { getQueryIds } from './Collection/SyncFinder'
 
 test('server preload', async () => {
   const Users = defineCollection('users', {
-    onFetch(collection, query) {
+    onFetch(query) {
       if (query && query._id) {
-        return Promise.resolve(_.map(getQueryIds(query, collection.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
+        return Promise.resolve(_.map(getQueryIds(query, this.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))
       }
       return Promise.resolve([])
     },

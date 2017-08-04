@@ -3,7 +3,7 @@ import Collection from '.'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
-function onFetch(collection, query) {
+function onFetch(query, option, collection) {
   if (Array.isArray(query)) {
     return Promise.resolve(_.map(query, id => ({ id, name: 'John' })))
   }
