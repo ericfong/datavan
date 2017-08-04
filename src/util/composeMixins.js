@@ -1,26 +1,20 @@
 import _ from 'lodash'
-import { compose } from 'redux'
 
-export function normalizeMixin(mixin) {
+export function runMixin(self, mixin) {
   if (typeof mixin === 'function') {
-    return base => {
-      mixin(base)
-      // enforce alway the same obj
-      return base
-    }
+    mixin(self)
+  } else {
+    Object.assign(self, mixin)
   }
-  return base => Object.assign(base, mixin)
 }
 
-// function runMiddlewares(ctx, middlewares, i = 0) {
-//   const curMiddleware = middlewares[i]
-//   if (!curMiddleware) return ctx
-//
-//   const ret = curMiddleware(ctx, (nextCtx = ctx) => runMiddlewares(nextCtx, middlewares, i + 1))
-//
-//   return ret || ctx
-// }
-
 export default function (..._mixins) {
-  return compose(..._.map(_.compact(_.flattenDeep(_mixins)), normalizeMixin))
+  const mixins = _.compact(_.flattenDeep(_mixins))
+  const lastIndex = mixins.length - 1
+  return self => {
+    for (let i = lastIndex; i >= 0; i--) {
+      runMixin(self, mixins[i])
+    }
+    return self
+  }
 }
