@@ -3,6 +3,10 @@ import mutateUtil from 'immutability-helper'
 
 export default {
   init() {
+    this._memory = {}
+    this._fetchingPromises = {}
+    const _fetchAts = (this._fetchAts = {})
+
     const collState = this.getState()
     const defaultState = { byId: {}, requests: {}, submits: {} }
     if (!collState) {
@@ -11,11 +15,9 @@ export default {
       this._pendingState = _.defaults({ ...collState }, this._pendingState)
     }
 
-    this._memory = {}
-    this._fetchingPromises = {}
-    const _fetchAts = (this._fetchAts = {})
-    // _.each(pendingState.byId, setTimeFunc)
-    _.keys(this.getState().requests).forEach(fetchKey => {
+    const { byId, requests } = this._pendingState
+    this._pendingState.byId = _.mapValues(byId, v => this.cast(v))
+    _.keys(requests).forEach(fetchKey => {
       _fetchAts[fetchKey] = 1
     })
   },
