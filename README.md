@@ -79,14 +79,23 @@ const Users = defineCollection('users', {
 })
 
 // connect
-const MyApp = connect((state, { username }) => {
-  return {
-    user: Users(state).findOne({ username }),
-    // first call result will be undefined
-    // after HTTP response and cached, connect will be re-run
-    // so, second result will get user object
-  }
-})(PureComponent)
+const MyApp = connect(
+	(state, { username }) => {
+	  return {
+	    user: Users(state).findOne({ username }),
+	    // first call result will be undefined
+	    // after HTTP response and cached, connect will be re-run
+	    // so, second result will get user object
+	  }
+	},
+	(dispatch) => {
+	  return {
+			// query by [mingo](https://www.npmjs.com/package/mingo)
+	    // update by [immutability-helper](https://www.npmjs.com/package/immutability-helper)
+			modifyUser: () => Users(dispatch).update({ username }, { $merge: { name: 'John' } }),
+	  }
+	},
+)(PureComponent)
 
 // createStore
 const store = datavanEnhancer(createStore)()

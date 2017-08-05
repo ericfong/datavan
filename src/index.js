@@ -5,5 +5,6 @@ export serverPreload from './serverPreload'
 export { setOverrides } from './store-setters'
 
 export createDatavan from './createDatavan'
+export getSetters from './util/getSetters'
 
 export * from './plug'
