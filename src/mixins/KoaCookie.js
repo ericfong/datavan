@@ -3,13 +3,13 @@ import jsCookie from 'js-cookie'
 
 export default function KoaCookie(cookieConf, koaCtx) {
   return {
-    getData() {
+    onGetAll() {
       return null
     },
-    getDataById(id) {
+    onGet(id) {
       return koaCtx.cookies.get(id)
     },
-    setData(change) {
+    onSetAll(change) {
       _.each(change, (v, k) => {
         if (k === '$unset') {
           return _.each(v, id => jsCookie.set(id, null))

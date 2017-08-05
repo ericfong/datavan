@@ -3,13 +3,13 @@ import jsCookie from 'js-cookie'
 
 export default function Cookie(cookieConf) {
   return {
-    getData() {
+    onGetAll() {
       return jsCookie.get()
     },
-    getDataById(id) {
+    onGet(id) {
       return jsCookie.get(id)
     },
-    setData(change) {
+    onSetAll(change) {
       _.each(change, (v, k) => {
         if (k === '$unset') {
           return _.each(v, id => jsCookie.remove(id))

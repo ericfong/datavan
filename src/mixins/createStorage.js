@@ -10,13 +10,13 @@ function parseJson(val) {
 
 export default function createStorage(storage) {
   return {
-    getData() {
+    onGetAll() {
       return storage
     },
-    getDataById(id) {
+    onGet(id) {
       return parseJson(storage.getItem(id))
     },
-    setData(change) {
+    onSetAll(change) {
       _.each(change, (value, key) => {
         if (key === '$unset') {
           _.each(value, k => storage.removeItem(k))

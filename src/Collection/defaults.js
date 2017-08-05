@@ -70,18 +70,22 @@ export default {
   // Sync
   idField: '_id',
 
-  getData() {
+  onGetAll() {
     return this.getState().byId
   },
 
-  getDataById(id, option) {
-    const data = this.getData()
+  onGet(id, option) {
+    const data = this.onGetAll()
     if (this.onFetch) markMissIds(data, id, option)
     return data[id]
   },
 
-  setData(change, option) {
+  onSetAll(change, option) {
     this.addMutation({ byId: toMutation(change) }, option)
+  },
+
+  cast(v) {
+    return v
   },
 
   genId() {
@@ -89,10 +93,6 @@ export default {
   },
 
   onFind() {},
-
-  cast(v) {
-    return v
-  },
 
   // --------------------------------
   // Async

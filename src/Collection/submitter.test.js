@@ -66,7 +66,7 @@ test('onSubmit', async () => {
   await Users.submit()
   // all changes submitted
   expect(_.size(lastSubmit)).toBe(3)
-  expect(_.compact(_.map(Users.getData(), 'name')).sort()).toEqual(['Apple', 'Car 3'])
+  expect(_.compact(_.map(Users.onGetAll(), 'name')).sort()).toEqual(['Apple', 'Car 3'])
   expect(_.isEmpty(Users.getSubmits())).toBe(true)
 })
 
@@ -79,7 +79,7 @@ test('basic', async () => {
 
   Users.insert({ name: 'Apple' })
   Users.insert({ name: 'Car' })
-  expect(_.map(Users.getData(), 'name')).toEqual(['Apple', 'Car'])
+  expect(_.map(Users.onGetAll(), 'name')).toEqual(['Apple', 'Car'])
   expect(_.map(Users.getSubmits(), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
@@ -90,5 +90,5 @@ test('basic', async () => {
   // mix data from server
   Users.get('u1')
   await Promise.all(Users.allPendings())
-  expect(_.map(Users.getData(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
+  expect(_.map(Users.onGetAll(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })

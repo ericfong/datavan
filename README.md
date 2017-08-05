@@ -20,46 +20,45 @@ Welcome to extend or hack datavan or other classes to change behaviours
 
 
 __Table of Contents__
-<!-- TOC START min:1 max:3 link:true update:true -->
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
 - [Getting Started](#getting-started)
 - [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
-    - [defineCollection(name, mixin, dependencies)](#definecollectionname-mixin-dependencies)
-    - [datavanEnhancer](#datavanenhancer)
-    - [Use of collection definition](#use-of-collection-definition)
-    - [composeMixins(...mixins)](#composemixinsmixins)
+		- [defineCollection(name, override, dependencies)](#definecollectionname-override-dependencies)
+		- [datavanEnhancer](#datavanenhancer)
+		- [Use of collection_definition](#use-of-collectiondefinition)
 - [Collection Interface](#collection-interface)
-  - [Methods](#methods)
-    - [find(query, option)](#findquery-option)
-    - [findOne(query, option)](#findonequery-option)
-    - [insert(doc | docs)](#insertdoc--docs)
-    - [update(query, update)](#updatequery-update)
-    - [remove(query)](#removequery)
-    - [get(id)](#getid)
-    - [setData(change)](#setdatachange)
-    - [set(id, doc) | set(doc)](#setid-doc--setdoc)
-    - [del(id)](#delid)
-  - [Mixin props](#mixin-props)
-    - [idField](#idfield)
-    - [cast(doc)](#castdoc)
-    - [getData()](#getdata)
-    - [getDataById(id, option)](#getdatabyidid-option)
-    - [setData(change, option)](#setdatachange-option)
-    - [genId()](#genid)
-    - [getFetchQuery()](#getfetchquery)
-    - [getFetchKey(fetchQuery, option)](#getfetchkeyfetchquery-option)
+	- [Methods](#methods)
+		- [find(query, option)](#findquery-option)
+		- [findOne(query, option)](#findonequery-option)
+		- [get(id)](#getid)
+		- [set(id, doc) | set(doc)](#setid-doc-setdoc)
+		- [del(id)](#delid)
+		- [insert(doc | docs)](#insertdoc-docs)
+		- [update(query, update)](#updatequery-update)
+		- [remove(query)](#removequery)
+	- [Overridable](#overridable)
+		- [idField](#idfield)
+		- [onFetch(fetchQuery, option, collection)](#onfetchfetchquery-option-collection)
+		- [onSubmit(submits, collection)](#onsubmitsubmits-collection)
+		- [getFetchQuery(query, option)](#getfetchqueryquery-option)
+		- [getFetchKey(fetchQuery, option)](#getfetchkeyfetchquery-option)
+		- [cast(doc)](#castdoc)
+		- [genId()](#genid)
+		- [onGetAll()](#ongetall)
+		- [onGet(id, option)](#ongetid-option)
+		- [onSetAll(newDocs, option)](#onsetallnewdocs-option)
 - [Built-in mixins](#built-in-mixins)
-    - [Browser Mixin](#browser-mixin)
-    - [createStorage(localStorage | sessionStorage)](#createstoragelocalstorage--sessionstorage)
-    - [Cookie Mixin](#cookie-mixin)
-    - [KoaCookie Mixin](#koacookie-mixin)
-    - [Searchable Mixin](#searchable-mixin)
-  - [Util functions](#util-functions)
-    - [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
-    - [getSetters(...names)](#getsettersnames)
+		- [Browser Mixin](#browser-mixin)
+		- [createStorage(localStorage | sessionStorage)](#createstoragelocalstorage-sessionstorage)
+		- [Cookie Mixin](#cookie-mixin)
+		- [KoaCookie Mixin](#koacookie-mixin)
+		- [Searchable Mixin](#searchable-mixin)
+	- [Util functions](#util-functions)
+		- [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
 - [Server Rendering](#server-rendering)
 
-<!-- TOC END -->
-
+<!-- /TOC -->
 
 
 
@@ -68,7 +67,7 @@ __Table of Contents__
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { datavanEnhancer, defineCollection } from 'datavan'
+import { defineCollection, datavanEnhancer } from 'datavan'
 
 const PureComponent = ({ user }) => <div>{(user && user.name) || 'No Name'}</div>
 
@@ -100,29 +99,29 @@ render(<Provider store={store}><MyApp /></Provider>)
 
 # Define Collections and Enhancer for redux
 
-### defineCollection(name, mixin, dependencies)
+### defineCollection(name, override, dependencies)
 define collection
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| name | `string` | `required` | collection name |
-| mixin | `object` / `function`| `null` | default props or mixin function to inject new functions |
-| dependencies | `Array of [collection-definition]` | `null` | other collection definitions |
+| name | `string` | `required` | the name of collection instance |
+| override | `object` / `function`| `undefined` | override props or functions into collection instance |
+| dependencies | `Array of [collection_definition]` | `undefined` | other collection definitions |
 
-- name
-- mixin as `object`: will become defaults props
-- mixin as `function`: can provide defaults or assign overrides
+Return: collection_definition
+
+- if override is `object`, all props will be assigned to collection instance
+- if override is `function`, collection instance will be passed as the first argument. You can use that to inject anything to collection
 - dependencies: depended collections will be created before this collection created.
-```js
-mixin = (props, next) => {
-  const defaultedCollection = { ...props, ...newDefaults }
-  const collection = next(defaultedCollection)
-  const newCollection = { ...collection, ...newOverrides }
-  return newCollection
-}
-const Users = defineCollection('users', mixin)
 
-// Blogs depend on Users, create Blogs collection will alsog create Blogs collection
+```js
+const Users = defineCollection('users', { idField: 'id' })
+// OR
+const Users = defineCollection('users', (collection) => {
+  Object.assign(collection, { idField: 'id', ...otherOverride })
+})
+
+// Blogs depend on Users, create Blogs collection will also create Users collection
 const Blogs = defineCollection('blogs', null, [Users])
 ```
 
@@ -140,17 +139,14 @@ Users(store).find()
 ```
 
 
-### Use of collection definition
-Can use collection definition function to access or create collection instance. By passing redux state or dispatch or store or collection into the function and get back collection instance.
+### Use of collection_definition
+collection_definition is a `function` which help to access and ensure the lazy collection have been created.
+
+By passing redux `state | dispatch | store | collection` into the function and get back collection instance.
 
 ```js
 Users(state | dispatch | store | collection).find()
 ```
-
-
-### composeMixins(...mixins)
-
-composeMixins mixins into mixin. mixin = `(obj, nextMixin) => newObj`
 
 
 
@@ -167,6 +163,12 @@ Return: Array of documents
 ### findOne(query, option)
 Return: single document
 
+### get(id)
+
+### set(id, doc) | set(doc)
+
+### del(id)
+
 ### insert(doc | docs)
 Return: inserted docs
 
@@ -175,32 +177,41 @@ Return: inserted docs
 
 ### remove(query)
 
-### get(id)
 
-### setData(change)
 
-### set(id, doc) | set(doc)
-
-### del(id)
-
-## Mixin props
+## Overridable
 props that can pass-in to override the default functionality
 
 ### idField
+id field for document (default: `_id`)
 
-### cast(doc)
+### onFetch(fetchQuery, option, collection)
+async fetch function (default: `undefined`). Should return array or map of documents
 
-### getData()
+### onSubmit(submits, collection)
+async submit function (default: `undefined`). Should return array or map of documents. Return `false` means submit cancelled.
 
-### getDataById(id, option)
-
-### setData(change, option)
-
-### genId()
-
-### getFetchQuery()
+### getFetchQuery(query, option)
+calculate and return fetchQuery (for onFetch) from mongo query
 
 ### getFetchKey(fetchQuery, option)
+calculate and return fetchKey (to determine cache hit or miss) from fetchQuery
+
+### cast(doc)
+cast and convert doc fields. Return: casted doc
+
+### genId()
+generate a new tmp id
+
+### onGetAll()
+sync get all documents function. Return: map of documents (keyed by idField)
+
+### onGet(id, option)
+sync get one document function. Return: document
+
+### onSetAll(newDocs, option)
+sync set many documents
+
 
 
 
@@ -240,9 +251,6 @@ Searchable({ fields: ['firstName', 'lastName', ...] })
 | keywordStr | `string` | __required__ | search keyword string |
 | getSearchFields | `function` | __required__ | `function(doc) { return ['name', 'search-field', ...] }` function that return array of field names for searching per doc |
 
-### getSetters(...names)
-generate getters and setters for names
-
 
 
 
@@ -251,11 +259,11 @@ generate getters and setters for names
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { datavanEnhancer, serverPreload } from '.'
+import { defineCollection, datavanEnhancer, setOverrides, serverPreload } from '.'
 
 // define collection
 const Users = defineCollection('users', {
-  onFetch(collection, query, option) { /* server side implementation */ },
+  onFetch(query, option) { /* browser side implementation */ },
 })
 
 // connect react component
@@ -267,6 +275,12 @@ const MyApp = connect((state, { username }) => {
 
 // create store
 const serverStore = datavanEnhancer(createStore)()
+
+setOverrides(serverStore, {
+  users: {
+    onFetch(query, option) { /* server side override */ },
+  },
+})
 
 // renderToString
 const html = await serverRender(serverStore, () =>
@@ -281,8 +295,6 @@ const json = JSON.stringify(store.getState())
 // browser side
 const preloadedState = JSON.parse(json)
 const browserStore = datavanEnhancer(createStore)(null, preloadedState)
-
-
 
 ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
 ```

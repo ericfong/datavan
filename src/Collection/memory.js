@@ -11,7 +11,7 @@ export function findMemory(self, query, option) {
   const { _memoryById } = self
 
   // reset cache or not
-  const byId = self.getData()
+  const byId = self.onGetAll()
   const shouldReset = byId !== _memoryById
   self._memoryById = byId
   if (shouldReset) _memory = self._memory = {}

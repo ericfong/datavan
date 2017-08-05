@@ -50,6 +50,6 @@ test('$request', async () => {
   Users(store).find(complexQuery2)
   await Promise.all(Users(store).allPendings())
   expect(Users(store).find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
-  expect(Roles(store).getData()).toEqual({ 5: { _id: '5', role: 'reader' } })
-  expect(Blogs(store).getData()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
+  expect(Roles(store).onGetAll()).toEqual({ 5: { _id: '5', role: 'reader' } })
+  expect(Blogs(store).onGetAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
 })

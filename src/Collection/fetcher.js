@@ -94,7 +94,7 @@ export default {
         }
       }
     }
-    return this.getDataById(id, option)
+    return this.onGet(id, option)
   },
 
   findOne(query, option) {

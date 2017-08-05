@@ -12,7 +12,7 @@ function withId(self, doc) {
 }
 
 function _setData(self, change, option) {
-  self.setData(change, option)
+  self.onSetAll(change, option)
   if (!self.onFetch) return
 
   let submitsChange = change

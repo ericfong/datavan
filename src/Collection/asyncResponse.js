@@ -8,7 +8,7 @@ function loopResponse(res, idField, handleOne, operations) {
   // array of docs
   if (Array.isArray(res)) return _.each(res, (doc, i) => handleOne(doc, getId(doc, idField) || i))
 
-  // table of docs / ops
+  // collection of docs / ops
   _.each(res, (value, key) => {
     if (key === '$byId') {
       _.each(value, (d, k) => handleOne(d, getId(d, idField) || k))
@@ -25,15 +25,15 @@ function loopResponse(res, idField, handleOne, operations) {
   })
 }
 
-export default function asyncResponse(table, res, fetchKey) {
+export default function asyncResponse(collection, res, fetchKey) {
   const mutation = { byId: {} }
   loopResponse(
     res,
-    table.idField,
+    collection.idField,
     (doc, id) => {
-      if (table.isDirty(id)) return
-      const castedDoc = table.cast(doc)
-      const newObj = castedDoc && typeof castedDoc === 'object' ? { ...table.getDataById(id), ...castedDoc } : castedDoc
+      if (collection.isDirty(id)) return
+      const castedDoc = collection.cast(doc)
+      const newObj = castedDoc && typeof castedDoc === 'object' ? { ...collection.onGet(id), ...castedDoc } : castedDoc
       mutation.byId[id] = { $set: newObj }
       // fetchAts[id] = now
     },
@@ -52,7 +52,7 @@ export default function asyncResponse(table, res, fetchKey) {
         if (fetchKey) {
           _.each(relations, (subRes, subName) => {
             // TODO check has collection for subName
-            asyncResponse(table.dv.getCollection(subName), subRes)
+            asyncResponse(collection.dv.getCollection(subName), subRes)
           })
         } else {
           console.error('Cannot use $relations recursively')
@@ -62,7 +62,7 @@ export default function asyncResponse(table, res, fetchKey) {
   )
   // enforce update even null?
   // console.log('asyncResponse', res, mutation.byId)
-  table.addMutation(mutation)
-  // console.log('asyncResponse', table.getState())
+  collection.addMutation(mutation)
+  // console.log('asyncResponse', collection.getState())
   return res
 }
