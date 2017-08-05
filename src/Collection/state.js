@@ -24,6 +24,10 @@ export default {
     return this._pendingState || (this.dv && this.dv.getState()[this.name])
   },
 
+  getData() {
+    return this.onGetAll()
+  },
+
   addMutation(mutation, option) {
     const prevData = this.getState()
     const nextData = mutateUtil(prevData, mutation)
