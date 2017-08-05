@@ -24,8 +24,12 @@ export default {
     return this._pendingState || (this.dv && this.dv.getState()[this.name])
   },
 
-  getData() {
+  getAll() {
     return this.onGetAll()
+  },
+
+  setAll(change, option) {
+    return this.onSetAll(change, option)
   },
 
   addMutation(mutation, option) {

@@ -7,18 +7,18 @@ function ensureListener(self, listenerKey, addListenerFunc) {
 function addOnResize(self) {
   if (global.window) {
     window.addEventListener('resize', () => {
-      self.onSetAll({
+      self.setAll({
         width: window.innerWidth,
         height: window.innerHeight,
       })
     })
-    self.onSetAll({
+    self.setAll({
       width: window.innerWidth,
       height: window.innerHeight,
     })
   } else {
     // default value for node
-    self.onSetAll({
+    self.setAll({
       width: 360,
       height: 640,
     })
