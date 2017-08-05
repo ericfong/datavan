@@ -6,36 +6,47 @@ import setter from './setter'
 import submitter from './submitter'
 import fetcher from './fetcher'
 
-export function runMixin(self, mixin) {
-  if (typeof mixin === 'function') {
-    mixin(self)
+const Collection = Object.assign(state, setter, submitter, fetcher, defaults)
+
+function applyOverride(self, override) {
+  if (typeof override === 'function') {
+    override(self)
   } else {
-    Object.assign(self, mixin)
+    Object.assign(self, override)
+  }
+  // _.each(override, (v, k) => {
+  //   const baseFunc = self[k]
+  //   if (typeof baseFunc === 'function') {
+  //     self[k] = function overrideWrap(...args) {
+  //       args.push(baseFunc.bind(this))
+  //       return v.apply(this, args)
+  //     }
+  //   } else {
+  //     self[k] = v
+  //   }
+  // })
+}
+
+function applyOverrides(self, _overrides) {
+  if (Array.isArray(_overrides)) {
+    const overrides = _.compact(_.flattenDeep(_overrides))
+    _.each(overrides, override => applyOverride(self, override))
+  } else {
+    applyOverride(self, _overrides)
   }
 }
 
-const collection = Object.assign(state, setter, submitter, fetcher)
-
-function initState(self) {
-  const collState = self.getState()
-  const defaultState = { byId: {}, requests: {}, submits: {} }
-  if (!collState) {
-    self._pendingState = defaultState
-  } else {
-    self._pendingState = _.defaults({ ...collState }, self._pendingState)
-  }
-
-  self._memory = {}
-  self._fetchingPromises = {}
-  const _fetchAts = (self._fetchAts = {})
-  // _.each(pendingState.byId, setTimeFunc)
-  _.keys(self.getState().requests).forEach(fetchKey => (_fetchAts[fetchKey] = 1))
+export function define(props, override) {
+  const Definition = Object.create(Collection)
+  Object.assign(Definition, props)
+  applyOverrides(Definition, override)
+  return Definition
 }
 
-export default function create(self, override, definition) {
-  _.defaults(self, defaults, collection)
-  initState(self)
-  if (definition) runMixin(self, definition)
-  if (override) runMixin(self, override)
+export default function create(props, override, Definition) {
+  const self = Object.create(Definition || Collection)
+  Object.assign(self, props)
+  applyOverrides(self, override)
+  self.init()
   return self
 }

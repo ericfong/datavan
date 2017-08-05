@@ -1,6 +1,25 @@
+import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 export default {
+  init() {
+    const collState = this.getState()
+    const defaultState = { byId: {}, requests: {}, submits: {} }
+    if (!collState) {
+      this._pendingState = defaultState
+    } else {
+      this._pendingState = _.defaults({ ...collState }, this._pendingState)
+    }
+
+    this._memory = {}
+    this._fetchingPromises = {}
+    const _fetchAts = (this._fetchAts = {})
+    // _.each(pendingState.byId, setTimeFunc)
+    _.keys(this.getState().requests).forEach(fetchKey => {
+      _fetchAts[fetchKey] = 1
+    })
+  },
+
   getState() {
     return this._pendingState || (this.dv && this.dv.getState()[this.name])
   },

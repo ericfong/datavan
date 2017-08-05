@@ -8,7 +8,8 @@ function parseJson(val) {
   }
 }
 
-export default function createStorage(storage) {
+export default function localStorage(_storage) {
+  const storage = _storage || global.localStorage
   return {
     onGetAll() {
       return storage

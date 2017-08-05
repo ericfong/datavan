@@ -1,23 +1,23 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-export default function Cookie(cookieConf) {
+export default function koaCookie(cookieConf, koaCtx) {
   return {
     onGetAll() {
-      return jsCookie.get()
+      return null
     },
     onGet(id) {
-      return jsCookie.get(id)
+      return koaCtx.cookies.get(id)
     },
     onSetAll(change) {
       _.each(change, (v, k) => {
         if (k === '$unset') {
-          return _.each(v, id => jsCookie.remove(id))
+          return _.each(v, id => jsCookie.set(id, null))
         }
         if (v === null || v === undefined) {
-          return jsCookie.remove(k)
+          return jsCookie.set(k, null)
         }
-        return jsCookie.set(k, v, cookieConf)
+        return koaCtx.cookies.set(k, v, cookieConf)
       })
     },
   }

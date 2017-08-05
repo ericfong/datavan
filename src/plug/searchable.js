@@ -121,7 +121,7 @@ function defaultFields(doc) {
   return _.keys(doc)
 }
 
-export default function Searchable({ fields = defaultFields }) {
+export default function searchable({ fields = defaultFields }) {
   return {
     onFind(state, query, option) {
       if ('$search' in query) {

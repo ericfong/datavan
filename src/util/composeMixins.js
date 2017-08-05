@@ -1,5 +1,12 @@
 import _ from 'lodash'
-import { runMixin } from '../Collection'
+
+function runMixin(self, mixin) {
+  if (typeof mixin === 'function') {
+    mixin(self)
+  } else {
+    Object.assign(self, mixin)
+  }
+}
 
 export default function (..._mixins) {
   const mixins = _.compact(_.flattenDeep(_mixins))
