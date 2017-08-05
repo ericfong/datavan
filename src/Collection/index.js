@@ -1,44 +1,41 @@
-import SyncDefaults from './SyncDefaults'
-import SyncState from './SyncState'
-import SyncFinder from './SyncFinder'
-import SyncSetters from './SyncSetters'
-import SyncMemory from './SyncMemory'
+import _ from 'lodash'
 
-import AsyncDefaults from './AsyncDefaults'
-import AsyncFetcher from './AsyncFetcher'
-import AsyncState from './AsyncState'
+import state from './state'
+import defaults from './defaults'
+import setter from './setter'
+import submitter from './submitter'
+import fetcher from './fetcher'
 
-import SyncInterface from './SyncInterface'
-
-function Collection(self) {
-  AsyncDefaults(self)
-
-  SyncState(self)
-  SyncDefaults(self)
-  SyncFinder(self)
-
-  AsyncState(self)
-
-  SyncSetters(self)
-  SyncMemory(self)
-
-  AsyncFetcher(self)
-
-  SyncInterface(self)
+export function runMixin(self, mixin) {
+  if (typeof mixin === 'function') {
+    mixin(self)
+  } else {
+    Object.assign(self, mixin)
+  }
 }
 
-function fixMixin(mixin) {
-  if (typeof mixin === 'function') return mixin
-  return self => Object.assign(self, mixin)
+const collection = Object.assign(state, setter, submitter, fetcher)
+
+function initState(self) {
+  const collState = self.getState()
+  const defaultState = { byId: {}, requests: {}, submits: {} }
+  if (!collState) {
+    self._pendingState = defaultState
+  } else {
+    self._pendingState = _.defaults({ ...collState }, self._pendingState)
+  }
+
+  self._memory = {}
+  self._fetchingPromises = {}
+  const _fetchAts = (self._fetchAts = {})
+  // _.each(pendingState.byId, setTimeFunc)
+  _.keys(self.getState().requests).forEach(fetchKey => (_fetchAts[fetchKey] = 1))
 }
 
 export default function create(self, override, definition) {
-  Collection(self)
-  if (definition) {
-    fixMixin(definition)(self)
-  }
-  if (override) {
-    fixMixin(override)(self)
-  }
+  _.defaults(self, defaults, collection)
+  initState(self)
+  if (definition) runMixin(self, definition)
+  if (override) runMixin(self, override)
   return self
 }

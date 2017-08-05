@@ -13,8 +13,8 @@ global.localStorage = {
 }
 
 it('basic', async () => {
-  const table1 = Collection(createStorage(localStorage))
-  const table2 = Collection(createStorage(localStorage))
+  const table1 = Collection({}, createStorage(localStorage))
+  const table2 = Collection({}, createStorage(localStorage))
 
   expect(table1.get('u1')).toBe(null)
   table1.set('u1', 'hi')

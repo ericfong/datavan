@@ -6,7 +6,7 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 import { datavanEnhancer, defineCollection, serverPreload } from '.'
-import { getQueryIds } from './Collection/SyncFinder'
+import { getQueryIds } from './Collection/finder'
 
 test('server preload', async () => {
   const Users = defineCollection('users', {

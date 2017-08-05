@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
-import { calcQueryKey } from './SyncMemory'
-import { TMP_ID_PREFIX } from './SyncDefaults'
+import { calcQueryKey } from './memory'
 
+export const TMP_ID_PREFIX = 'dvtmp-'
 const sortUniq = ids => _.sortedUniq(ids.sort())
 const notTmpId = (id, tmpIdPrefix) => id && !_.startsWith(id, tmpIdPrefix)
 const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(sortUniq(ids), id => notTmpId(id, tmpIdPrefix))
@@ -39,6 +39,19 @@ function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
+// @auto-fold here
+export function toMutation(change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  return mutation
+}
+
 function calcFetchKey(fetchQuery, option) {
   if (fetchQuery === false) return false
   // if (option.missIds) return Object.keys(option.missIds).sort().join()
@@ -46,24 +59,49 @@ function calcFetchKey(fetchQuery, option) {
   return calcQueryKey(fetchQuery, option)
 }
 
-export default function (self) {
-  _.defaults(self, {
-    getFetchQuery(query) {
-      return withoutTmpId(query, self.idField)
-    },
+export function markMissIds(data, id, option) {
+  if (option && !(id in data)) {
+    if (!option.missIds) option.missIds = {}
+    option.missIds[id] = true
+  }
+}
 
-    getFetchKey(fetchQuery, option) {
-      return calcFetchKey(fetchQuery, option)
-    },
-  })
+export default {
+  // Sync
+  idField: '_id',
 
-  Object.assign(self, {
-    onGet(data, id, option) {
-      if (option && !(id in data)) {
-        if (!option.missIds) option.missIds = {}
-        option.missIds[id] = true
-        // console.log('onGet', option)
-      }
-    },
-  })
+  getData() {
+    return this.getState().byId
+  },
+
+  getDataById(id, option) {
+    const data = this.getData()
+    if (this.onFetch) markMissIds(data, id, option)
+    return data[id]
+  },
+
+  setData(change, option) {
+    this.addMutation({ byId: toMutation(change) }, option)
+  },
+
+  genId() {
+    return _.uniqueId(TMP_ID_PREFIX)
+  },
+
+  onFind() {},
+
+  cast(v) {
+    return v
+  },
+
+  // --------------------------------
+  // Async
+
+  getFetchQuery(query) {
+    return withoutTmpId(query, this.idField)
+  },
+
+  getFetchKey(fetchQuery, option) {
+    return calcFetchKey(fetchQuery, option)
+  },
 }

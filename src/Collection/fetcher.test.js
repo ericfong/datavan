@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Collection from '.'
-import { getQueryIds } from './SyncFinder'
-import { TMP_ID_PREFIX as TMP } from './SyncDefaults'
+import { getQueryIds } from './finder'
+import { TMP_ID_PREFIX as TMP } from './defaults'
 
 function echo(query) {
   const ids = getQueryIds(query, '_id')
