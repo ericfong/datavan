@@ -1,4 +1,5 @@
-import Collection from '../Collection'
+import { createStore } from 'redux'
+import { datavanEnhancer, defineCollection } from '..'
 import { plugLocalStorage } from '.'
 
 global.localStorage = {
@@ -13,21 +14,29 @@ global.localStorage = {
 }
 
 it('basic', async () => {
-  const table1 = Collection({}, plugLocalStorage(localStorage))
-  const table2 = Collection({}, plugLocalStorage(localStorage))
+  const LocalStorage = defineCollection('localStorage', plugLocalStorage(localStorage))
+  const store1 = createStore(null, null, datavanEnhancer)
+  const store2 = createStore(null, null, datavanEnhancer)
 
-  expect(table1.get('u1')).toBe(null)
-  table1.set('u1', 'hi')
-  expect(table1.get('u1')).toBe('hi')
+  const subscriber1 = jest.fn()
+  store1.subscribe(subscriber1)
+  const subscriber2 = jest.fn()
+  store2.subscribe(subscriber2)
+
+  expect(LocalStorage(store1).get('u1')).toBe(null)
+  LocalStorage(store1).set('u1', 'hi', { flush: true })
+  expect(subscriber1).toHaveBeenCalledTimes(1)
+  expect(LocalStorage(store1).get('u1')).toBe('hi')
 
   // console.log('>>> table2')
 
   // should access global localStorage
-  expect(table2.get('u1')).toBe('hi')
-  table2.set('u1', 'world')
+  expect(LocalStorage(store2).get('u1')).toBe('hi')
+  LocalStorage(store2).set('u1', 'world', { flush: true })
+  expect(subscriber2).toHaveBeenCalledTimes(1)
 
   // console.log('>>> table1')
 
   // table1 should get new state, which set by table2 in Sync
-  expect(table1.get('u1')).toBe('world')
+  expect(LocalStorage(store1).get('u1')).toBe('world')
 })

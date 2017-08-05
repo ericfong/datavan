@@ -9,22 +9,7 @@ import fetcher from './fetcher'
 const Collection = Object.assign(state, setter, submitter, fetcher, defaults)
 
 function applyOverride(self, override) {
-  if (typeof override === 'function') {
-    override(self)
-  } else {
-    Object.assign(self, override)
-  }
-  // _.each(override, (v, k) => {
-  //   const baseFunc = self[k]
-  //   if (typeof baseFunc === 'function') {
-  //     self[k] = function overrideWrap(...args) {
-  //       args.push(baseFunc.bind(this))
-  //       return v.apply(this, args)
-  //     }
-  //   } else {
-  //     self[k] = v
-  //   }
-  // })
+  Object.assign(self, typeof override === 'function' ? override(self) : override)
 }
 
 function applyOverrides(self, _overrides) {
