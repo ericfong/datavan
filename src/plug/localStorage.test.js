@@ -1,6 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection } from '..'
-import { plugLocalStorage } from '.'
+import { datavanEnhancer, defineCollection, plugLocalStorage } from '..'
 
 global.localStorage = {
   getItem(id) {
