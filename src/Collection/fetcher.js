@@ -82,7 +82,7 @@ export default {
       option.preparedData = null
       return _fetch(this, fetchQuery, option, fetchKey).then(() => findMemory(this, query, option))
     }
-    return findMemory(this, query, option)
+    return Promise.resolve(findMemory(this, query, option))
   },
 
   getAsync(id, option = {}) {
