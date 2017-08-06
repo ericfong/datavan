@@ -32,6 +32,6 @@ export default function create(props, override, Definition) {
   const self = Object.create(Definition || Collection)
   Object.assign(self, props)
   applyOverrides(self, override)
-  self.init()
+  self.constructor()
   return self
 }

@@ -2,7 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 export default {
-  init() {
+  constructor() {
     this._memory = {}
     this._fetchingPromises = {}
     const _fetchAts = (this._fetchAts = {})

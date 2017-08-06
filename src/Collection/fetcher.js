@@ -1,9 +1,13 @@
+import _ from 'lodash'
+
 import asyncResponse from './asyncResponse'
 import { prepareFindData } from './finder'
 import { findMemory } from './memory'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
-const markFetchAt = (self, fetchKey) => (self._fetchAts[fetchKey] = 1)
+const markFetchAt = (self, fetchKey) => {
+  self._fetchAts[fetchKey] = 1
+}
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
@@ -79,6 +83,10 @@ export default {
       return _fetch(this, fetchQuery, option, fetchKey).then(() => findMemory(this, query, option))
     }
     return findMemory(this, query, option)
+  },
+
+  getAsync(id, option = {}) {
+    return this.findAsync([id], option).then(_.first)
   },
 
   get(id, option = {}) {
