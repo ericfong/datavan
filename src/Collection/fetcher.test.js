@@ -2,12 +2,34 @@ import _ from 'lodash'
 import Collection from '.'
 import { getQueryIds } from './finder'
 import { TMP_ID_PREFIX as TMP } from './defaults'
+import { onFetchById } from '..'
+
+const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 
 function echo(query) {
   const ids = getQueryIds(query, '_id')
   // console.log('echo', ids)
   return Promise.resolve(_.map(ids, _id => ({ _id, name: `Echo-${_id}` })))
 }
+
+test.only('hasFetch cache', async () => {
+  const users = Collection({
+    onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
+  })
+  users.find(['id-123'])
+  await Promise.all(users.allPendings())
+  users.find(['id-123'])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+
+  // explicit $invalidate fetchAt
+  const users2 = Collection({
+    onFetch: jest.fn(() => timeoutResolve({ 'id-123': undefined, $invalidate: ['id-123'] })),
+  })
+  users2.find(['id-123'])
+  await Promise.all(users2.allPendings())
+  users2.find(['id-123'])
+  expect(users2.onFetch).toHaveBeenCalledTimes(2)
+})
 
 test('without tmp-id', async () => {
   const Users = Collection({ onFetch: jest.fn(echo) })

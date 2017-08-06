@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import asyncResponse from './asyncResponse'
 
-function invalidateFetchAt(self, keys) {
+export function invalidateFetchAt(self, keys) {
   if (keys) {
     // fetchAts is for query fetchKey
     // finding ids related query is too complicated

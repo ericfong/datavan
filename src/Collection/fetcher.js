@@ -39,20 +39,20 @@ function tryGetFetchQueryKey(self, query, option) {
   prepareFindData(self, query, option)
   // shouldFetch if (not-all-ids-hit || key-no-query-cache) && key-not-fetching
   // TODO || key-expired
+  // console.log('tryGetFetchQueryKey: option.missIds=', option.missIds, ' option.missQuery=', option.missQuery)
   if (!option.missIds && !option.missQuery) return DONT_FETCH
 
   const fetchQuery = self.getFetchQuery(query, option)
   const fetchKey = self.getFetchKey(fetchQuery, option)
+  // console.log('tryGetFetchQueryKey: fetchKey=', fetchKey)
   if (fetchKey === false) return DONT_FETCH
 
-  // console.log('tryGetFetchQueryKey', option.missIds, option.missQuery, fetchKey, fetchAts[fetchKey], query)
+  // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
 
-  if (option.missQuery) {
-    if (hasFetchAt(self, fetchKey)) return DONT_FETCH
-    markFetchAt(self, fetchKey)
-  }
+  if (hasFetchAt(self, fetchKey)) return DONT_FETCH
+  markFetchAt(self, fetchKey)
 
-  // console.log('fetchingPromises[fetchKey]', fetchingPromises[fetchKey], fetchKey)
+  // console.log('tryGetFetchQueryKey _fetchingPromises', !!self._fetchingPromises[fetchKey], fetchKey)
   if (self._fetchingPromises[fetchKey]) return DONT_FETCH
   return { fetchQuery, fetchKey }
 }

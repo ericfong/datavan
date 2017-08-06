@@ -54,8 +54,7 @@ export function toMutation(change) {
 
 function calcFetchKey(fetchQuery, option) {
   if (fetchQuery === false) return false
-  // if (option.missIds) return Object.keys(option.missIds).sort().join()
-  // if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
+  if (Array.isArray(fetchQuery) && fetchQuery.length === 1) return fetchQuery[0]
   return calcQueryKey(fetchQuery, option)
 }
 

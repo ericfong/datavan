@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { invalidateFetchAt } from './submitter'
 
 const getId = (doc, idField) => doc && doc[idField]
 
@@ -40,6 +41,11 @@ export default function asyncResponse(collection, res, fetchKey) {
     {
       $unset(value) {
         mutation.byId.$unset = value
+        // NOTE res can use $unset to remove fetchAt
+        invalidateFetchAt(collection, value)
+      },
+      $invalidate(ids) {
+        invalidateFetchAt(collection, ids)
       },
       $request(value) {
         if (fetchKey) {
@@ -61,7 +67,7 @@ export default function asyncResponse(collection, res, fetchKey) {
     }
   )
   // enforce update even null?
-  // console.log('asyncResponse', res, mutation.byId)
+  // console.log('asyncResponse', res, mutation)
   collection.addMutation(mutation)
   // console.log('asyncResponse', collection.getState())
   return res
