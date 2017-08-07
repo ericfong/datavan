@@ -95,9 +95,11 @@ function doFindData(self, query, option) {
     query = _.omit(query, '$request')
   }
 
-  const result = self.onFind(preparedData, query, option)
-  if (result !== undefined) {
-    return result
+  if (self.onFind) {
+    const result = self.onFind(preparedData, query, option)
+    if (result !== undefined) {
+      return result
+    }
   }
 
   return processOption(doQuery(preparedData, query), option)

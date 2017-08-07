@@ -35,13 +35,14 @@ export default {
   },
 
   addMutation(mutation, option) {
-    const prevData = this.getState()
-    const nextData = mutateUtil(prevData, mutation)
-    if (nextData !== prevData) {
-      this._pendingState = nextData
+    const prevState = this.getState()
+    const nextState = mutateUtil(prevState, mutation)
+    if (nextState !== prevState) {
+      this._pendingState = nextState
     }
+    if (this.onMutate) this.onMutate(nextState, prevState, mutation)
     if (this.dv) this.dv.emit(option && option.flush)
-    return nextData
+    return nextState
   },
 
   takeMutation() {

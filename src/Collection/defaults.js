@@ -91,10 +91,14 @@ export default {
     return _.uniqueId(TMP_ID_PREFIX)
   },
 
-  onFind() {},
+  // onFind() {},
+  // onMutate() {},
 
   // --------------------------------
   // Async
+
+  // onFetch() {},
+  // onSubmit() {},
 
   getFetchQuery(query) {
     return withoutTmpId(query, this.idField)
