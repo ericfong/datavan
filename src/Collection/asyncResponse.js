@@ -27,6 +27,7 @@ function loopResponse(res, idField, handleOne, operations) {
 }
 
 export default function asyncResponse(collection, res, fetchKey) {
+  if (_.isEmpty(res)) return res
   const mutation = { byId: {} }
   loopResponse(
     res,
