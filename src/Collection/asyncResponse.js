@@ -67,9 +67,11 @@ export default function asyncResponse(collection, res, fetchKey) {
       },
     }
   )
-  // enforce update even null?
-  // console.log('asyncResponse', res, mutation)
-  collection.addMutation(mutation)
-  // console.log('asyncResponse', collection.getState())
+  if (!_.isEmpty(mutation.byId)) {
+    // enforce update even null?
+    // console.log('asyncResponse', res, mutation)
+    collection.addMutation(mutation)
+    // console.log('asyncResponse', collection.getState())
+  }
   return res
 }
