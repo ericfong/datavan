@@ -12,7 +12,7 @@ export default {
     if (!collState) {
       this._pendingState = defaultState
     } else {
-      this._pendingState = _.defaults({ ...collState }, this._pendingState)
+      this._pendingState = _.defaults({ ...collState }, defaultState)
     }
 
     const { byId, requests } = this._pendingState
@@ -39,9 +39,9 @@ export default {
     const nextState = mutateUtil(prevState, mutation)
     if (nextState !== prevState) {
       this._pendingState = nextState
-      if (this.onMutate) this.onMutate(nextState, prevState, mutation)
-      if (this.dv) this.dv.emit(option && option.flush)
+      // if (this.onMutate) this.onMutate(nextState, prevState, mutation)
     }
+    if (this.dv) this.dv.emit(option && option.flush)
     return nextState
   },
 

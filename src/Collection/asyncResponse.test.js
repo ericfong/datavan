@@ -1,8 +1,28 @@
 // import _ from 'lodash'
-import { createStore } from 'redux'
+import { createStore, combineReducers } from 'redux'
 import { datavanEnhancer, defineCollection, setOverrides } from '..'
 
 const onFetch = () => Promise.resolve([])
+
+test('null response', async () => {
+  const Blogs = defineCollection('blogs', { onFetch: () => Promise.resolve(null) })
+  const store = createStore(
+    combineReducers({
+      other: state => state || null,
+      datavan: state => state || null,
+    }),
+    { datavan: { blogs: { byId: { a: 123 } } } },
+    datavanEnhancer
+  )
+
+  // trigger fetch null
+  await Blogs(store).findAsync({})
+  // wait for flush collection states to redux
+  await store.dv.allPending()
+
+  expect(Blogs(store).getAll()).toEqual({ a: 123 })
+  expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, submits: {} })
+})
 
 test('$request', async () => {
   const Roles = defineCollection('roles')

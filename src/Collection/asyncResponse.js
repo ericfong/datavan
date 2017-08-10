@@ -27,7 +27,7 @@ function loopResponse(res, idField, handleOne, operations) {
 }
 
 export default function asyncResponse(collection, res, fetchKey) {
-  if (_.isEmpty(res)) return res
+  // if (_.isEmpty(res)) return res
   const mutation = { byId: {} }
   loopResponse(
     res,
@@ -67,11 +67,9 @@ export default function asyncResponse(collection, res, fetchKey) {
       },
     }
   )
-  if (!_.isEmpty(mutation.byId)) {
-    // enforce update even null?
+  if (!_.isEmpty(mutation.byId) || mutation.requests) {
     // console.log('asyncResponse', res, mutation)
     collection.addMutation(mutation)
-    // console.log('asyncResponse', collection.getState())
   }
   return res
 }
