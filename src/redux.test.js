@@ -6,7 +6,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanEnhancer, defineCollection } from '.'
+import { datavanReducer, datavanEnhancer, defineCollection } from '.'
 
 test('combineReducers', async () => {
   const preloadState = {
@@ -19,7 +19,7 @@ test('combineReducers', async () => {
     // combineReducers will remove all state that without keys
     combineReducers({
       other: state => state || null,
-      datavan: state => state || null,
+      datavan: datavanReducer,
     }),
     preloadState,
     datavanEnhancer

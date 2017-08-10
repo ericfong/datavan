@@ -145,7 +145,8 @@ const store = createStore(reducer, preloadedState, datavanEnhancer)
 // or
 const store = datavanEnhancer(createStore)(reducer, preloadedState)
 // if you use combineReducers, you need to
-const store = createStore(combineReducers({ ..., datavan: state => state || null }), preloadedState, datavanEnhancer)
+import { datavanEnhancer, datavanReducer } from 'datavan'
+const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer)
 
 // first use of collection definition will create that collection
 Users(store).find()

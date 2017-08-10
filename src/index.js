@@ -1,4 +1,4 @@
-export datavanEnhancer from './enhancer'
+export datavanEnhancer, { datavanReducer } from './enhancer'
 export defineCollection, { getCollection } from './defineCollection'
 
 // store

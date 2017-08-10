@@ -1,60 +1,49 @@
 import mutateUtil from 'immutability-helper'
 import createDatavan from './createDatavan'
 
-const GET_DATAVAN = 'DATAVAN'
-const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
-
-export function getDv(host) {
-  // host = dispatch
-  if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
-
-  // host = state
-  const datavan = host.datavan
-  if (datavan) return datavan.get()
-
-  // host = collection | store
-  const dv = host.dv
-  if (dv) return dv
-
-  // host = dv
-  return host
-}
-
+export const GET_DATAVAN = 'DATAVAN'
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 
-function reducer(state, action) {
-  if (action.type === DATAVAN_MUTATE) {
-    // console.log('reducer', action.mutation)
-    return mutateUtil(state, { datavan: action.mutation })
-  }
+export function datavanReducer(state = {} /* , action */) {
+  // if (action.type === DATAVAN_MUTATE) {
+  //   return mutateUtil(state, action.mutation)
+  // }
   return state
 }
 
-export default function datavanEnhancer(_createStore) {
-  return (_reducer, _preloadedState, enhancer) => {
-    const preloadedState = _preloadedState || {}
-    if (!preloadedState.datavan) preloadedState.datavan = {}
+export function createDatavanEnhancer({ namespace = 'datavan' } = {}) {
+  function rootReducer(state, action) {
+    if (action.type === DATAVAN_MUTATE) {
+      return mutateUtil(state, { [namespace]: action.mutation })
+    }
+    return state
+  }
 
-    const finalReducer = _reducer ? (s, a) => reducer(_reducer(s, a), a) : reducer
+  return _createStore => (_reducer, _preloadedState, enhancer) => {
+    const preloadedState = _preloadedState || {}
+    if (!preloadedState[namespace]) preloadedState[namespace] = {}
+
+    const finalReducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
     const store = _createStore(finalReducer, preloadedState, enhancer)
 
     const { getState, dispatch } = store
 
     const datavanObj = createDatavan({
-      getState,
-      onChange: mutation => dispatch({ type: DATAVAN_MUTATE, mutation }),
+      getState() {
+        return getState()[namespace]
+      },
+      onChange(mutation) {
+        return dispatch({ type: DATAVAN_MUTATE, mutation })
+      },
     })
 
-    // inject store.datavan(name)
     store.dv = datavanObj
 
-    // inject state.datavan(name)
     const datavanFunc = () => datavanObj
-    // if (typeof name === 'string') return datavanObj.getCollection(name, ...args)
 
     store.getState = function _getState() {
       const state = getState()
-      state.datavan.get = datavanFunc
+      state[namespace].get = datavanFunc
       return state
     }
 
@@ -76,3 +65,7 @@ export default function datavanEnhancer(_createStore) {
     return store
   }
 }
+
+const datavanEnhancer = createDatavanEnhancer()
+
+export default datavanEnhancer

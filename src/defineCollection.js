@@ -1,5 +1,23 @@
-import { getDv } from './enhancer'
+import { GET_DATAVAN } from './enhancer'
 import { define } from './Collection'
+
+const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
+
+function getDv(host) {
+  // host = dispatch
+  if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
+
+  // host = state
+  const datavan = host.datavan
+  if (datavan) return datavan.get()
+
+  // host = collection | store
+  const dv = host.dv
+  if (dv) return dv
+
+  // host = dv
+  return host
+}
 
 export function getCollection(host, name) {
   return getDv(host).getCollection(name)

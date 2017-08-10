@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore, combineReducers } from 'redux'
-import { datavanEnhancer, defineCollection, setOverrides } from '..'
+import { datavanReducer, datavanEnhancer, defineCollection, setOverrides } from '..'
 
 const onFetch = () => Promise.resolve([])
 
@@ -9,7 +9,7 @@ test('null response', async () => {
   const store = createStore(
     combineReducers({
       other: state => state || null,
-      datavan: state => state || null,
+      datavan: datavanReducer,
     }),
     { datavan: { blogs: { byId: { a: 123 } } } },
     datavanEnhancer
