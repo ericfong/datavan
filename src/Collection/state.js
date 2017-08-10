@@ -23,7 +23,7 @@ export default {
   },
 
   getState() {
-    return this._pendingState || (this.dv && this.dv.getState()[this.name])
+    return this._pendingState || (this.dv && this.dv.getState().datavan[this.name])
   },
 
   getAll() {

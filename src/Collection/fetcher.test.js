@@ -12,7 +12,7 @@ function echo(query) {
   return Promise.resolve(_.map(ids, _id => ({ _id, name: `Echo-${_id}` })))
 }
 
-test.only('hasFetch cache', async () => {
+test('hasFetch cache', async () => {
   const users = Collection({
     onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
   })

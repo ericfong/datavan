@@ -10,7 +10,7 @@ export function getDv(host) {
 
   // host = state
   const datavan = host.datavan
-  if (datavan) return datavan()
+  if (datavan) return datavan.get()
 
   // host = collection | store
   const dv = host.dv
@@ -24,15 +24,19 @@ const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 
 function reducer(state, action) {
   if (action.type === DATAVAN_MUTATE) {
-    return mutateUtil(state, action.mutation)
+    // console.log('reducer', action.mutation)
+    return mutateUtil(state, { datavan: action.mutation })
   }
   return state
 }
 
 export default function datavanEnhancer(_createStore) {
-  return (_reducer, preloadedState, enhancer) => {
+  return (_reducer, _preloadedState, enhancer) => {
+    const preloadedState = _preloadedState || {}
+    if (!preloadedState.datavan) preloadedState.datavan = {}
+
     const finalReducer = _reducer ? (s, a) => reducer(_reducer(s, a), a) : reducer
-    const store = _createStore(finalReducer, preloadedState || {}, enhancer)
+    const store = _createStore(finalReducer, preloadedState, enhancer)
 
     const { getState, dispatch } = store
 
@@ -50,7 +54,7 @@ export default function datavanEnhancer(_createStore) {
 
     store.getState = function _getState() {
       const state = getState()
-      state.datavan = datavanFunc
+      state.datavan.get = datavanFunc
       return state
     }
 

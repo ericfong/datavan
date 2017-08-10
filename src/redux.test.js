@@ -1,12 +1,38 @@
 /* eslint-disable react/jsx-filename-extension */
 
 import React from 'react'
-import { createStore } from 'redux'
+import { createStore, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
 import { datavanEnhancer, defineCollection } from '.'
+
+test('combineReducers', async () => {
+  const preloadState = {
+    datavan: {
+      memory: { byId: { theme: 'light' } },
+    },
+  }
+  const Memory = defineCollection('memory')
+  const store = createStore(
+    // combineReducers will remove all state that without keys
+    combineReducers({
+      other: state => state || null,
+      datavan: state => state || null,
+    }),
+    preloadState,
+    datavanEnhancer
+  )
+
+  expect(store.getState()).toMatchObject(preloadState)
+  expect(Memory(store).getAll()).toEqual({ theme: 'light' })
+
+  Memory(store).set('theme', 'dark')
+  await store.dv.allPending()
+  expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
+  expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
+})
 
 it('same state', async () => {
   const Users = defineCollection('users')
