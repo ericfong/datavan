@@ -48,6 +48,7 @@ __Table of Contents__
 		- [onGetAll()](#ongetall)
 		- [onGet(id, option)](#ongetid-option)
 		- [onSetAll(newDocs, option)](#onsetallnewdocs-option)
+		- [onMutate(nextById, prevById, mutation)](#onmutatenextbyid-prevbyid-mutation)
 - [Built-in mixins](#built-in-mixins)
 		- [Browser Mixin](#browser-mixin)
 		- [createStorage(localStorage | sessionStorage)](#createstoragelocalstorage-sessionstorage)
@@ -59,6 +60,7 @@ __Table of Contents__
 - [Server Rendering](#server-rendering)
 
 <!-- /TOC -->
+
 
 
 
@@ -142,6 +144,8 @@ datavan enhancer for redux
 const store = createStore(reducer, preloadedState, datavanEnhancer)
 // or
 const store = datavanEnhancer(createStore)(reducer, preloadedState)
+// if you use combineReducers, you need to
+const store = createStore(combineReducers({ ..., datavan: state => state || null }), preloadedState, datavanEnhancer)
 
 // first use of collection definition will create that collection
 Users(store).find()
@@ -221,6 +225,8 @@ sync get one document function. Return: document
 ### onSetAll(newDocs, option)
 sync set many documents
 
+### onMutate(nextById, prevById, mutation)
+called when collection mutation. `nextById`, `prevById` is next and previous values by id table. `mutation` is the mutation object.
 
 
 

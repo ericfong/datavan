@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import SyncTable from '.'
+import Collection from '.'
 
 it('insert & find', async () => {
-  const table = SyncTable({})
+  const collection = Collection({})
 
-  const inserted = table.insert([{ name: 'A' }, { name: 'B' }])
+  const inserted = collection.insert([{ name: 'A' }, { name: 'B' }])
   expect(_.map(inserted, 'name')).toEqual(['A', 'B'])
-  expect(_.map(table.onGetAll(), 'name')).toEqual(['A', 'B'])
+  expect(_.map(collection.onGetAll(), 'name')).toEqual(['A', 'B'])
 
-  expect(table.find(_.map(inserted, '_id'))).toEqual(inserted)
+  expect(collection.find(_.map(inserted, '_id'))).toEqual(inserted)
 })
