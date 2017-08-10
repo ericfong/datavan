@@ -8,6 +8,36 @@ import { mount } from 'enzyme'
 import '../tool/test-setup'
 import { datavanReducer, datavanEnhancer, defineCollection } from '.'
 
+test('merge state with redux dispatch changes by another reducer', async () => {
+  const preloadState = {
+    datavan: {
+      memory: { byId: { theme: 'light', locale: 'en' } },
+    },
+  }
+  const Memory = defineCollection('memory')
+  const store = createStore(
+    (state, action) => {
+      if (action.type === 'autoRehydrate') {
+        return preloadState
+      }
+      return state
+    },
+    {},
+    datavanEnhancer
+  )
+
+  // init and set
+  Memory(store).set('theme', 'dark')
+
+  // dispatch and change before flush
+  store.dispatch({ type: 'autoRehydrate' })
+
+  Memory(store).set('after', 'yes')
+
+  expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en' })
+  expect(Memory(store).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+})
+
 test('combineReducers', async () => {
   const preloadState = {
     datavan: {

@@ -23,7 +23,14 @@ export default {
   },
 
   getState() {
-    return this._pendingState || (this.dv && this.dv.getState()[this.name])
+    const currState = this.dv && this.dv.getState()[this.name]
+    if (currState !== this._lastState) {
+      this._lastState = currState
+      if (this._pendingState) {
+        _.merge(this._pendingState, currState)
+      }
+    }
+    return this._pendingState || currState
   },
 
   getAll() {
