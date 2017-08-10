@@ -28,8 +28,8 @@ export default {
     } else {
       mutation = { byId: { $set: {} }, submits: { $set: {} } }
     }
-    this.addMutation(mutation, option)
     invalidateFetchAt(this, ids)
+    this.addMutation(mutation, option)
   },
   // consider use same function all the time?
   reset(ids, option) {
