@@ -39,9 +39,9 @@ export default {
     const nextState = mutateUtil(prevState, mutation)
     if (nextState !== prevState) {
       this._pendingState = nextState
-      // if (this.onMutate) this.onMutate(nextState, prevState, mutation)
+      if (this.onMutate) this.onMutate(nextState.byId, prevState.byId, mutation)
+      if (this.dv) this.dv.emit(option && option.flush)
     }
-    if (this.dv) this.dv.emit(option && option.flush)
     return nextState
   },
 
