@@ -16,8 +16,6 @@ __How It works?__
 
 During collection.find() / .get(), datavan will check and call your onFetch function as a side effect unless cache is fresh. Fetched data will be cached into redux store.
 
-Welcome to extend or hack datavan or other classes to change behaviours
-
 
 __Table of Contents__
 <!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
@@ -27,6 +25,8 @@ __Table of Contents__
 		- [defineCollection(name, override, dependencies)](#definecollectionname-override-dependencies)
 		- [datavanEnhancer](#datavanenhancer)
 		- [Use of collection_definition](#use-of-collectiondefinition)
+- [setOverrides(store, overrides)](#setoverridesstore-overrides)
+- [datavanReducer()](#datavanreducer)
 - [Collection Interface](#collection-interface)
 	- [Methods](#methods)
 		- [find(query, option)](#findquery-option)
@@ -37,6 +37,11 @@ __Table of Contents__
 		- [insert(doc | docs)](#insertdoc-docs)
 		- [update(query, update)](#updatequery-update)
 		- [remove(query)](#removequery)
+		- [getSubmits()](#getsubmits)
+		- [invalidate(ids)](#invalidateids)
+		- [reset(ids, option)](#resetids-option)
+		- [getAll()](#getall)
+		- [setAll(valuesTable)](#setallvaluestable)
 	- [Overridable](#overridable)
 		- [idField](#idfield)
 		- [onFetch(fetchQuery, option, collection)](#onfetchfetchquery-option-collection)
@@ -49,12 +54,12 @@ __Table of Contents__
 		- [onGet(id, option)](#ongetid-option)
 		- [onSetAll(newDocs, option)](#onsetallnewdocs-option)
 		- [onMutate(nextById, prevById, mutation)](#onmutatenextbyid-prevbyid-mutation)
-- [Built-in mixins](#built-in-mixins)
-		- [Browser Mixin](#browser-mixin)
-		- [createStorage(localStorage | sessionStorage)](#createstoragelocalstorage-sessionstorage)
-		- [Cookie Mixin](#cookie-mixin)
-		- [KoaCookie Mixin](#koacookie-mixin)
-		- [Searchable Mixin](#searchable-mixin)
+- [Built-in plugins](#built-in-plugins)
+		- [plugBrowser](#plugbrowser)
+		- [plugLocalStorage(localStorage | sessionStorage)](#pluglocalstoragelocalstorage-sessionstorage)
+		- [plugCookie(cookieConf)](#plugcookiecookieconf)
+		- [plugKoaCookie(cookieConf, koaCtx)](#plugkoacookiecookieconf-koactx)
+		- [plugSearchable({ fields: [] })](#plugsearchable-fields-)
 	- [Util functions](#util-functions)
 		- [search(docs, keywordStr, getSearchFields)](#searchdocs-keywordstr-getsearchfields)
 - [Server Rendering](#server-rendering)
@@ -237,6 +242,12 @@ Users(state).update({ name: 'Mary' }, { $merge: { name: 'Mary C' } })
 remove all docs that match the query
 ```js
 Users(state).remove({ name: 'May' })
+```
+
+### getSubmits()
+get local changed documents
+```js
+const dirtyDocs = Users(state).getSubmits()
 ```
 
 ### invalidate(ids)
