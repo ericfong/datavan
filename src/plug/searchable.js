@@ -121,7 +121,7 @@ function defaultFields(doc) {
   return _.keys(doc)
 }
 
-export default function searchable({ fields = defaultFields }) {
+export default function plugSearchable({ fields = defaultFields }) {
   return {
     onFind(state, query, option) {
       if ('$search' in query) {

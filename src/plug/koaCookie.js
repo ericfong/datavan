@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-export default function koaCookie(cookieConf, koaCtx) {
+export default function plugKoaCookie(cookieConf, koaCtx) {
   return ({ onSetAll }) => ({
     onGetAll() {
       return null

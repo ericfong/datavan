@@ -129,7 +129,7 @@ Return: collection_definition
 const Users = defineCollection('users', { idField: 'id' })
 // OR
 const Users = defineCollection('users', (collection) => {
-  Object.assign(collection, { idField: 'id', ...otherOverride })
+  return { idField: 'id', ...otherOverride }
 })
 
 // Blogs depend on Users, create Blogs collection will also create Users collection
@@ -162,6 +162,18 @@ By passing redux `state | dispatch | store | collection` into the function and g
 Users(state | dispatch | store | collection).find()
 ```
 
+# setOverrides(store, overrides)
+set store-level overrides which will be run after collection-definition-level overrides
+```js
+setOverrides(store, { cookie: plugCookie(cookieConf) })
+```
+
+# datavanReducer()
+redux reducer that used with `combineReducers`
+```js
+const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer)
+```
+
 
 
 
@@ -173,23 +185,87 @@ Users(state | dispatch | store | collection).find()
 ### find(query, option)
 Return: Array of documents
 - query: Array<id> | query-object (mongodb like query object, we use [mingo](https://www.npmjs.com/package/mingo) to filter documents)
+- option support 'sort','limit','skip'. Like mongo/monk api
+- option support 'keyBy','groupBy','map'. Use lodash to implement
+```js
+arr = Users(state).find({ name: 'john' }, {
+	sort: { createdAt: -1 },
+	limit: 10, skip: 20,
+	// one of keyBy, groupBy, map
+	keyBy: 'username',
+	groupBy: 'shortId',
+	map: 'name', // like pluck
+})
+```
 
 ### findOne(query, option)
 Return: single document
+```js
+doc = Users(state).findOne(query)
+```
 
 ### get(id)
+```js
+doc = Users(state).get('id-123')
+```
 
 ### set(id, doc) | set(doc)
+```js
+Users(state).set('id-123', { _id: 'id-123', name: 'Mary' })
+Users(state).set({ _id: 'id-123', name: 'Mary' })
+```
 
 ### del(id)
+```js
+Users(state).del('id-123')
+```
 
 ### insert(doc | docs)
 Return: inserted docs
+```js
+insertedDoc = Users(state).insert({ name: 'Mary' })
+insertedDocs = Users(state).insert([{ name: 'Mary' }, { name: 'John' }])
+```
 
 ### update(query, update)
 - update operations based on [immutability-helper](https://www.npmjs.com/package/immutability-helper)
+```js
+Users(state).update({ name: 'Mary' }, { $merge: { name: 'Mary C' } })
+```
 
 ### remove(query)
+remove all docs that match the query
+```js
+Users(state).remove({ name: 'May' })
+```
+
+### invalidate(ids)
+invalidate cache and re-fetch in future get/find
+```js
+Users(state).invalidate(['id-123', 'query-fetchKey'])
+// OR invalidate all
+Users(state).invalidate()
+```
+
+### reset(ids, option)
+reset local change and re-fetch in future get/find
+```js
+Users(state).reset(['id-123'])
+// OR invalidate all
+Users(state).reset()
+```
+
+### getAll()
+get all documents. This won't trigger onFetch()
+```js
+const docsTable = Users(state).getAll()
+```
+
+### setAll(valuesTable)
+set a table of documents into collection
+```js
+Users(state).setAll({ key: doc, key2: doc2 })
+```
 
 
 
@@ -198,60 +274,153 @@ props that can pass-in to override the default functionality
 
 ### idField
 id field for document (default: `_id`)
+```js
+defineCollection('users', { idField: 'id' })
+```
 
 ### onFetch(fetchQuery, option, collection)
 async fetch function (default: `undefined`). Should return array or map of documents
+```js
+defineCollection('users', {
+	onFetch(query, option) {
+		return fetch('restful-api?name=john')
+	},
+})
+```
 
 ### onSubmit(submits, collection)
 async submit function (default: `undefined`). Should return array or map of documents. Return `false` means submit cancelled.
+```js
+defineCollection('users', {
+	onSubmit(submits) {
+		return fetch('restful-api', { method: 'POST', body: JSON.stringify(submits) })
+	},
+})
+```
 
 ### getFetchQuery(query, option)
 calculate and return fetchQuery (for onFetch) from mongo query
+```js
+defineCollection('users', {
+	getFetchQuery(query) {
+		return { ...query, ...add_somethings, ...remove_somethings }
+	},
+})
+```
 
 ### getFetchKey(fetchQuery, option)
 calculate and return fetchKey (to determine cache hit or miss) from fetchQuery
+```js
+defineCollection('users', {
+	getFetchKey(fetchQuery) {
+		return 'formatted string from fetchQuery'
+	},
+})
+```
 
 ### cast(doc)
 cast and convert doc fields. Return: casted doc
+```js
+defineCollection('users', {
+	cast(doc) {
+		doc.createdAt = new Date(doc.createdAt)
+		return doc
+	},
+})
+```
 
 ### genId()
-generate a new tmp id
+generate a new tmp id string
 
 ### onGetAll()
 sync get all documents function. Return: map of documents (keyed by idField)
+```js
+defineCollection('users', {
+	onGetAll() {
+		return { ...table_of_docs }
+	},
+})
+```
 
 ### onGet(id, option)
 sync get one document function. Return: document
+```js
+defineCollection('users', {
+	onGet: id => storage.getItem(id),
+})
+```
 
 ### onSetAll(newDocs, option)
 sync set many documents
+```js
+defineCollection('localStorage', ({ onSetAll: originalOnSetAll }) => ({
+	onSetAll(change, option) {
+		originalOnSetAll.call(this, change, option)
+		_.each(change, (value, key) => {
+			if (key === '$unset') {
+				_.each(value, k => storage.removeItem(k))
+				return
+			}
+			storage.setItem(key, value)
+		})
+	},
+}))
+```
 
 ### onMutate(nextById, prevById, mutation)
 called when collection mutation. `nextById`, `prevById` is next and previous values by id table. `mutation` is the mutation object.
+```js
+defineCollection('localStorage', {
+	onMutate(nextById, prevById) {
+    if (nextById.doc1 !== prevById.doc1) {
+			// do something
+    }
+  },
+})
+```
 
 
 
 
 
-# Built-in mixins
-You can use ```import { XX } from 'datavan'``` to import and use the following mixins
+# Built-in plugins
 
-### Browser Mixin
+### plugBrowser
 get and listen to browser resize, will mixin `getWidth()` and `getHeight()` functions
+```js
+setOverrides(store, { browser: plugBrowser })  // plugBrowser is a object
+```
 
-### createStorage(localStorage | sessionStorage)
+### plugLocalStorage(localStorage | sessionStorage)
 read, write localStorage or sessionStorage
+```js
+setOverrides(store, { sessionStorage: plugLocalStorage(sessionStorage) })
+```
 
-### Cookie Mixin
+### plugCookie(cookieConf)
 read, write browser cookie
+```js
+setOverrides(store, { cookie: plugCookie(cookieConf) })
+// cookieConf ref to [js-cookie](https://www.npmjs.com/package/js-cookie)
+```
 
-### KoaCookie Mixin
+### plugKoaCookie(cookieConf, koaCtx)
 read, write cookie in koa
+```js
+setOverrides(store, { cookie: plugKoaCookie(cookieConf, koaCtx) })
+// cookieConf ref to [cookies](https://www.npmjs.com/package/cookies)
+// koaCtx is koa ctx object
+```
 
-### Searchable Mixin
+### plugSearchable({ fields: [] })
 add simple full-text search to collection
 ```js
-Searchable({ fields: ['firstName', 'lastName', ...] })
+setOverrides(store, { users: plugSearchable({ fields: ['firstName', 'lastName', ...] }) })
+// OR
+defineCollection('blogs', [
+	plugSearchable(...),
+	{ idField: 'id', ...others },
+])
 ```
 
 
@@ -299,7 +468,7 @@ setOverrides(serverStore, {
 })
 
 // renderToString
-const html = await serverRender(serverStore, () =>
+const html = await serverPreload(serverStore, () =>
   ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
 )
 

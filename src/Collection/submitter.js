@@ -21,13 +21,8 @@ export default {
 
   invalidate(ids, option) {
     let mutation
-    if (ids) {
-      // use query?
-      const mut = { $unset: ids }
-      mutation = { byId: mut, submits: mut }
-    } else {
-      mutation = { byId: { $set: {} }, submits: { $set: {} } }
-    }
+    const mut = ids ? { $unset: ids } : { $set: {} }
+    mutation = { byId: mut, requests: mut, submits: mut }
     invalidateFetchAt(this, ids)
     this.addMutation(mutation, option)
   },

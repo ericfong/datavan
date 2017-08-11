@@ -8,7 +8,7 @@ function parseJson(val) {
   }
 }
 
-export default function localStorage(_storage) {
+export default function plugLocalStorage(_storage) {
   const storage = _storage || global.localStorage
   return ({ onSetAll }) => ({
     onGetAll() {

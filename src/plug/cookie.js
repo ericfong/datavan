@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-export default function cookie(cookieConf) {
+export default function plugCookie(cookieConf) {
   return ({ onSetAll }) => ({
     onGetAll() {
       return jsCookie.get()
