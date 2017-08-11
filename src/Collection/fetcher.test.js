@@ -21,7 +21,7 @@ test('hasFetch cache', async () => {
   users.find(['id-123'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 
-  // explicit $invalidate fetchAt
+  // explicit $invalidate
   const users2 = Collection({
     onFetch: jest.fn(() => timeoutResolve({ 'id-123': undefined, $invalidate: ['id-123'] })),
   })

@@ -16,7 +16,10 @@ export default {
     }
 
     const { byId, requests } = this._pendingState
-    this._pendingState.byId = _.mapValues(byId, v => this.cast(v))
+    this._pendingState.byId = _.mapValues(byId, (v, id) => {
+      _fetchAts[id] = 1
+      return this.cast(v)
+    })
     _.keys(requests).forEach(fetchKey => {
       _fetchAts[fetchKey] = 1
     })

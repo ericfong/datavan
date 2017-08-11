@@ -37,13 +37,10 @@ export default function asyncResponse(collection, res, fetchKey) {
       const castedDoc = collection.cast(doc)
       const newObj = castedDoc && typeof castedDoc === 'object' ? { ...collection.onGet(id), ...castedDoc } : castedDoc
       mutation.byId[id] = { $set: newObj }
-      // fetchAts[id] = now
     },
     {
-      $unset(value) {
-        mutation.byId.$unset = value
-        // NOTE res can use $unset to remove fetchAt
-        invalidateFetchAt(collection, value)
+      $unset(ids) {
+        mutation.byId.$unset = ids
       },
       $invalidate(ids) {
         invalidateFetchAt(collection, ids)

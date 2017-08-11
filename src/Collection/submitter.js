@@ -1,16 +1,21 @@
 import _ from 'lodash'
 import asyncResponse from './asyncResponse'
 
-export function invalidateFetchAt(self, keys) {
-  if (keys) {
-    // fetchAts is for query fetchKey
-    // finding ids related query is too complicated
-    // user should pass in query, option, and calc fetchKey again to invalidate
-    const fetchAts = self._fetchAts
-    _.each(keys, k => delete fetchAts[k])
-  } else {
-    self._fetchAts = {}
+export function invalidateFetchAt(self, ids) {
+  const newFetchAts = {}
+  if (ids) {
+    const { byId, requests } = self.getState()
+    const idTable = _.keyBy(ids)
+    const omit = (v, k) => {
+      if (!(k in idTable)) {
+        newFetchAts[k] = 1
+      }
+    }
+    _.each(byId, omit)
+    _.each(requests, omit)
+    // NOTE will omit all query fetchKey, only keep byId and requests
   }
+  self._fetchAts = newFetchAts
 }
 
 export default {
@@ -19,16 +24,15 @@ export default {
     return id in this.getState().submits
   },
 
-  invalidate(ids, option) {
-    let mutation
-    const mut = ids ? { $unset: ids } : { $set: {} }
-    mutation = { byId: mut, requests: mut, submits: mut }
+  invalidate(ids) {
     invalidateFetchAt(this, ids)
-    this.addMutation(mutation, option)
   },
-  // consider use same function all the time?
+
   reset(ids, option) {
-    return this.invalidate(ids, option)
+    invalidateFetchAt(this, ids)
+    const mut = ids ? { $unset: ids } : { $set: {} }
+    const mutation = { byId: mut, requests: mut, submits: mut }
+    this.addMutation(mutation, option)
   },
 
   getSubmits() {
@@ -44,7 +48,7 @@ export default {
           // return === false means don't consider current staging is submitted
 
           // clean snapshotState from submits to prevent submit again TODO check NOT mutated during HTTP POST
-          this.invalidate(_.keys(snapshotState))
+          this.reset(_.keys(snapshotState))
 
           if (docs) {
             asyncResponse(this, docs)

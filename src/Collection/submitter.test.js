@@ -65,6 +65,7 @@ test('onSubmit', async () => {
   Users.update({ name: 'Car 2' }, { $merge: { name: 'Car 3' } })
   await Users.submit()
   // all changes submitted
+  expect(_.map(lastSubmit, 'name')).toEqual(['Apple', 'Car 3', undefined])
   expect(_.size(lastSubmit)).toBe(3)
   expect(_.compact(_.map(Users.onGetAll(), 'name')).sort()).toEqual(['Apple', 'Car 3'])
   expect(_.isEmpty(Users.getSubmits())).toBe(true)
