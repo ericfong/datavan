@@ -30,18 +30,20 @@ __Table of Contents__
 - [Collection Interface](#collection-interface)
 	- [Methods](#methods)
 		- [find(query, option)](#findquery-option)
+		- [findAsync(query, option)](#findasyncquery-option)
 		- [findOne(query, option)](#findonequery-option)
 		- [get(id)](#getid)
+		- [getAsync(query, option)](#getasyncquery-option)
+		- [setAll(valuesTable)](#setallvaluestable)
+		- [getSubmits()](#getsubmits)
 		- [set(id, doc) | set(doc)](#setid-doc-setdoc)
 		- [del(id)](#delid)
 		- [insert(doc | docs)](#insertdoc-docs)
 		- [update(query, update)](#updatequery-update)
 		- [remove(query)](#removequery)
-		- [getSubmits()](#getsubmits)
 		- [invalidate(ids)](#invalidateids)
 		- [reset(ids, option)](#resetids-option)
 		- [getAll()](#getall)
-		- [setAll(valuesTable)](#setallvaluestable)
 	- [Overridable](#overridable)
 		- [idField](#idfield)
 		- [onFetch(fetchQuery, option, collection)](#onfetchfetchquery-option-collection)
@@ -65,7 +67,6 @@ __Table of Contents__
 - [Server Rendering](#server-rendering)
 
 <!-- /TOC -->
-
 
 
 
@@ -203,6 +204,9 @@ arr = Users(state).find({ name: 'john' }, {
 })
 ```
 
+### findAsync(query, option)
+
+
 ### findOne(query, option)
 Return: single document
 ```js
@@ -212,6 +216,21 @@ doc = Users(state).findOne(query)
 ### get(id)
 ```js
 doc = Users(state).get('id-123')
+```
+
+### getAsync(query, option)
+
+
+### setAll(valuesTable)
+set a table of documents into collection
+```js
+Users(state).setAll({ key: doc, key2: doc2 })
+```
+
+### getSubmits()
+get local changed documents
+```js
+const dirtyDocs = Users(state).getSubmits()
 ```
 
 ### set(id, doc) | set(doc)
@@ -244,12 +263,6 @@ remove all docs that match the query
 Users(state).remove({ name: 'May' })
 ```
 
-### getSubmits()
-get local changed documents
-```js
-const dirtyDocs = Users(state).getSubmits()
-```
-
 ### invalidate(ids)
 invalidate cache and re-fetch in future get/find
 ```js
@@ -272,11 +285,6 @@ get all documents. This won't trigger onFetch()
 const docsTable = Users(state).getAll()
 ```
 
-### setAll(valuesTable)
-set a table of documents into collection
-```js
-Users(state).setAll({ key: doc, key2: doc2 })
-```
 
 
 
