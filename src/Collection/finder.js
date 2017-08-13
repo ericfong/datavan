@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { markMissIds } from './defaults'
-
 // const emptyResultArray = []
 
 // @auto-fold here
@@ -56,31 +54,22 @@ export function getQueryIds(query, idField) {
   }
 }
 
-function filterDataByIds(self, data, ids, option) {
+function filterDataByIds(self, data, ids) {
   return ids.reduce((result, id) => {
-    markMissIds(data, id, option)
     const doc = data[id]
     if (doc) result.push(doc)
     return result
   }, [])
 }
 
-export function prepareFindData(self, query, option) {
-  if (option.preparedData) return
+function prepareFindData(self, query) {
   const data = self.onGetAll()
   const ids = getQueryIds(query, self.idField)
-  if (ids) {
-    option.preparedData = filterDataByIds(self, data, ids, option)
-  } else {
-    option.preparedData = data
-
-    // signal Fetcher to refetch
-    option.missQuery = true
-  }
+  return ids ? filterDataByIds(self, data, ids) : data
 }
 
-function doFindData(self, query, option) {
-  const preparedData = option.preparedData
+export function findData(self, query, option) {
+  const preparedData = prepareFindData(self, query)
 
   // id Array
   if (Array.isArray(query)) {
@@ -103,9 +92,4 @@ function doFindData(self, query, option) {
   }
 
   return processOption(doQuery(preparedData, query), option)
-}
-
-export function findData(self, query, option) {
-  prepareFindData(self, query, option)
-  return doFindData(self, query, option)
 }

@@ -58,13 +58,6 @@ function calcFetchKey(fetchQuery, option) {
   return calcQueryKey(fetchQuery, option)
 }
 
-export function markMissIds(data, id, option) {
-  if (option && !(id in data)) {
-    if (!option.missIds) option.missIds = {}
-    option.missIds[id] = true
-  }
-}
-
 export default {
   // Sync
   idField: '_id',
@@ -75,7 +68,6 @@ export default {
 
   onGet(id, option) {
     const data = this.onGetAll()
-    if (this.onFetch) markMissIds(data, id, option)
     return data[id]
   },
 

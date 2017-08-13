@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
 import asyncResponse from './asyncResponse'
-import { prepareFindData } from './finder'
 import { findMemory } from './memory'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
@@ -35,20 +34,12 @@ function checkOption(self, { fetch, serverPreload }) {
 }
 
 function tryGetFetchQueryKey(self, query, option) {
-  // ensure run prepareFindData to determine some data is missing or not
-  prepareFindData(self, query, option)
-  // shouldFetch if (not-all-ids-hit || key-no-query-cache) && key-not-fetching
-  // TODO || key-expired
-  // console.log('tryGetFetchQueryKey: option.missIds=', option.missIds, ' option.missQuery=', option.missQuery)
-  if (!option.missIds && !option.missQuery) return DONT_FETCH
-
   const fetchQuery = self.getFetchQuery(query, option)
   const fetchKey = self.getFetchKey(fetchQuery, option)
   // console.log('tryGetFetchQueryKey: fetchKey=', fetchKey)
   if (fetchKey === false) return DONT_FETCH
 
   // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
-
   if (hasFetchAt(self, fetchKey)) return DONT_FETCH
   markFetchAt(self, fetchKey)
 
@@ -79,7 +70,6 @@ export default {
   findAsync(query = {}, option = {}) {
     const { fetchQuery, fetchKey } = tryGetFetchQueryKey(this, query, option)
     if (fetchKey !== false) {
-      option.preparedData = null
       return _fetch(this, fetchQuery, option, fetchKey).then(() => findMemory(this, query, option))
     }
     return Promise.resolve(findMemory(this, query, option))
@@ -94,7 +84,6 @@ export default {
       if (!id) return undefined
       if (checkOption(this, option)) {
         const query = [id]
-        // batch when option.missIds and use getIdFetchKey?
         const { fetchQuery, fetchKey } = tryGetFetchQueryKey(this, query, option)
         if (fetchKey !== false) {
           const p = _fetch(this, fetchQuery, option, fetchKey)
