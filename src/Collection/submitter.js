@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import asyncResponse from './asyncResponse'
 
-export function invalidateFetchAt(self, ids) {
+function invalidateFetchAt(self, ids) {
   const newFetchAts = {}
   if (ids) {
     const { byId, requests } = self.getState()
@@ -24,8 +24,16 @@ export default {
     return id in this.getState().submits
   },
 
-  invalidate(ids) {
+  invalidate(ids, option) {
     invalidateFetchAt(this, ids)
+    const submits = this.getSubmits()
+    let mut
+    if (ids) {
+      mut = { byId: { $unset: _.filter(ids, id => !submits[id]) }, requests: { $unset: ids } }
+    } else {
+      mut = { byId: { $set: {} }, requests: { $set: {} } }
+    }
+    this.addMutation(mut, option)
   },
 
   reset(ids, option) {

@@ -20,8 +20,9 @@ test('hasFetch cache', async () => {
   await Promise.all(users.allPendings())
   users.find(['id-123'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
+})
 
-  // explicit $invalidate
+test('onFetch with $invalidate', async () => {
   const users2 = Collection({
     onFetch: jest.fn(() => timeoutResolve({ 'id-123': undefined, $invalidate: ['id-123'] })),
   })
@@ -80,7 +81,7 @@ test('fetch: false', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
 })
 
-test.skip('batch get failback to find', async () => {
+test('batch get failback to find', async () => {
   const Users = Collection({ onFetch: jest.fn(echo) })
   Users.get('1')
   Users.get('2')

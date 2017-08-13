@@ -39,7 +39,7 @@ function tryGetFetchQueryKey(self, query, option) {
   prepareFindData(self, query, option)
   // shouldFetch if (not-all-ids-hit || key-no-query-cache) && key-not-fetching
   // TODO || key-expired
-  // console.log('tryGetFetchQueryKey: option.missIds=', option.missIds, ' option.missQuery=', option.missQuery)
+  // console.log('tryGetFetchQueryKey: option.missIds=', option.missIds, ' option.missQuery=', option.missQuery, self.getState())
   if (!option.missIds && !option.missQuery) return DONT_FETCH
 
   const fetchQuery = self.getFetchQuery(query, option)
@@ -49,8 +49,10 @@ function tryGetFetchQueryKey(self, query, option) {
 
   // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
 
-  if (hasFetchAt(self, fetchKey)) return DONT_FETCH
-  markFetchAt(self, fetchKey)
+  if (option.missQuery) {
+    if (hasFetchAt(self, fetchKey)) return DONT_FETCH
+    markFetchAt(self, fetchKey)
+  }
 
   // console.log('tryGetFetchQueryKey _fetchingPromises', !!self._fetchingPromises[fetchKey], fetchKey)
   if (self._fetchingPromises[fetchKey]) return DONT_FETCH
