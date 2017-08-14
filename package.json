@@ -15,6 +15,9 @@
   "main": "./lib/index.js",
   "browser": "./lib/es6/index.js",
   "module": "./lib/es6/index.js",
+  "engines": {
+    "node": ">= 8.3.0"
+  },
   "jest": {
     "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
