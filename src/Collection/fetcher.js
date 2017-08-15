@@ -49,10 +49,9 @@ function tryGetFetchQueryKey(self, query, option) {
 
   // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
 
-  if (option.missQuery) {
-    if (hasFetchAt(self, fetchKey)) return DONT_FETCH
-    markFetchAt(self, fetchKey)
-  }
+  // NOTE missIds may be null / invalid / not-found id
+  if (hasFetchAt(self, fetchKey)) return DONT_FETCH
+  markFetchAt(self, fetchKey)
 
   // console.log('tryGetFetchQueryKey _fetchingPromises', !!self._fetchingPromises[fetchKey], fetchKey)
   if (self._fetchingPromises[fetchKey]) return DONT_FETCH

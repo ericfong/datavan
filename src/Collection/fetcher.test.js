@@ -9,7 +9,15 @@ const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() =
 function echo(query) {
   const ids = getQueryIds(query, '_id')
   // console.log('echo', ids)
-  return Promise.resolve(_.map(ids, _id => ({ _id, name: `Echo-${_id}` })))
+  return Promise.resolve(
+    _.compact(
+      _.map(ids, _id => {
+        if (_id) {
+          return { _id, name: `Echo-${_id}` }
+        }
+      })
+    )
+  )
 }
 
 test('hasFetch cache', async () => {
@@ -58,16 +66,23 @@ test('without tmp-id', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
 })
 
-test('consider getFetchQuery', async () => {
-  const Users = Collection({ onFetch: jest.fn(echo), getFetchQuery: () => ({}) })
-  Users.find(['db-1'])
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  Users.find(['db-2'])
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  Users.find(['db-3'])
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  Users.get('db-4')
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
+test('consider getFetchKey', async () => {
+  const users = Collection({ onFetch: jest.fn(echo), getFetchQuery: () => ({}), getFetchKey: () => '' })
+  users.find(['db-1'])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+  users.find(['db-2'])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+  users.find(['db-3'])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+  users.get('db-4')
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+
+  // invalid id won't refetch
+  users.find([null])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
+  await Promise.all(users.allPendings())
+  users.find([null])
+  expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
 
 test('fetch: false', async () => {
