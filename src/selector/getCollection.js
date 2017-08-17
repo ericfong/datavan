@@ -2,12 +2,12 @@ import _ from 'lodash'
 
 import getDatavan from './getDatavan'
 
-const namespace = 'datavan'
+// const namespace = 'datavan'
 
 class Collection {
   idField = '_id'
 
-  getAll() {
+  getState() {
     const currState = this.getDatavanState()[this.name]
     if (currState !== this._lastState) {
       this._lastState = currState
@@ -18,18 +18,21 @@ class Collection {
     return this._pendingState || currState
   }
 
-  onGetAll() {
+  // NOTE rename from onGetAll
+  getAll() {
     return this.getState().byId
   }
 
-  onGet(id, option) {
+  // NOTE rename from onGet
+  get(id, option) {
     const data = this.onGetAll()
-    if (this.onFetch) markMissIds(data, id, option)
+    // if (this.onFetch) markMissIds(data, id, option)
     return data[id]
   }
 
-  onSetAll(change, option) {
-    this.addMutation({ byId: toMutation(change) }, option)
+  setAll(change, option) {
+    if (this.onSetAll) this.onSetAll(change, option)
+    // this.addMutation({ byId: toMutation(change) }, option)
   }
 
   cast(v) {
@@ -37,24 +40,23 @@ class Collection {
   }
 
   genId() {
-    return _.uniqueId(TMP_ID_PREFIX)
+    // return _.uniqueId(TMP_ID_PREFIX)
   }
 
   // onFind() {},
-  // onMutate() {},
 
-  // --------------------------------
-  // Async
+  // onSetAll(change, option) {}
+  // onMutate() {},
 
   // onFetch() {},
   // onSubmit() {},
 
   getFetchQuery(query) {
-    return withoutTmpId(query, this.idField)
+    // return withoutTmpId(query, this.idField)
   }
 
   getFetchKey(fetchQuery, option) {
-    return calcFetchKey(fetchQuery, option)
+    // return calcFetchKey(fetchQuery, option)
   }
 }
 

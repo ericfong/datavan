@@ -15,7 +15,7 @@ plugins:
 root: true
 rules:
   arrow-parens: off
-  class-methods-use-this: warn
+  class-methods-use-this: off
   comma-dangle:
     - warn
     - arrays: always-multiline
