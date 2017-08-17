@@ -27,5 +27,7 @@ export default function defineCollection(name, plug, dependencies) {
   // gen uniq id to prevent use same global namespace
   const uniqId = Math.random()
   const definition = define({ name, uniqId }, plug)
-  return host => getDv(host).getCollection(name, { uniqId, definition, dependencies })
+  const getter = host => getDv(host).getCollection(name, { uniqId, definition, dependencies })
+  getter.definition = definition
+  return getter
 }
