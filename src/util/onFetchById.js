@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { getQueryIds } from '../Collection/finder'
+import { getQueryIds } from '../core/finder'
 
 export default function onFetchById(query, idField, func) {
   const ids = getQueryIds(query, idField)

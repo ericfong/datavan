@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import { getCollection } from './defineCollection'
+
 const getId = (doc, idField) => doc && doc[idField]
 
 function loopResponse(res, idField, handleOne) {
@@ -33,13 +35,13 @@ function doOps(ops, funcs) {
   })
 }
 
-export default function asyncResponse(collection, res, fetchKey) {
+export default function asyncResponse(core, res, fetchKey) {
   // if (_.isEmpty(res)) return res
   const mutation = { byId: {} }
-  const ops = loopResponse(res, collection.idField, (doc, id) => {
-    if (collection.isDirty(id)) return
-    const castedDoc = collection.cast(doc)
-    const newObj = castedDoc && typeof castedDoc === 'object' ? { ...collection.onGet(id), ...castedDoc } : castedDoc
+  const ops = loopResponse(res, core.idField, (doc, id) => {
+    if (core.isDirty(id)) return
+    const castedDoc = core.cast(doc)
+    const newObj = castedDoc && typeof castedDoc === 'object' ? { ...core.onGet(id), ...castedDoc } : castedDoc
     mutation.byId[id] = { $set: newObj }
   })
 
@@ -58,8 +60,9 @@ export default function asyncResponse(collection, res, fetchKey) {
     $relations(relations) {
       if (fetchKey) {
         _.each(relations, (subRes, subName) => {
-          // TODO check has collection for subName
-          asyncResponse(collection.dv.getCollection(subName), subRes)
+          // TODO check has core for subName
+          // console.log('$relations', subName)
+          asyncResponse(getCollection(core, subName), subRes)
         })
       } else {
         console.error('Cannot use $relations recursively')
@@ -69,13 +72,13 @@ export default function asyncResponse(collection, res, fetchKey) {
 
   if (!_.isEmpty(mutation.byId) || mutation.requests) {
     // console.log('asyncResponse', res, mutation)
-    collection.addMutation(mutation)
+    core.addMutation(mutation)
   }
 
   // some ops need to be after addMutation
   doOps(ops, {
     $invalidate(ids) {
-      collection.invalidate(ids)
+      core.invalidate(ids)
     },
   })
 

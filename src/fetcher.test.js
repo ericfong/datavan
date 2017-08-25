@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import Collection from '.'
-import { getQueryIds } from './finder'
-import { TMP_ID_PREFIX as TMP } from './defaults'
+import Collection from './Collection'
+import { getQueryIds } from './core/finder'
+import { TMP_ID_PREFIX as TMP } from './core/idUtil'
 import { onFetchById } from '..'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))

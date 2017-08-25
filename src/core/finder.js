@@ -1,7 +1,12 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { markMissIds } from './defaults'
+export function markMissIds(data, id, option) {
+  if (option && !(id in data)) {
+    if (!option.missIds) option.missIds = {}
+    option.missIds[id] = true
+  }
+}
 
 // const emptyResultArray = []
 

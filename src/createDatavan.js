@@ -1,14 +1,9 @@
 import _ from 'lodash'
-import Collection from './Collection'
+import { takeMutation } from './core/mutation'
 
-function takeMutation(dv) {
-  return _.pickBy(_.mapValues(dv.collections, coll => coll.takeMutation()))
-}
-
-// @auto-fold here
 function Emitter(dv, onChange) {
   function emitFlush() {
-    const m = takeMutation(dv)
+    const m = _.pickBy(_.mapValues(dv.collections, coll => takeMutation(coll)))
     if (!_.isEmpty(m)) onChange(m)
     dv.emitPromise = null
   }
@@ -29,46 +24,7 @@ export default function createDatavan({ getState, onChange, overrides = {} }) {
   const collections = {}
   const dv = { getState, onChange, overrides, collections }
 
-  function invalidate(query) {
-    _.each(collections, coll => coll.invalidate && coll.invalidate(query))
-  }
-  // function autoInvalidate({ collections }) {
-  //   _.each(collections, coll => coll.autoInvalidate && coll.autoInvalidate())
-  // }
-
-  function allPending() {
-    const { emitPromise } = dv
-    const promises = _.compact(_.flatMap(collections, collection => collection.allPendings && collection.allPendings()))
-    if (emitPromise) promises.push(emitPromise)
-    if (promises.length <= 0) return null
-    // TODO timeout or have a limit for recursive wait for promise
-    return Promise.all(promises).then(allPending)
-  }
-
-  function getCollection(name, { uniqId, definition, dependencies } = {}) {
-    let collection = collections[name]
-    if (!collection) {
-      // create dependencies
-      _.each(dependencies, dependency => dependency(dv))
-
-      // createCollection
-      collection = collections[name] = Collection({ dv, name, uniqId }, overrides[name], definition)
-
-      if (!dv[name]) dv[name] = collection
-    } else if (uniqId && collection.uniqId && uniqId !== collection.uniqId) {
-      console.error(`Datavan collection name ${name} crashed`)
-    }
-    return collection
-  }
-
   return Object.assign(dv, {
     emit: Emitter(dv, onChange),
-
-    getCollection,
-
-    invalidate,
-    allPending,
-
-    setOverrides: _overrides => Object.assign(overrides, _overrides),
   })
 }

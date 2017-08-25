@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
 import asyncResponse from './asyncResponse'
-import { prepareFindData } from './finder'
-import { findMemory } from './memory'
+import { prepareFindData } from './core/finder'
+import { findMemory } from './core/memory'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
 const markFetchAt = (self, fetchKey) => {
@@ -63,54 +63,52 @@ function _fetch(self, query, option, fetchKey) {
   // .catch(err => handleError to switch off isFetching)
 }
 
-export default {
-  find(query = {}, option = {}) {
-    if (this.onFetch) {
-      if (checkOption(this, option)) {
-        const { fetchQuery, fetchKey } = tryGetFetchQueryKey(this, query, option)
-        if (fetchKey !== false) {
-          const p = _fetch(this, fetchQuery, option, fetchKey)
-          addFetchingPromise(this._fetchingPromises, fetchKey, p)
-        }
+export function find(core, query = {}, option = {}) {
+  if (core.onFetch) {
+    if (checkOption(core, option)) {
+      const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
+      if (fetchKey !== false) {
+        const p = _fetch(core, fetchQuery, option, fetchKey)
+        addFetchingPromise(core._fetchingPromises, fetchKey, p)
       }
     }
-    return findMemory(this, query, option)
-  },
+  }
+  return findMemory(core, query, option)
+}
 
-  findAsync(query = {}, option = {}) {
-    const { fetchQuery, fetchKey } = tryGetFetchQueryKey(this, query, option)
-    if (fetchKey !== false) {
-      option.preparedData = null
-      return _fetch(this, fetchQuery, option, fetchKey).then(() => findMemory(this, query, option))
-    }
-    return Promise.resolve(findMemory(this, query, option))
-  },
+export function findAsync(core, query = {}, option = {}) {
+  const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
+  if (fetchKey !== false) {
+    option.preparedData = null
+    return _fetch(core, fetchQuery, option, fetchKey).then(() => findMemory(core, query, option))
+  }
+  return Promise.resolve(findMemory(core, query, option))
+}
 
-  getAsync(id, option = {}) {
-    return this.findAsync([id], option).then(_.first)
-  },
+export function getAsync(core, id, option = {}) {
+  return findAsync(core, [id], option).then(_.first)
+}
 
-  get(id, option = {}) {
-    if (this.onFetch) {
-      if (!id) return undefined
-      if (checkOption(this, option)) {
-        const query = [id]
-        // batch when option.missIds and use getIdFetchKey?
-        const { fetchQuery, fetchKey } = tryGetFetchQueryKey(this, query, option)
-        if (fetchKey !== false) {
-          const p = _fetch(this, fetchQuery, option, fetchKey)
-          addFetchingPromise(this._fetchingPromises, fetchKey, p)
-        }
+export function get(core, id, option = {}) {
+  if (core.onFetch) {
+    if (!id) return undefined
+    if (checkOption(core, option)) {
+      const query = [id]
+      // batch when option.missIds and use getIdFetchKey?
+      const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
+      if (fetchKey !== false) {
+        const p = _fetch(core, fetchQuery, option, fetchKey)
+        addFetchingPromise(core._fetchingPromises, fetchKey, p)
       }
     }
-    return this.onGet(id, option)
-  },
+  }
+  return core.onGet(id, option)
+}
 
-  findOne(query, option) {
-    return this.find(query, { ...option, limit: 1 })[0]
-  },
+export function findOne(core, query, option) {
+  return find(core, query, { ...option, limit: 1 })[0]
+}
 
-  allPendings() {
-    return Object.values(this._fetchingPromises)
-  },
+export function allPendings(core) {
+  return Object.values(core._fetchingPromises)
 }

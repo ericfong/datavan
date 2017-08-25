@@ -1,33 +1,45 @@
-import { GET_DATAVAN } from './enhancer'
-import { define } from './Collection'
+import _ from 'lodash'
+import Collection, { define } from './Collection'
+import getVan from './core/getVan'
 
-const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
+export function getCollection(stateOrDispatch, spec) {
+  const specType = typeof spec
+  if (specType === 'string') {
+    return getCollection(stateOrDispatch, { name: spec })
+  }
+  // if (specType === 'function') {
+  //   return spec(stateOrDispatch)
+  // }
 
-function getDv(host) {
-  // host = dispatch
-  if (typeof host === 'function') return host(GET_DATAVAN_ACTION)
+  const van = getVan(stateOrDispatch)
+  const { collections } = van
 
-  // host = state
-  const datavan = host.datavan
-  if (datavan) return datavan.get()
+  const { name, dependencies } = spec
+  let collection = collections[name]
+  if (!collection) {
+    // create dependencies
+    _.each(dependencies, dependency => {
+      // console.log('dependency >', dependency.spec.name)
+      dependency(stateOrDispatch)
+    })
 
-  // host = collection | store
-  const dv = host.dv
-  if (dv) return dv
+    // createCollection
+    // TODO prevent spec is simple { name: spec }
+    collection = collections[name] = Collection({ dv: van, name }, van.overrides[name], spec)
 
-  // host = dv
-  return host
+    if (!van[name]) van[name] = collection
+  }
+  return collection
 }
 
-export function getCollection(host, name) {
-  return getDv(host).getCollection(name)
-}
-
-export default function defineCollection(name, plug, dependencies) {
+export default function defineCollection(name, _spec, dependencies) {
   // gen uniq id to prevent use same global namespace
-  const uniqId = Math.random()
-  const definition = define({ name, uniqId }, plug)
-  const getter = host => getDv(host).getCollection(name, { uniqId, definition, dependencies })
-  getter.definition = definition
+  const spec = define({ name }, _spec)
+  if (dependencies) {
+    console.warn(`Please put dependencies into spec object instead of 3rd argument for defineCollection ${name}`)
+    spec.dependencies = dependencies
+  }
+  const getter = stateOrDispatch => getCollection(getVan(stateOrDispatch), spec)
+  getter.spec = spec
   return getter
 }

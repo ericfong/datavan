@@ -1,6 +1,7 @@
 import mutateUtil from 'immutability-helper'
 import createDatavan from './createDatavan'
 
+export const STATE_NAMESPACE = 'datavan'
 export const GET_DATAVAN = 'DATAVAN'
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 

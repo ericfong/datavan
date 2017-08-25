@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Collection from '.'
+import Collection from './Collection'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 

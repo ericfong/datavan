@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore, combineReducers } from 'redux'
-import { datavanReducer, datavanEnhancer, defineCollection, setOverrides } from '..'
+import { datavanReducer, datavanEnhancer, defineCollection, setOverrides, storePending } from '.'
 
 const onFetch = () => Promise.resolve([])
 
@@ -18,7 +18,7 @@ test('null response', async () => {
   // trigger fetch null
   await Blogs(store).findAsync({})
   // wait for flush collection states to redux
-  await store.dv.allPending()
+  await storePending(store)
 
   expect(Blogs(store).getAll()).toEqual({ a: 123 })
   expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, submits: {} })
@@ -27,31 +27,28 @@ test('null response', async () => {
 test('$request', async () => {
   const Roles = defineCollection('roles')
   const Blogs = defineCollection('blogs', { onFetch })
-  const Users = defineCollection(
-    'users',
-    {
-      onFetch: jest.fn(({ $request }) => {
-        if ($request === 'request-only-aggregate-count') {
-          return Promise.resolve({ $request: [$request, 100000] })
-        }
-        if ($request === 'complex-query-1') {
-          return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
-        }
-        if ($request === 'complex-query-2') {
-          return Promise.resolve({
-            $byId: {
-              4: { _id: '4', age: 20, roleId: '2' },
-            },
-            $relations: {
-              roles: [{ _id: '5', role: 'reader' }],
-              blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
-            },
-          })
-        }
-      }),
-    },
-    [Roles, Blogs]
-  )
+  const Users = defineCollection('users', {
+    onFetch: jest.fn(({ $request }) => {
+      if ($request === 'request-only-aggregate-count') {
+        return Promise.resolve({ $request: [$request, 100000] })
+      }
+      if ($request === 'complex-query-1') {
+        return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
+      }
+      if ($request === 'complex-query-2') {
+        return Promise.resolve({
+          $byId: {
+            4: { _id: '4', age: 20, roleId: '2' },
+          },
+          $relations: {
+            roles: [{ _id: '5', role: 'reader' }],
+            blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
+          },
+        })
+      }
+    }),
+    dependencies: [Roles, Blogs],
+  })
   const store = datavanEnhancer(createStore)()
   // test setOverrides
   setOverrides(store, { roles: { onFetch } })

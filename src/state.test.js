@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Collection from '.'
+import Collection from './Collection'
 
 it('onMutate', async () => {
   const collection = Collection({

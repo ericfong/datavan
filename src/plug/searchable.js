@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
-import { processOption } from '../Collection/finder'
+import { processOption } from '../core/finder'
 
 function indexOfTerm(term, value) {
   if (!value) return -1

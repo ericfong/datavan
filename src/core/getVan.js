@@ -1,9 +1,8 @@
-import { GET_DATAVAN } from '../enhancer'
+import { GET_DATAVAN, STATE_NAMESPACE } from '../enhancer'
 
-const STATE_NAMESPACE = 'datavan'
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 
-export default function getDatavan(stateOrDispatch) {
+export default function getVan(stateOrDispatch) {
   // stateOrDispatch = dispatch
   if (typeof stateOrDispatch === 'function') return stateOrDispatch(GET_DATAVAN_ACTION)
 

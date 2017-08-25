@@ -10,15 +10,14 @@ function parseJson(val) {
 
 export default function plugLocalStorage(_storage) {
   const storage = _storage || global.localStorage
-  return ({ onSetAll }) => ({
+  return {
     onGetAll() {
       return storage
     },
     onGet(id) {
       return parseJson(storage.getItem(id))
     },
-    onSetAll(change, option) {
-      onSetAll.call(this, change, option)
+    onSetAll(change) {
       _.each(change, (value, key) => {
         if (key === '$unset') {
           _.each(value, k => storage.removeItem(k))
@@ -30,5 +29,5 @@ export default function plugLocalStorage(_storage) {
         storage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
       })
     },
-  })
+  }
 }
