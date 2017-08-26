@@ -22,7 +22,7 @@ __Table of Contents__
 
 - [Getting Started](#getting-started)
 - [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
-		- [defineCollection(name, override, dependencies)](#definecollectionname-override-dependencies)
+		- [defineCollection(spec)](#definecollectionname-override-dependencies)
 		- [datavanEnhancer](#datavanenhancer)
 		- [Use of collection_definition](#use-of-collectiondefinition)
 - [setOverrides(store, overrides)](#setoverridesstore-overrides)
@@ -116,15 +116,8 @@ render(<Provider store={store}><MyApp /></Provider>)
 
 # Define Collections and Enhancer for redux
 
-### defineCollection(name, override, dependencies)
+### defineCollection(spec)
 define collection
-
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| name | `string` | `required` | the name of collection instance |
-| override | `object` / `function`| `undefined` | override props or functions into collection instance |
-| dependencies | `Array of [collection_definition]` | `undefined` | other collection definitions |
-
 Return: collection_definition
 
 - if override is `object`, all props will be assigned to collection instance
@@ -290,6 +283,12 @@ const docsTable = Users(state).getAll()
 
 ## Overridable
 props that can pass-in to override the default functionality
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| name | `string` | `required` | the name of collection instance |
+| override | `object` / `function`| `undefined` | override props or functions into collection instance |
+| dependencies | `Array of [collection_definition]` | `undefined` | other collection definitions |
 
 ### idField
 id field for document (default: `_id`)
