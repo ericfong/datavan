@@ -25,13 +25,14 @@ function addOnResize(self) {
   }
 }
 
-export default {
-  getWidth() {
-    ensureListener(this, 'resize', addOnResize)
-    return this.get('width')
-  },
-  getHeight() {
-    ensureListener(this, 'resize', addOnResize)
-    return this.get('width')
-  },
-}
+export default spec =>
+  Object.assign(spec, {
+    getWidth() {
+      ensureListener(this, 'resize', addOnResize)
+      return this.get('width')
+    },
+    getHeight() {
+      ensureListener(this, 'resize', addOnResize)
+      return this.get('width')
+    },
+  })

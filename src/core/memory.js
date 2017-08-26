@@ -28,7 +28,8 @@ export function findMemory(self, query, option) {
   }
 
   // MISS
-  return (_memory[queryKey] = findData(self, query, option))
+  const ret = (_memory[queryKey] = findData(self, query, option))
+  return ret
 }
 
 // findMemoryOnly(query, option) {

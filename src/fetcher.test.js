@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import Collection from './Collection'
+import Collection from './core/create'
 import { getQueryIds } from './core/finder'
 import { TMP_ID_PREFIX as TMP } from './core/idUtil'
-import { onFetchById } from '..'
+import { onFetchById } from '.'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 
@@ -19,6 +19,12 @@ function echo(query) {
     )
   )
 }
+
+test('normalizeQuery', async () => {
+  const users = Collection({})
+  expect(users.find()).toEqual([])
+  expect(users.find({})).toEqual([])
+})
 
 test('hasFetch cache', async () => {
   const users = Collection({

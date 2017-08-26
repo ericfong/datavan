@@ -1,57 +1,53 @@
 import mutateUtil from 'immutability-helper'
-import createDatavan from './createDatavan'
+import createVan from './van'
 
 export const STATE_NAMESPACE = 'datavan'
 export const GET_DATAVAN = 'DATAVAN'
 const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 
-export function datavanReducer(state = {} /* , action */) {
-  // if (action.type === DATAVAN_MUTATE) {
-  //   return mutateUtil(state, action.mutation)
-  // }
+export function datavanReducer(state = {}) {
   return state
 }
 
-export function createDatavanEnhancer({ namespace = 'datavan' } = {}) {
-  function rootReducer(state, action) {
-    if (action.type === DATAVAN_MUTATE) {
-      return mutateUtil(state, { [namespace]: action.mutation })
-    }
-    return state
+function rootReducer(state, action) {
+  if (action.type === DATAVAN_MUTATE) {
+    return mutateUtil(state, { [STATE_NAMESPACE]: action.mutation })
   }
+  return state
+}
 
-  return _createStore => (_reducer, _preloadedState, enhancer) => {
+export default function datavanEnhancer(_createStore) {
+  return (_reducer, _preloadedState, enhancer) => {
     const preloadedState = _preloadedState || {}
-    if (!preloadedState[namespace]) preloadedState[namespace] = {}
+    if (!preloadedState[STATE_NAMESPACE]) preloadedState[STATE_NAMESPACE] = {}
 
     const finalReducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
     const store = _createStore(finalReducer, preloadedState, enhancer)
 
     const { getState, dispatch } = store
 
-    const datavanObj = createDatavan({
+    const van = createVan({
       getState() {
-        return getState()[namespace]
+        return getState()[STATE_NAMESPACE]
       },
       onChange(mutation) {
         return dispatch({ type: DATAVAN_MUTATE, mutation })
       },
     })
+    store.van = van
 
-    store.dv = datavanObj
-
-    const datavanFunc = () => datavanObj
+    const datavanFunc = () => van
 
     store.getState = function _getState() {
       const state = getState()
-      state[namespace].get = datavanFunc
+      state[STATE_NAMESPACE].get = datavanFunc
       return state
     }
 
     // inject dispatch
     store.dispatch = function _dispatch(action) {
       if (action.type === GET_DATAVAN) {
-        return datavanObj
+        return van
       }
       return dispatch(action)
     }
@@ -66,7 +62,3 @@ export function createDatavanEnhancer({ namespace = 'datavan' } = {}) {
     return store
   }
 }
-
-const datavanEnhancer = createDatavanEnhancer()
-
-export default datavanEnhancer

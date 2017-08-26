@@ -9,7 +9,8 @@ import { datavanEnhancer, defineCollection, serverPreload } from '.'
 import { getQueryIds } from './core/finder'
 
 test('server preload', async () => {
-  const Users = defineCollection('users', {
+  const Users = defineCollection({
+    name: 'users',
     onFetch(query) {
       if (query && query._id) {
         return Promise.resolve(_.map(getQueryIds(query, this.idField), _id => ({ _id, name: _.toUpper(_id), friendId: 'u1' })))

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getCollection } from './defineCollection'
+import { getTableFromVan } from './table'
 
 const getId = (doc, idField) => doc && doc[idField]
 
@@ -35,7 +35,7 @@ function doOps(ops, funcs) {
   })
 }
 
-export default function asyncResponse(core, res, fetchKey) {
+export default function importResponse(core, res, fetchKey) {
   // if (_.isEmpty(res)) return res
   const mutation = { byId: {} }
   const ops = loopResponse(res, core.idField, (doc, id) => {
@@ -62,7 +62,7 @@ export default function asyncResponse(core, res, fetchKey) {
         _.each(relations, (subRes, subName) => {
           // TODO check has core for subName
           // console.log('$relations', subName)
-          asyncResponse(getCollection(core, subName), subRes)
+          importResponse(getTableFromVan(core.van, { name: subName }), subRes)
         })
       } else {
         console.error('Cannot use $relations recursively')
@@ -71,7 +71,7 @@ export default function asyncResponse(core, res, fetchKey) {
   })
 
   if (!_.isEmpty(mutation.byId) || mutation.requests) {
-    // console.log('asyncResponse', res, mutation)
+    // console.log('importResponse', res, mutation)
     core.addMutation(mutation)
   }
 

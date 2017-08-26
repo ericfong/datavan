@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Collection from './Collection'
+import Collection from './core/create'
 
 it('insert & find', async () => {
   const collection = Collection({})

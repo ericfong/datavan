@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import asyncResponse from './asyncResponse'
+import importResponse from './importResponse'
 import { prepareFindData } from './core/finder'
 import { findMemory } from './core/memory'
 
@@ -59,7 +59,7 @@ function tryGetFetchQueryKey(self, query, option) {
 }
 
 function _fetch(self, query, option, fetchKey) {
-  return self.onFetch(query, option, self).then(res => asyncResponse(self, res, fetchKey))
+  return self.onFetch(query, option, self).then(res => importResponse(self, res, fetchKey))
   // .catch(err => handleError to switch off isFetching)
 }
 

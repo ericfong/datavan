@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import asyncResponse from './asyncResponse'
+import importResponse from './importResponse'
 import { getState } from './state'
 import { addMutation } from './core/mutation'
 
@@ -60,7 +60,7 @@ export function submit(core, _submit) {
         reset(core, _.keys(snapshotState))
 
         if (docs) {
-          asyncResponse(core, docs)
+          importResponse(core, docs)
         }
       }
       return docs

@@ -122,16 +122,17 @@ function defaultFields(doc) {
 }
 
 export default function plugSearchable({ fields = defaultFields }) {
-  return {
-    onFind(state, query, option) {
-      if ('$search' in query) {
-        const getSearchFields = Array.isArray(fields) ? () => fields : fields
-        let result = search(state, query.$search, getSearchFields)
-        if (!Array.isArray(result)) {
-          result = _.values(result)
+  return spec =>
+    Object.assign(spec, {
+      onFind(state, query, option) {
+        if ('$search' in query) {
+          const getSearchFields = Array.isArray(fields) ? () => fields : fields
+          let result = search(state, query.$search, getSearchFields)
+          if (!Array.isArray(result)) {
+            result = _.values(result)
+          }
+          return processOption(result, option)
         }
-        return processOption(result, option)
-      }
-    },
-  }
+      },
+    })
 }

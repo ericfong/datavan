@@ -3,24 +3,24 @@ import { createStore } from 'redux'
 import { datavanEnhancer, defineCollection, setOverrides, plugBrowser } from '.'
 
 test('defineCollection', async () => {
-  const Browser = defineCollection('browser')
+  const Browser = defineCollection({ name: 'browser' })
   const store = datavanEnhancer(createStore)()
   setOverrides(store, {
     browser: plugBrowser,
   })
-  expect(Browser(store).getAll()).toEqual({})
+  expect(Browser(store.van).getAll()).toEqual({})
 })
 
 test('merge collections states again will not trigger new dispatch', async () => {
-  const Users = defineCollection('users')
+  const Users = defineCollection({ name: 'users' })
   const store = datavanEnhancer(createStore)()
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  Users(store).set('u1', 'user 1 name!!', { flush: true })
+  Users(store.van).set('u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  Users(store).set('u1', 'user 1 name!!', { flush: true })
+  Users(store.van).set('u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 })

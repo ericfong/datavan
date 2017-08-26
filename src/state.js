@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 export function getState(core) {
-  const currState = core.dv && core.dv.getState()[core.name]
+  const currState = core.van && core.van.getState()[core.name]
   if (currState !== core._lastState) {
     core._lastState = currState
     if (core._pendingState) {

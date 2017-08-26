@@ -6,7 +6,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanReducer, datavanEnhancer, defineCollection, storePending } from '.'
+import { datavanReducer, datavanEnhancer, table, getStorePending } from '.'
 
 test('merge state with redux dispatch changes by another reducer', async () => {
   const preloadState = {
@@ -14,7 +14,7 @@ test('merge state with redux dispatch changes by another reducer', async () => {
       memory: { byId: { theme: 'light', locale: 'en' } },
     },
   }
-  const Memory = defineCollection('memory')
+  const Memory = state => table(state, { name: 'memory' })
   const store = createStore(
     (state, action) => {
       if (action.type === 'autoRehydrate') {
@@ -27,15 +27,15 @@ test('merge state with redux dispatch changes by another reducer', async () => {
   )
 
   // init and set
-  Memory(store).set('theme', 'dark')
+  Memory(store.van).set('theme', 'dark')
 
   // dispatch and change before flush
   store.dispatch({ type: 'autoRehydrate' })
 
-  Memory(store).set('after', 'yes')
+  Memory(store.van).set('after', 'yes')
 
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en' })
-  expect(Memory(store).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+  expect(Memory(store.van).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
 })
 
 test('combineReducers', async () => {
@@ -44,7 +44,7 @@ test('combineReducers', async () => {
       memory: { byId: { theme: 'light' } },
     },
   }
-  const Memory = defineCollection('memory')
+  const Memory = state => table(state, { name: 'memory' })
   const store = createStore(
     // combineReducers will remove all state that without keys
     combineReducers({
@@ -56,18 +56,18 @@ test('combineReducers', async () => {
   )
 
   expect(store.getState()).toMatchObject(preloadState)
-  expect(Memory(store).getAll()).toEqual({ theme: 'light' })
+  expect(Memory(store.van).getAll()).toEqual({ theme: 'light' })
 
-  Memory(store).set('theme', 'dark')
-  await storePending(store)
+  Memory(store.van).set('theme', 'dark')
+  await getStorePending(store)
   expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
-  expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
+  expect(Memory(store.van).getAll()).toEqual({ theme: 'dark' })
 })
 
 it('same state', async () => {
-  const Users = defineCollection('users')
+  const Users = state => table(state, { name: 'users' })
   const store = createStore(null, null, datavanEnhancer)
-  Users(store).set('u1', 'user 1 name!!')
+  Users(store.van).set('u1', 'user 1 name!!')
 
   let runTime = 0
   const UserComp = connect(state => {
@@ -89,16 +89,16 @@ it('same state', async () => {
   expect(runTime).toBe(1)
 
   // same value
-  Users(store).set('u1', 'user 1 name!!')
+  Users(store.van).set('u1', 'user 1 name!!')
   expect(runTime).toBe(1)
 
   // diff value
-  Users(store).set('u1', 'Changed', { flush: true })
+  Users(store.van).set('u1', 'Changed', { flush: true })
   expect(runTime).toBe(2)
 })
 
 it('basic', async () => {
-  const Users = defineCollection('users')
+  const Users = state => table(state, { name: 'users' })
   const store = createStore(null, null, datavanEnhancer)
 
   let lastClickValue
@@ -120,7 +120,7 @@ it('basic', async () => {
     )
   })
 
-  Users(store).set('u1', 'user 1 name!!')
+  Users(store.van).set('u1', 'user 1 name!!')
 
   const wrapper = mount(
     <Provider store={store}>

@@ -1,6 +1,9 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
+import { emit } from '../van'
+import { getState } from '../state'
+
 export function toMutation(change) {
   const mutation = {}
   _.each(change, (value, key) => {
@@ -14,12 +17,12 @@ export function toMutation(change) {
 }
 
 export function addMutation(core, mutation, option) {
-  const prevState = core.getState()
+  const prevState = getState(core)
   const nextState = mutateUtil(prevState, mutation)
   if (nextState !== prevState) {
     core._pendingState = nextState
     if (core.onMutate) core.onMutate(nextState.byId, prevState.byId, mutation)
-    if (core.dv) core.dv.emit(option && option.flush)
+    if (core.van) emit(core.van, option && option.flush)
   }
   return nextState
 }
