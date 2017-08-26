@@ -1,9 +1,8 @@
 import mutateUtil from 'immutability-helper'
-import createVan from './van'
 
 export const STATE_NAMESPACE = 'datavan'
 export const GET_DATAVAN = 'DATAVAN'
-const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
+export const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 
 export function datavanReducer(state = {}) {
   return state
@@ -26,28 +25,23 @@ export default function datavanEnhancer(_createStore) {
 
     const { getState, dispatch } = store
 
-    const van = createVan({
-      getState() {
-        return getState()[STATE_NAMESPACE]
-      },
-      onChange(mutation) {
-        return dispatch({ type: DATAVAN_MUTATE, mutation })
-      },
+    Object.assign(store, {
+      collections: {},
+      vanEmitting: null,
+      vanOverrides: {},
+      vanCtx: {},
     })
-    store.van = van
-
-    const datavanFunc = () => van
 
     store.getState = function _getState() {
       const state = getState()
-      state[STATE_NAMESPACE].get = datavanFunc
+      state[STATE_NAMESPACE].get = () => store
       return state
     }
 
     // inject dispatch
     store.dispatch = function _dispatch(action) {
       if (action.type === GET_DATAVAN) {
-        return van
+        return store
       }
       return dispatch(action)
     }

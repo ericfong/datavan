@@ -8,7 +8,7 @@ test('defineCollection', async () => {
   setOverrides(store, {
     browser: plugBrowser,
   })
-  expect(Browser(store.van).getAll()).toEqual({})
+  expect(Browser(store).getAll()).toEqual({})
 })
 
 test('merge collections states again will not trigger new dispatch', async () => {
@@ -18,9 +18,9 @@ test('merge collections states again will not trigger new dispatch', async () =>
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  Users(store.van).set('u1', 'user 1 name!!', { flush: true })
+  Users(store).set('u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  Users(store.van).set('u1', 'user 1 name!!', { flush: true })
+  Users(store).set('u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 })

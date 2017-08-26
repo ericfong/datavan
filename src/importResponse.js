@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getTableFromVan } from './table'
+import { getTableFromStore } from './table'
 
 const getId = (doc, idField) => doc && doc[idField]
 
@@ -62,7 +62,7 @@ export default function importResponse(core, res, fetchKey) {
         _.each(relations, (subRes, subName) => {
           // TODO check has core for subName
           // console.log('$relations', subName)
-          importResponse(getTableFromVan(core.van, { name: subName }), subRes)
+          importResponse(getTableFromStore(core.store, { name: subName }), subRes)
         })
       } else {
         console.error('Cannot use $relations recursively')

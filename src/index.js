@@ -2,13 +2,12 @@ import table from './table'
 
 export { table }
 
-export datavanEnhancer, { datavanReducer } from './enhancer'
+export datavanEnhancer, { datavanReducer } from './redux'
 
 // store
 export { setOverrides, invalidateStore, getStorePending, serverPreload } from './store'
 
 // utils
-export createVan from './van'
 export getSetters from './util/getSetters'
 export onFetchById from './util/onFetchById'
 export { getQueryIds } from './core/finder'

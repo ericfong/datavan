@@ -27,15 +27,15 @@ test('merge state with redux dispatch changes by another reducer', async () => {
   )
 
   // init and set
-  Memory(store.van).set('theme', 'dark')
+  Memory(store).set('theme', 'dark')
 
   // dispatch and change before flush
   store.dispatch({ type: 'autoRehydrate' })
 
-  Memory(store.van).set('after', 'yes')
+  Memory(store).set('after', 'yes')
 
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en' })
-  expect(Memory(store.van).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+  expect(Memory(store).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
 })
 
 test('combineReducers', async () => {
@@ -56,18 +56,18 @@ test('combineReducers', async () => {
   )
 
   expect(store.getState()).toMatchObject(preloadState)
-  expect(Memory(store.van).getAll()).toEqual({ theme: 'light' })
+  expect(Memory(store).getAll()).toEqual({ theme: 'light' })
 
-  Memory(store.van).set('theme', 'dark')
+  Memory(store).set('theme', 'dark')
   await getStorePending(store)
   expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
-  expect(Memory(store.van).getAll()).toEqual({ theme: 'dark' })
+  expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
 })
 
 it('same state', async () => {
   const Users = state => table(state, { name: 'users' })
   const store = createStore(null, null, datavanEnhancer)
-  Users(store.van).set('u1', 'user 1 name!!')
+  Users(store).set('u1', 'user 1 name!!')
 
   let runTime = 0
   const UserComp = connect(state => {
@@ -89,11 +89,11 @@ it('same state', async () => {
   expect(runTime).toBe(1)
 
   // same value
-  Users(store.van).set('u1', 'user 1 name!!')
+  Users(store).set('u1', 'user 1 name!!')
   expect(runTime).toBe(1)
 
   // diff value
-  Users(store.van).set('u1', 'Changed', { flush: true })
+  Users(store).set('u1', 'Changed', { flush: true })
   expect(runTime).toBe(2)
 })
 
@@ -120,7 +120,7 @@ it('basic', async () => {
     )
   })
 
-  Users(store.van).set('u1', 'user 1 name!!')
+  Users(store).set('u1', 'user 1 name!!')
 
   const wrapper = mount(
     <Provider store={store}>

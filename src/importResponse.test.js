@@ -16,12 +16,12 @@ test('null response', async () => {
   )
 
   // trigger fetch null
-  await Blogs(store.van).findAsync({})
+  await Blogs(store).findAsync({})
   // wait for flush collection states to redux
   await getStorePending(store)
 
-  expect(Blogs(store.van).getAll()).toEqual({ a: 123 })
-  expect(Blogs(store.van).getState()).toEqual({ byId: { a: 123 }, requests: {}, submits: {} })
+  expect(Blogs(store).getAll()).toEqual({ a: 123 })
+  expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, submits: {} })
 })
 
 test('$request', async () => {
@@ -55,19 +55,19 @@ test('$request', async () => {
   setOverrides(store, { roles: plugAssign({ onFetch }) })
 
   // $request only
-  expect(await Users(store.van).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])
+  expect(await Users(store).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])
 
   // complex query 1
   const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $request: 'complex-query-1' }
-  Users(store.van).find(complexQuery)
-  await Promise.all(Users(store.van).allPendings())
-  expect(Users(store.van).find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+  Users(store).find(complexQuery)
+  await Promise.all(Users(store).allPendings())
+  expect(Users(store).find(complexQuery, { sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
 
   // complex query 2
   const complexQuery2 = { age: 20, $request: 'complex-query-2' }
-  Users(store.van).find(complexQuery2)
-  await Promise.all(Users(store.van).allPendings())
-  expect(Users(store.van).find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
-  expect(Roles(store.van).onGetAll()).toEqual({ 5: { _id: '5', role: 'reader' } })
-  expect(Blogs(store.van).onGetAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
+  Users(store).find(complexQuery2)
+  await Promise.all(Users(store).allPendings())
+  expect(Users(store).find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
+  expect(Roles(store).onGetAll()).toEqual({ 5: { _id: '5', role: 'reader' } })
+  expect(Blogs(store).onGetAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
 })

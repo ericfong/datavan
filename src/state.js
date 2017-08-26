@@ -1,7 +1,11 @@
 import _ from 'lodash'
 
+function vanState(store) {
+  return store.getState().datavan
+}
+
 export function getState(core) {
-  const currState = core.van && core.van.getState()[core.name]
+  const currState = core.store && vanState(core.store)[core.name]
   if (currState !== core._lastState) {
     core._lastState = currState
     if (core._pendingState) {

@@ -30,7 +30,7 @@ const DONT_FETCH = { fetchKey: false }
 
 function checkOption(self, { fetch, serverPreload }) {
   if (fetch === false) return false
-  if (self.dv && self.dv.duringServerPreload && !serverPreload) return false
+  if (self.store && self.store.vanCtx.duringServerPreload && !serverPreload) return false
   return true
 }
 

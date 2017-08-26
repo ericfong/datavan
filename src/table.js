@@ -1,19 +1,19 @@
 import _ from 'lodash'
 import create from './core/create'
-import { GET_DATAVAN, STATE_NAMESPACE } from './enhancer'
+import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
 
-export function getTableFromVan(van, spec) {
-  const { collections } = van
+export function getTableFromStore(store, spec) {
+  const { collections } = store
   const { name } = spec
   let collection = collections[name]
   if (!collection) {
-    const override = van.overrides[name]
+    const override = store.vanOverrides[name]
     const _spec = override ? override(spec) : spec
 
-    _.each(_spec.dependencies, dep => getTableFromVan(van, dep))
+    _.each(_spec.dependencies, dep => getTableFromStore(store, dep))
 
     collection = collections[name] = create(_spec)
-    collection.van = van
+    collection.store = store
   }
   return collection
 }
@@ -27,11 +27,11 @@ function getVan(stateOrDispatch) {
   // stateOrDispatch = dispatch
   if (typeof stateOrDispatch === 'function') return stateOrDispatch(GET_DATAVAN_ACTION)
 
-  // stateOrDispatch = van
+  // stateOrDispatch = store
   return stateOrDispatch
 }
 
 // shortcut for package export
 export default function table(stateOrDispatch, spec) {
-  return getTableFromVan(getVan(stateOrDispatch), spec)
+  return getTableFromStore(getVan(stateOrDispatch), spec)
 }
