@@ -30,7 +30,7 @@ export { table }
 export datavanEnhancer, { datavanReducer } from './redux'
 
 // store
-export { setOverrides, invalidateStore, getStorePending, serverPreload } from './store'
+export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext } from './store'
 
 // utils
 export getSetters from './util/getSetters'
@@ -51,11 +51,13 @@ export { setAll, set, del, insert, update, remove } from './setter'
 export { isDirty, getSubmits, reset, submit } from './submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './fetcher'
 
-export const defineCollection = spec => {
+export const defineCollection = (spec, oldSpec, dependencies) => {
   if (typeof spec === 'string') {
-    throw new Error(
-      `Use defineCollection({ name: '${spec}' }) instead of efineCollection('${spec}'). Please use object as spec directly instead of defineCollection`
-    )
+    const _spec = { name: spec, ...oldSpec, dependencies }
+    return state => table(state, _spec)
+    // throw new Error(
+    //   `Use defineCollection({ name: '${spec}' }) instead of efineCollection('${spec}'). Please use object as spec directly instead of defineCollection`
+    // )
   }
   return state => table(state, spec)
 }

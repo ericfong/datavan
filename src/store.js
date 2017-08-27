@@ -58,3 +58,11 @@ export function serverPreload(store, renderCallback) {
   vanCtx.duringServerPreload = false
   return output
 }
+
+export function getContext(store) {
+  return store.vanCtx
+}
+
+export function setContext(store, newCtx) {
+  return Object.assign(store.vanCtx, newCtx)
+}
