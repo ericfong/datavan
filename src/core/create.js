@@ -10,25 +10,17 @@ import { markMissIds } from './finder'
 import { withoutTmpId, TMP_ID_PREFIX } from './idUtil'
 import { calcFetchKey } from './keyUtil'
 
+const { getState } = state
+
 const functions = {
   idField: '_id',
-
   onGetAll() {
-    return this.getState().byId
+    return getState(this).byId
   },
-
   onGet(id, option) {
     const data = this.onGetAll()
     if (this.onFetch) markMissIds(data, id, option)
     return data[id]
-  },
-
-  cast(v) {
-    return v
-  },
-
-  genId() {
-    return _.uniqueId(TMP_ID_PREFIX)
   },
 
   // onFind() {} : return result,
@@ -40,10 +32,9 @@ const functions = {
   getFetchQuery(query) {
     return withoutTmpId(query, this.idField)
   },
-
-  getFetchKey(fetchQuery, option) {
-    return calcFetchKey(fetchQuery, option)
-  },
+  getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
+  cast: v => v,
+  genId: () => _.uniqueId(TMP_ID_PREFIX),
 }
 
 // wrapAll
@@ -64,30 +55,32 @@ _.each(
   }
 )
 
-export default function create(spec) {
-  const core = Object.assign({}, functions, spec)
+export default function create(obj) {
+  const core = Object.assign({}, functions, obj)
 
   // init
   core._memory = {}
   core._fetchingPromises = {}
   const _fetchAts = (core._fetchAts = {})
 
-  const collState = core.getState()
+  const collState = getState(core)
   const defaultState = { byId: {}, requests: {}, submits: {} }
-  if (!collState) {
-    core._pendingState = defaultState
-  } else {
-    core._pendingState = _.defaults({ ...collState }, defaultState)
-  }
+  let _pendingState
+  if (collState) {
+    _pendingState = _.defaults({ ...collState }, defaultState)
+    const { byId, requests } = _pendingState
 
-  const { byId, requests } = core._pendingState
-  core._pendingState.byId = _.mapValues(byId, (v, id) => {
-    _fetchAts[id] = 1
-    return core.cast(v)
-  })
-  _.keys(requests).forEach(fetchKey => {
-    _fetchAts[fetchKey] = 1
-  })
+    _.each(byId, (v, id) => {
+      _fetchAts[id] = 1
+      byId[id] = core.cast(v)
+    })
+    _.keys(requests).forEach(fetchKey => {
+      _fetchAts[fetchKey] = 1
+    })
+  } else {
+    _pendingState = defaultState
+  }
+  core._pendingState = _pendingState
 
   if (core.onInit) core.onInit()
 

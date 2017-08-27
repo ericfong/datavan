@@ -12,8 +12,7 @@ export function getTableFromStore(store, spec) {
 
     _.each(_spec.dependencies, dep => getTableFromStore(store, dep))
 
-    collection = collections[name] = create(_spec)
-    collection.store = store
+    collection = collections[name] = create({ ..._spec, store })
   }
   return collection
 }
