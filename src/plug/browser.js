@@ -26,7 +26,7 @@ function addOnResize(self) {
 }
 
 export default spec =>
-  Object.assign(spec, {
+  Object.assign({}, spec, {
     getWidth() {
       ensureListener(this, 'resize', addOnResize)
       return this.get('width')

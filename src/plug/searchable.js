@@ -123,7 +123,7 @@ function defaultFields(doc) {
 
 export default function plugSearchable({ fields = defaultFields }) {
   return spec =>
-    Object.assign(spec, {
+    Object.assign({}, spec, {
       onFind(state, query, option) {
         if ('$search' in query) {
           const getSearchFields = Array.isArray(fields) ? () => fields : fields

@@ -3,7 +3,7 @@ import jsCookie from 'js-cookie'
 
 export default function plugCookie(cookieConf) {
   return spec =>
-    Object.assign(spec, {
+    Object.assign({}, spec, {
       onGetAll() {
         return jsCookie.get()
       },

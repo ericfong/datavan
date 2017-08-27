@@ -3,8 +3,8 @@ import create from './core/create'
 import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
 
 export function getTableFromStore(store, spec) {
-  const { collections } = store
   const { name } = spec
+  const { collections } = store
   let collection = collections[name]
   if (!collection) {
     const override = store.vanOverrides[name]

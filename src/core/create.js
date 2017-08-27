@@ -89,5 +89,7 @@ export default function create(spec) {
     _fetchAts[fetchKey] = 1
   })
 
+  if (core.onInit) core.onInit()
+
   return core
 }

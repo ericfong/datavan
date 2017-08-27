@@ -3,7 +3,7 @@ import jsCookie from 'js-cookie'
 
 export default function plugKoaCookie(cookieConf, koaCtx) {
   return spec =>
-    Object.assign(spec, {
+    Object.assign({}, spec, {
       onGetAll() {
         return null
       },
