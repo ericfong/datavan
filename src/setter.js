@@ -4,7 +4,7 @@ import mutateUtil from 'immutability-helper'
 import { toMutation, addMutation } from './core/mutation'
 import { withId } from './core/idUtil'
 import { findData } from './core/finder'
-import { submit } from './submitter'
+// import { submit } from './submitter'
 
 export function setAll(core, change, option) {
   if (core.onSetAll) core.onSetAll(change, option)
@@ -25,7 +25,8 @@ export function setAll(core, change, option) {
 
   addMutation(core, mutation, option)
 
-  if (core.onFetch && core.onSubmit) submit(core, core.onSubmit)
+  // NOTE require explicitly call submit
+  // if (core.onFetch && core.onSubmit) submit(core, core.onSubmit)
 }
 
 export function set(core, id, value, option) {
