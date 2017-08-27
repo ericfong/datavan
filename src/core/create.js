@@ -22,19 +22,17 @@ const functions = {
     if (this.onFetch) markMissIds(data, id, option)
     return data[id]
   },
-
   // onFind() {} : return result,
   // onSetAll(change, option) {},
   // onMutate() {},
   // onFetch() {},
   // onSubmit() {},
-
   getFetchQuery(query) {
     return withoutTmpId(query, this.idField)
   },
   getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
   cast: v => v,
-  genId: () => _.uniqueId(TMP_ID_PREFIX),
+  genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
 
 // wrapAll
