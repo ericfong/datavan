@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import { getTableFromStore } from './table'
+import { addMutation } from './core/mutation'
 
 const getId = (doc, idField) => doc && doc[idField]
 
@@ -72,7 +73,7 @@ export default function importResponse(core, res, fetchKey) {
 
   if (!_.isEmpty(mutation.byId) || mutation.requests) {
     // console.log('importResponse', res, mutation)
-    core.addMutation(mutation)
+    addMutation(core, mutation)
   }
 
   // some ops need to be after addMutation

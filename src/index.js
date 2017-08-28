@@ -30,7 +30,7 @@ export { table }
 export datavanEnhancer, { datavanReducer } from './redux'
 
 // store
-export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext } from './store'
+export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, forceEmitFlush } from './store'
 
 // utils
 export getSetters from './util/getSetters'

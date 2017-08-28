@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import Collection from './core/create'
+import { createTable } from './table'
 
 it('insert & find', async () => {
-  const collection = Collection({})
+  const collection = createTable({})
 
   const inserted = collection.insert([{ name: 'A' }, { name: 'B' }])
   expect(_.map(inserted, 'name')).toEqual(['A', 'B'])

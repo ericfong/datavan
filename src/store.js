@@ -20,8 +20,13 @@ function emitFlush(store) {
   store.vanEmitting = null
 }
 
+let _forceEmitFlush = false
+export function forceEmitFlush(flush = true) {
+  _forceEmitFlush = flush
+}
+
 export function emit(store, flush) {
-  if (flush) return emitFlush(store)
+  if (flush || _forceEmitFlush) return emitFlush(store)
   const p = store.vanEmitting
   if (p) return p
 
