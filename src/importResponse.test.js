@@ -21,7 +21,7 @@ test('null response', async () => {
   await getStorePending(store)
 
   expect(Blogs(store).getAll()).toEqual({ a: 123 })
-  expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, submits: {} })
+  expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, originals: {} })
 })
 
 test('$request', async () => {

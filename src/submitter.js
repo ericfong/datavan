@@ -22,19 +22,24 @@ function invalidateFetchAt(self, ids) {
 }
 
 export function isDirty(core, id) {
-  return id in getState(core).submits
+  return id in getState(core).originals
 }
 
 export function getSubmits(core) {
-  return getState(core).submits
+  const { byId, originals } = getState(core)
+  return _.mapValues(originals, (v, k) => byId[k])
+}
+
+export function getOriginals(core) {
+  return getState(core).originals
 }
 
 export function invalidate(core, ids, option) {
   invalidateFetchAt(core, ids)
-  const submits = getSubmits(core)
+  const { originals } = getState(core)
   let mut
   if (ids) {
-    mut = { byId: { $unset: _.filter(ids, id => !submits[id]) }, requests: { $unset: ids } }
+    mut = { byId: { $unset: _.filter(ids, id => !originals[id]) }, requests: { $unset: ids } }
   } else {
     mut = { byId: { $set: {} }, requests: { $set: {} } }
   }
@@ -44,27 +49,29 @@ export function invalidate(core, ids, option) {
 export function reset(core, ids, option) {
   invalidateFetchAt(core, ids)
   const mut = ids ? { $unset: ids } : { $set: {} }
-  const mutation = { byId: mut, requests: mut, submits: mut }
+  const mutation = { byId: mut, requests: mut, originals: mut }
   addMutation(core, mutation, option)
 }
 
+export function importSubmitRes(core, submittedDocs, res) {
+  if (res !== false) {
+    // return === false means don't consider current staging is submitted
+
+    // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
+    reset(core, _.keys(submittedDocs))
+
+    if (res) {
+      importResponse(core, res)
+    }
+  }
+  return res
+}
+
 export function submit(core, _submit) {
-  const snapshotState = getSubmits(core)
-  const p = _submit ? _submit(snapshotState, core) : core.onSubmit(snapshotState, core)
+  const submittedDocs = getSubmits(core)
+  const p = _submit ? _submit(submittedDocs, core) : core.onSubmit(submittedDocs, core)
   return Promise.resolve(p).then(
-    docs => {
-      if (docs !== false) {
-        // return === false means don't consider current staging is submitted
-
-        // clean snapshotState from submits to prevent submit again TODO check NOT mutated during HTTP POST
-        reset(core, _.keys(snapshotState))
-
-        if (docs) {
-          importResponse(core, docs)
-        }
-      }
-      return docs
-    },
+    docs => importSubmitRes(core, submittedDocs, docs),
     err => {
       // ECONNREFUSED = Cannot reach server
       // Not Found = api is too old

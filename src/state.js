@@ -19,13 +19,17 @@ export function getAll(core) {
   return core.onGetAll()
 }
 
+export function _get(core, id) {
+  return core.onGet(id)
+}
+
 export function init(core) {
   core._memory = {}
   core._fetchingPromises = {}
   const _fetchAts = (core._fetchAts = {})
 
   const collState = getState(core)
-  const defaultState = { byId: {}, requests: {}, submits: {} }
+  const defaultState = { byId: {}, requests: {}, originals: {} }
   let _pendingState
   if (collState) {
     _pendingState = _.defaults({ ...collState }, defaultState)

@@ -48,7 +48,7 @@ export plugLocalStorage from './plug/localStorage'
 // interface
 export { getState, getAll } from './state'
 export { setAll, set, del, insert, update, remove } from './setter'
-export { isDirty, getSubmits, reset, submit } from './submitter'
+export { isDirty, getSubmits, reset, submit, getOriginals, importSubmitRes } from './submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './fetcher'
 
 export const defineCollection = (spec, oldSpec, dependencies) => {

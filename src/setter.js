@@ -4,23 +4,37 @@ import mutateUtil from 'immutability-helper'
 import { toMutation, addMutation } from './core/mutation'
 import { withId } from './core/idUtil'
 import { findData } from './core/finder'
-// import { submit } from './submitter'
+import { _get } from './state'
 
 export function setAll(core, change, option) {
   if (core.onSetAll) core.onSetAll(change, option)
   const mutation = { byId: toMutation(change) }
 
   if (core.onFetch) {
-    let submitsChange = change
-    // convert $unset to undefined in submits
-    if (change.$unset) {
-      submitsChange = { ...change }
-      delete submitsChange.$unset
-      _.each(change.$unset, id => {
-        submitsChange[id] = undefined
-      })
+    // let submitsChange = change
+    // // convert $unset to undefined in submits
+    // if (change.$unset) {
+    //   submitsChange = { ...change }
+    //   delete submitsChange.$unset
+    //   _.each(change.$unset, id => {
+    //     submitsChange[id] = undefined
+    //   })
+    // }
+    // mutation.submits = toMutation(submitsChange)
+
+    // keep originals
+    const originals = {}
+    const keepOriginal = k => {
+      originals[k] = { $set: _get(core, k) }
     }
-    mutation.submits = toMutation(submitsChange)
+    _.each(change, (value, key) => {
+      if (key === '$unset') {
+        _.each(value, keepOriginal)
+        return
+      }
+      keepOriginal(key)
+    })
+    mutation.originals = originals
   }
 
   addMutation(core, mutation, option)

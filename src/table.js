@@ -34,6 +34,7 @@ const functions = {
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
 _.each({ ...state, ...setter, ...submitter, ...fetcher }, (func, key) => {
+  if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {
     return func(this, ...args) // eslint-disable-line
