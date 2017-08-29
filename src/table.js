@@ -49,21 +49,6 @@ export function createTable(props) {
   return core
 }
 
-export function getTableFromStore(store, spec) {
-  const { name } = spec
-  const { collections } = store
-  let collection = collections[name]
-  if (!collection) {
-    const override = store.vanOverrides[name]
-    const _spec = override ? applyOverride(spec, override) : spec
-
-    _.each(_spec.dependencies, dep => getTableFromStore(store, dep))
-
-    collection = collections[name] = createTable({ ..._spec, store })
-  }
-  return collection
-}
-
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 function getVan(stateOrDispatch) {
   // stateOrDispatch = state
@@ -77,7 +62,37 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
+export function getTableFromStore(store, spec) {
+  const { name } = spec
+  const { collections } = store
+  let collection = collections[name]
+  if (!collection) {
+    const override = store.vanOverrides[name]
+    const _spec = override ? applyOverride(spec, override) : spec
+
+    // has dep.spec mean it is a selector
+    _.each(_spec.dependencies, dep => getTableFromStore(store, dep.spec || dep))
+
+    collection = collections[name] = createTable({ ..._spec, store })
+  }
+  return collection
+}
+
 // shortcut for package export
-export default function table(stateOrDispatch, spec) {
+export function table(stateOrDispatch, spec) {
   return getTableFromStore(getVan(stateOrDispatch), spec)
+}
+export default table
+
+export const defineCollection = (_spec, oldSpec, dependencies) => {
+  let spec = _spec
+  if (typeof _spec === 'string') {
+    spec = { name: _spec, dependencies, ...oldSpec }
+    // throw new Error(
+    //   `Use defineCollection({ name: '${spec}' }) instead of efineCollection('${spec}'). Please use object as spec directly instead of defineCollection`
+    // )
+  }
+  const selector = stateOrDispatch => table(stateOrDispatch, spec)
+  selector.spec = spec
+  return selector
 }

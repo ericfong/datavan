@@ -25,7 +25,7 @@ test('null response', async () => {
 })
 
 test('$request', async () => {
-  const Roles = defineCollection({ name: 'roles' })
+  const Roles = defineCollection({ name: 'roles', idField: 'role' })
   const Blogs = defineCollection({ name: 'blogs', onFetch })
   const Users = defineCollection({
     name: 'users',
@@ -42,7 +42,7 @@ test('$request', async () => {
             4: { _id: '4', age: 20, roleId: '2' },
           },
           $relations: {
-            roles: [{ _id: '5', role: 'reader' }],
+            roles: [{ role: 'reader' }],
             blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
           },
         })
@@ -57,6 +57,8 @@ test('$request', async () => {
   // $request only
   expect(await Users(store).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])
 
+  expect(Roles(store).idField).toBe('role')
+
   // complex query 1
   const complexQuery = { $or: [{ age: 10 }, { gender: 'M' }], $request: 'complex-query-1' }
   Users(store).find(complexQuery)
@@ -68,6 +70,6 @@ test('$request', async () => {
   Users(store).find(complexQuery2)
   await Promise.all(Users(store).allPendings())
   expect(Users(store).find(complexQuery2)).toEqual([{ _id: '4', age: 20, roleId: '2' }])
-  expect(Roles(store).onGetAll()).toEqual({ 5: { _id: '5', role: 'reader' } })
+  expect(Roles(store).onGetAll()).toEqual({ reader: { role: 'reader' } })
   expect(Blogs(store).onGetAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
 })
