@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore, combineReducers } from 'redux'
-import { datavanReducer, datavanEnhancer, defineCollection, setOverrides, getStorePending, plugAssign } from '.'
+import { datavanReducer, datavanEnhancer, defineCollection, setOverrides, getStorePending } from '.'
 
 const onFetch = () => Promise.resolve([])
 
@@ -52,7 +52,7 @@ test('$request', async () => {
   })
   const store = datavanEnhancer(createStore)()
   // test setOverrides
-  setOverrides(store, { roles: plugAssign({ onFetch }) })
+  setOverrides(store, { roles: { onFetch } })
 
   // $request only
   expect(await Users(store).findAsync({ $request: 'request-only-aggregate-count' })).toEqual(['request-only-aggregate-count', 100000])
