@@ -85,7 +85,7 @@ function tokenizeKeywords(keywordStr) {
   return _.uniq(searchTextTokenizer(keywordStr))
 }
 
-export function search(docs, keywordStr, getSearchFields) {
+export function doSearch(docs, keywordStr, getSearchFields) {
   const wholeSearchStr = keywordStr.trim().toLowerCase()
   if (!wholeSearchStr) return docs
   const keywords = _.map(tokenizeKeywords(wholeSearchStr), keyword => {
@@ -127,7 +127,7 @@ export default function plugSearchable({ fields = defaultFields }) {
       onFind(state, query, option) {
         if ('$search' in query) {
           const getSearchFields = Array.isArray(fields) ? () => fields : fields
-          let result = search(state, query.$search, getSearchFields)
+          let result = doSearch(state, query.$search, getSearchFields)
           if (!Array.isArray(result)) {
             result = _.values(result)
           }

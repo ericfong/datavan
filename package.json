@@ -19,7 +19,6 @@
     "node": ">= 8.3.0"
   },
   "jest": {
-    "setupTestFrameworkScriptFile": "./tool/jestSetupTestFramework.js",
     "testEnvironment": "node",
     "roots": [
       "<rootDir>/src"
