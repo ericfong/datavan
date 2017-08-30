@@ -4,7 +4,7 @@ import mutateUtil from 'immutability-helper'
 import { toMutation, addMutation } from './core/mutation'
 import { withId } from './core/idUtil'
 import { findData } from './core/finder'
-import { _get } from './state'
+import { _get, getState } from './state'
 
 export function setAll(core, change, option) {
   if (core.onSetAll) core.onSetAll(change, option)
@@ -23,9 +23,12 @@ export function setAll(core, change, option) {
     // mutation.submits = toMutation(submitsChange)
 
     // keep originals
-    const originals = {}
+    const mutOriginals = {}
+    const { originals } = getState(core)
     const keepOriginal = k => {
-      originals[k] = { $set: _get(core, k) }
+      if (!(k in originals)) {
+        mutOriginals[k] = { $set: _get(core, k) }
+      }
     }
     _.each(change, (value, key) => {
       if (key === '$unset') {
@@ -34,7 +37,7 @@ export function setAll(core, change, option) {
       }
       keepOriginal(key)
     })
-    mutation.originals = originals
+    mutation.originals = mutOriginals
   }
 
   addMutation(core, mutation, option)
