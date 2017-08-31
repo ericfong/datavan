@@ -6,7 +6,7 @@ import { findMemory } from './core/memory'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
 const markFetchAt = (self, fetchKey) => {
-  self._fetchAts[fetchKey] = 1
+  self._fetchAts[fetchKey] = Date.now()
 }
 
 // @auto-fold here

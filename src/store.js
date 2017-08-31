@@ -4,6 +4,7 @@ import { invalidate } from './submitter'
 import { allPendings } from './fetcher'
 import { takeMutation } from './core/mutation'
 import { DATAVAN_MUTATE } from './redux'
+import { gcTable } from './table/gc'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanOverrides, _overrides)
@@ -11,6 +12,10 @@ export function setOverrides(store, _overrides) {
 
 export function invalidateStore(store, ids, option) {
   _.each(store.collections, core => invalidate(core, ids, option))
+}
+
+export function gcStore(store, option) {
+  _.each(store.collections, table => gcTable(table, option))
 }
 
 const vanMutate = (store, mutation) => store.dispatch({ type: DATAVAN_MUTATE, mutation })

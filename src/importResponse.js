@@ -83,5 +83,7 @@ export default function importResponse(core, res, fetchKey) {
     },
   })
 
+  if (core.onImport) core.onImport(core)
+
   return res
 }

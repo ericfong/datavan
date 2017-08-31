@@ -13,6 +13,7 @@ const { getState, init } = state
 
 const functions = {
   idField: '_id',
+  // gcTime: 60 * 1000,
   onGetAll() {
     return getState(this).byId
   },
@@ -21,11 +22,13 @@ const functions = {
     if (this.onFetch) markMissIds(data, id, option)
     return data[id]
   },
+  // onInit()
   // onFind() {} : return result,
   // onSetAll(change, option) {},                 // called on every set
   // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
   // onFetch() {},
   // onSubmit() {},
+  // onImport(table)
   getFetchQuery(query) {
     return withoutTmpId(query, this.idField)
   },

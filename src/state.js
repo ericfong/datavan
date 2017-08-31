@@ -36,11 +36,11 @@ export function init(core) {
     const { byId, requests } = _pendingState
 
     _.each(byId, (v, id) => {
-      _fetchAts[id] = 1
+      _fetchAts[id] = Date.now()
       byId[id] = core.cast(v)
     })
     _.keys(requests).forEach(fetchKey => {
-      _fetchAts[fetchKey] = 1
+      _fetchAts[fetchKey] = Date.now()
     })
   } else {
     _pendingState = defaultState

@@ -3,7 +3,7 @@ export { table, defineCollection } from './table'
 export datavanEnhancer, { datavanReducer } from './redux'
 
 // store
-export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, forceEmitFlush } from './store'
+export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, forceEmitFlush, gcStore } from './store'
 
 // utils
 export getSetters from './util/getSetters'
@@ -23,3 +23,4 @@ export { getState, getAll } from './state'
 export { setAll, set, del, insert, update, remove } from './setter'
 export { isDirty, getSubmits, invalidate, reset, submit, getOriginals, importSubmitRes } from './submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './fetcher'
+export { gcTable } from './table/gc'

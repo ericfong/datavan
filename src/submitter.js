@@ -4,21 +4,8 @@ import importResponse from './importResponse'
 import { getState } from './state'
 import { addMutation } from './core/mutation'
 
-function invalidateFetchAt(self, ids) {
-  const newFetchAts = {}
-  if (ids) {
-    const { byId, requests } = self.getState()
-    const idTable = _.keyBy(ids)
-    const omit = (v, k) => {
-      if (!(k in idTable)) {
-        newFetchAts[k] = 1
-      }
-    }
-    _.each(byId, omit)
-    _.each(requests, omit)
-    // NOTE will omit all query fetchKey, only keep byId and requests
-  }
-  self._fetchAts = newFetchAts
+function invalidateFetchAt(table, ids) {
+  table._fetchAts = ids ? _.omit(table._fetchAts, ids) : {}
 }
 
 export function isDirty(core, id) {
@@ -37,20 +24,16 @@ export function getOriginals(core) {
 export function invalidate(core, ids, option) {
   invalidateFetchAt(core, ids)
   const { originals } = getState(core)
-  let mut
-  if (ids) {
-    mut = { byId: { $unset: _.filter(ids, id => !originals[id]) }, requests: { $unset: ids } }
-  } else {
-    mut = { byId: { $set: {} }, requests: { $set: {} } }
-  }
+  const mutSet = ids ? { $unset: _.filter(ids, id => !(id in originals)) } : { $set: {} }
+  const mut = { byId: mutSet, requests: mutSet, originals: mutSet }
   addMutation(core, mut, option)
 }
 
 export function reset(core, ids, option) {
   invalidateFetchAt(core, ids)
-  const mut = ids ? { $unset: ids } : { $set: {} }
-  const mutation = { byId: mut, requests: mut, originals: mut }
-  addMutation(core, mutation, option)
+  const mutSet = ids ? { $unset: ids } : { $set: {} }
+  const mut = { byId: mutSet, requests: mutSet, originals: mutSet }
+  addMutation(core, mut, option)
 }
 
 export function importSubmitRes(core, submittedDocs, res) {
