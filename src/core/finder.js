@@ -1,14 +1,7 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-export function markMissIds(data, id, option) {
-  if (option && !(id in data)) {
-    if (!option.missIds) option.missIds = {}
-    option.missIds[id] = true
-  }
-}
-
-// const emptyResultArray = []
+import { getState } from '../state'
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -61,31 +54,22 @@ export function getQueryIds(query, idField) {
   }
 }
 
-function filterDataByIds(self, data, ids, option) {
+function filterDataByIds(data, ids) {
   return ids.reduce((result, id) => {
-    markMissIds(data, id, option)
     const doc = data[id]
     if (doc) result.push(doc)
     return result
   }, [])
 }
 
-export function prepareFindData(self, query, option) {
-  if (option.preparedData) return
-  const data = self.onGetAll()
-  const ids = getQueryIds(query, self.idField)
-  if (ids) {
-    option.preparedData = filterDataByIds(self, data, ids, option)
-  } else {
-    option.preparedData = data
-
-    // signal Fetcher to refetch
-    option.missQuery = true
-  }
+function prepareFindData(table, query) {
+  const data = table.onGetAll()
+  const ids = getQueryIds(query, table.idField)
+  return ids ? filterDataByIds(data, ids) : data
 }
 
-function doFindData(self, query, option) {
-  const preparedData = option.preparedData
+export function findData(table, query, option) {
+  const preparedData = prepareFindData(table, query)
 
   // id Array
   if (Array.isArray(query)) {
@@ -95,22 +79,18 @@ function doFindData(self, query, option) {
   // request-only (only for Fetcher case?)
   if (query.$request) {
     if (Object.keys(query).length === 1) {
-      return self.getState().requests[option.queryKey]
+      return getState(table).requests[option.queryKey]
     }
     query = _.omit(query, '$request')
   }
 
-  if (self.onFind) {
-    const result = self.onFind(preparedData, query, option)
+  const onFind = option.onFind || table.onFind
+  if (onFind) {
+    const result = onFind(preparedData, query, option, table)
     if (result !== undefined) {
       return result
     }
   }
 
   return processOption(doQuery(preparedData, query), option)
-}
-
-export function findData(self, query, option) {
-  prepareFindData(self, query, option)
-  return doFindData(self, query, option)
 }
