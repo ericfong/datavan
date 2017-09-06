@@ -2,6 +2,7 @@ import _ from 'lodash'
 
 import { getTableFromStore } from './table'
 import { addMutation } from './core/mutation'
+import { markFetchAt } from './fetcher'
 
 const getId = (doc, idField) => doc && doc[idField]
 
@@ -44,6 +45,9 @@ export default function importResponse(core, res, fetchKey) {
     const castedDoc = core.cast(doc)
     const newObj = castedDoc && typeof castedDoc === 'object' ? { ...core.onGet(id), ...castedDoc } : castedDoc
     mutation.byId[id] = { $set: newObj }
+
+    // if response have some docs that is not expected in fetchKey, then use markFetchAt to prevent fetch again
+    markFetchAt(core, id)
   })
 
   // do ops

@@ -1,12 +1,11 @@
 import _ from 'lodash'
 
 import importResponse from './importResponse'
-import { prepareFindData } from './core/finder'
 import { findMemory } from './core/memory'
 import { addForceMutation } from './core/mutation'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
-const markFetchAt = (self, fetchKey) => {
+export const markFetchAt = (self, fetchKey) => {
   self._fetchAts[fetchKey] = Date.now()
 }
 
@@ -36,12 +35,7 @@ function checkOption(self, { fetch, serverPreload }) {
 }
 
 function tryGetFetchQueryKey(self, query, option) {
-  // ensure run prepareFindData to determine some data is missing or not
-  prepareFindData(self, query, option)
-  // shouldFetch if (not-all-ids-hit || key-no-query-cache) && key-not-fetching
-  // TODO || key-expired
-  // console.log('tryGetFetchQueryKey: option.missIds=', option.missIds, ' option.missQuery=', option.missQuery, self.getState())
-  if (!option.missIds && !option.missQuery) return DONT_FETCH
+  // NOTE support invalidate without flashing UI. So, cannot use "if (!option.missIds && !option.missQuery) return DONT_FETCH"
 
   const fetchQuery = self.getFetchQuery(query, option)
   const fetchKey = self.getFetchKey(fetchQuery, option)
@@ -50,7 +44,6 @@ function tryGetFetchQueryKey(self, query, option) {
 
   // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
 
-  // NOTE missIds may be null / invalid / not-found id
   if (hasFetchAt(self, fetchKey)) return DONT_FETCH
   markFetchAt(self, fetchKey)
 
@@ -103,7 +96,7 @@ export function get(core, id, option = {}) {
     if (!id) return undefined
     if (checkOption(core, option)) {
       const query = [id]
-      // batch when option.missIds and use getIdFetchKey?
+      // batch multiple get(id) to find([ids])
       const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
       if (fetchKey !== false) {
         const p = _fetch(core, fetchQuery, option, fetchKey)

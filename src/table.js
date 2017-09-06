@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
 import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
-import { markMissIds } from './core/finder'
 import { withoutTmpId, TMP_ID_PREFIX } from './core/idUtil'
 import { calcFetchKey } from './core/keyUtil'
 import * as state from './state'
@@ -17,10 +16,8 @@ const functions = {
   onGetAll() {
     return getState(this).byId
   },
-  onGet(id, option) {
-    const data = this.onGetAll()
-    if (this.onFetch) markMissIds(data, id, option)
-    return data[id]
+  onGet(id) {
+    return this.onGetAll()[id]
   },
   // onInit()
   // onFind() {} : return result,

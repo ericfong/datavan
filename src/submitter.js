@@ -2,9 +2,9 @@ import _ from 'lodash'
 
 import importResponse from './importResponse'
 import { getState } from './state'
-import { addMutation } from './core/mutation'
+import { addMutation, addForceMutation } from './core/mutation'
 
-function invalidateFetchAt(table, ids) {
+export function invalidateFetchAt(table, ids) {
   table._fetchAts = ids ? _.omit(table._fetchAts, ids) : {}
 }
 
@@ -23,11 +23,8 @@ export function getOriginals(core) {
 
 export function invalidate(core, ids, option) {
   invalidateFetchAt(core, ids)
-  const { byId, requests, originals } = getState(core)
-  const byIdUnset = _.filter(ids || Object.keys(byId), id => !(id in originals))
-  const requestUnset = _.filter(ids || Object.keys(requests), id => !(id in originals))
-  const mut = { byId: { $unset: byIdUnset }, requests: { $unset: requestUnset } }
-  addMutation(core, mut, option)
+  // NOTE invalidate should not flashing UI
+  addForceMutation(core, option)
 }
 
 export function reset(core, ids, option) {

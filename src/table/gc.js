@@ -1,6 +1,8 @@
 import _ from 'lodash'
 
-import { invalidate } from '../submitter'
+import { invalidateFetchAt } from '../submitter'
+import { getState } from '../state'
+import { addMutation } from '../core/mutation'
 
 function getGcInvalidateIds(table) {
   const expire = Date.now() - table.gcTime
@@ -22,8 +24,16 @@ export function gcTable(table, option) {
   if (table._gcAt > expire) return null
   table._gcAt = Date.now()
 
-  // run gc
+  // run gc: invalidate fetchAts
   const invalidateIds = getGcInvalidateIds(table)
-  invalidate(table, invalidateIds, option)
+  invalidateFetchAt(table, invalidateIds)
+
+  // run gc: unset byId and requests
+  const { byId, requests, originals } = getState(table)
+  const byIdUnset = _.filter(invalidateIds || Object.keys(byId), id => !(id in originals))
+  const requestUnset = _.filter(invalidateIds || Object.keys(requests), id => !(id in originals))
+  const mut = { byId: { $unset: byIdUnset }, requests: { $unset: requestUnset } }
+  addMutation(table, mut, option)
+
   return true
 }
