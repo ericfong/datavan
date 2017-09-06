@@ -23,9 +23,10 @@ export function getOriginals(core) {
 
 export function invalidate(core, ids, option) {
   invalidateFetchAt(core, ids)
-  const { originals } = getState(core)
-  const mutSet = ids ? { $unset: _.filter(ids, id => !(id in originals)) } : { $set: {} }
-  const mut = { byId: mutSet, requests: mutSet, originals: mutSet }
+  const { byId, requests, originals } = getState(core)
+  const byIdUnset = _.filter(ids || Object.keys(byId), id => !(id in originals))
+  const requestUnset = _.filter(ids || Object.keys(requests), id => !(id in originals))
+  const mut = { byId: { $unset: byIdUnset }, requests: { $unset: requestUnset } }
   addMutation(core, mut, option)
 }
 
