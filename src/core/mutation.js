@@ -27,6 +27,14 @@ export function addMutation(core, mutation, option) {
   return nextState
 }
 
+export function addForceMutation(core, option) {
+  const prevState = getState(core)
+  const nextState = mutateUtil(prevState, { $set: { ...prevState } })
+  core._pendingState = nextState
+  if (core.store) emit(core.store, option && option.flush)
+  return nextState
+}
+
 export function takeMutation(core) {
   let ret
   if (core._pendingState) {

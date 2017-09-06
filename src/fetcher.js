@@ -3,6 +3,7 @@ import _ from 'lodash'
 import importResponse from './importResponse'
 import { prepareFindData } from './core/finder'
 import { findMemory } from './core/memory'
+import { addForceMutation } from './core/mutation'
 
 const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
 const markFetchAt = (self, fetchKey) => {
@@ -58,9 +59,17 @@ function tryGetFetchQueryKey(self, query, option) {
   return { fetchQuery, fetchKey }
 }
 
-function _fetch(self, query, option, fetchKey) {
-  return self.onFetch(query, option, self).then(res => importResponse(self, res, fetchKey))
-  // .catch(err => handleError to switch off isFetching)
+function _fetch(table, query, option, fetchKey) {
+  return table
+    .onFetch(query, option, table)
+    .then(res => {
+      importResponse(table, res, fetchKey)
+      addForceMutation(table) // force render to update isFetching
+      return res
+    })
+    .catch(() => {
+      addForceMutation(table) // force render to update isFetching
+    })
 }
 
 export function find(core, query = {}, option = {}) {
