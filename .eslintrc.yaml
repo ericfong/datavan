@@ -12,6 +12,7 @@ plugins:
   - import
   - lodash
   - react
+  - dependencies
 root: true
 rules:
   arrow-body-style: off
@@ -25,6 +26,7 @@ rules:
       imports: always-multiline
       objects: always-multiline
   consistent-return: off
+  dependencies/no-cycles: [1, {"skip": ["table"]}]
   import/default: 2
   import/export: 2
   import/named: error
