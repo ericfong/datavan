@@ -1,21 +1,20 @@
 import _ from 'lodash'
 
-import { invalidate } from './submitter'
 import { allPendings } from './fetcher'
 import { takeMutation } from './core/mutation'
 import { DATAVAN_MUTATE } from './redux'
-import { gcTable } from './table/gc'
+import { invalidateAuto, resetTidyAuto, EXPIRED } from './table/gc'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanOverrides, _overrides)
 }
 
-export function invalidateStore(store, ids, option) {
-  _.each(store.collections, core => invalidate(core, ids, option))
+export function invalidateStore(store, option = {}) {
+  _.each(store.collections, table => invalidateAuto(table, option.all ? null : EXPIRED, option))
 }
 
-export function gcStore(store, option) {
-  _.each(store.collections, table => gcTable(table, option))
+export function gcStore(store, option = {}) {
+  _.each(store.collections, table => resetTidyAuto(table, option.all ? null : EXPIRED, option))
 }
 
 const vanMutate = (store, mutation) => store.dispatch({ type: DATAVAN_MUTATE, mutation })

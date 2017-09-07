@@ -1,7 +1,7 @@
 import delay from 'delay'
 
 import { createTable } from '../table'
-import { gcTable } from './gc'
+import { resetTidyAuto } from './gc'
 import { getState } from '../state'
 import { get, allPendings } from '../fetcher'
 
@@ -16,7 +16,7 @@ test('gc', async () => {
   })
 
   // won't gc recent docs
-  expect(gcTable(users)).toBe(true)
+  resetTidyAuto(users)
   expect(getState(users)).toEqual({ byId: { a: 1 }, originals: {}, requests: {} })
 
   // shorten the gcTime
@@ -28,6 +28,6 @@ test('gc', async () => {
   await allPendings(users)
 
   // gc will remove a and keep b
-  expect(gcTable(users)).toBe(true)
+  resetTidyAuto(users)
   expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: {} })
 })

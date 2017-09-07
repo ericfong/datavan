@@ -63,7 +63,8 @@ __Table of Contents__
 		- [plugSearchable({ fields: [] })](#plugsearchable-fields-)
 - [Store functions](#store-functions)
 		- [setOverrides(store, overrides)](#setoverridesstore-overrides)
-		- [invalidateStore(store, ids, option)](#invalidatestorestore-ids-option)
+		- [invalidateStore(store, option)](#invalidatestorestore-option)
+		- [gcStore(store, option)](#gcstorestore-option)
 		- [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
 		- [getContext(store)](#getcontextstore)
 		- [setContext(store, ctx)](#setcontextstore-ctx)
@@ -416,7 +417,9 @@ defineCollection('blogs', plugSearchable(...)({ idField: 'id', ...others }))
 
 ### setOverrides(store, overrides)
 
-### invalidateStore(store, ids, option)
+### invalidateStore(store, option)
+
+### gcStore(store, option)
 
 ### serverPreload(store, renderCallback)
 
