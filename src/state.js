@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import { addMutation } from './core/mutation'
+
 function vanState(store) {
   return store.getState().datavan
 }
@@ -23,29 +25,36 @@ export function _get(core, id) {
   return core.onGet(id)
 }
 
-export function init(core) {
-  core._memory = {}
-  core._fetchingPromises = {}
-  const _fetchAts = (core._fetchAts = {})
+// const mergeDoc = (target, src, asDefault) => (typeof src === 'object' ? (asDefault ? { ...src, ...target } : { ...target, ...src }) : src)
+const defaultConvert = (v, id, table) => table.cast(v)
+const convertRequest = v => v
+const _convertToMutation = (v, id, table, convert = defaultConvert, srcs) => {
+  table._fetchAts[id] = Date.now()
+  return { $set: convert(v, id, table, srcs) }
+}
+export function load(table, loadingState, convert = defaultConvert) {
+  const { byId, originals } = getState(table)
+  const mutation = { byId: {}, originals: {}, requests: {} }
+  _.each(loadingState.byId, (v, id) => {
+    mutation.byId[id] = _convertToMutation(v, id, table, convert, byId)
+  })
+  _.each(loadingState.originals, (v, id) => {
+    mutation.originals[id] = _convertToMutation(v, id, table, convert, originals)
+  })
+  _.each(loadingState.requests, (v, fetchKey) => {
+    mutation.requests[fetchKey] = _convertToMutation(v, fetchKey, table, convertRequest)
+  })
+  addMutation(table, mutation)
+}
 
-  const collState = getState(core)
-  const defaultState = { byId: {}, requests: {}, originals: {} }
-  let _pendingState
-  if (collState) {
-    _pendingState = _.defaults({ ...collState }, defaultState)
-    const { byId, requests } = _pendingState
+export function init(table) {
+  table._memory = {}
+  table._fetchingPromises = {}
+  table._fetchAts = {}
 
-    _.each(byId, (v, id) => {
-      _fetchAts[id] = Date.now()
-      byId[id] = core.cast(v)
-    })
-    _.keys(requests).forEach(fetchKey => {
-      _fetchAts[fetchKey] = Date.now()
-    })
-  } else {
-    _pendingState = defaultState
-  }
-  core._pendingState = _pendingState
+  table._pendingState = { byId: {}, requests: {}, originals: {} }
 
-  if (core.onInit) core.onInit()
+  load(table, getState(table))
+
+  if (table.onInit) table.onInit()
 }
