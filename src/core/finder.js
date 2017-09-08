@@ -36,6 +36,7 @@ export function processOption(arr, option) {
   return arr
 }
 
+// @auto-fold here
 function doQuery(data, query) {
   if (Object.keys(query).length === 0) {
     return _.values(data)
@@ -45,6 +46,7 @@ function doQuery(data, query) {
   return _.filter(data, filterFunc)
 }
 
+// @auto-fold here
 export function getQueryIds(query, idField) {
   if (Array.isArray(query)) return query
   const idQuery = query[idField]
@@ -54,6 +56,7 @@ export function getQueryIds(query, idField) {
   }
 }
 
+// @auto-fold here
 function filterDataByIds(data, ids) {
   return ids.reduce((result, id) => {
     const doc = data[id]
@@ -62,6 +65,7 @@ function filterDataByIds(data, ids) {
   }, [])
 }
 
+// @auto-fold here
 function prepareFindData(table, query) {
   const data = table.onGetAll()
   const ids = getQueryIds(query, table.idField)

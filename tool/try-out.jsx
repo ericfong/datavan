@@ -38,7 +38,7 @@ const MyApp = connect(
 )(PureComponent)
 
 // createStore
-const store = createStore(null, null, datavanEnhancer)
+const store = createStore(null, null, datavanEnhancer())
 
 // Assign to your React context
 console.log(

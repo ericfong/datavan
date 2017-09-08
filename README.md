@@ -23,8 +23,7 @@ __Table of Contents__
 - [Getting Started](#getting-started)
 - [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
     - [defineCollection(name, spec)](#definecollectionname-spec)
-    - [datavanEnhancer](#datavanenhancer)
-    - [setOverrides(store, overrides)](#setoverridesstore-overrides)
+    - [datavanEnhancer({ overrides, context })](#datavanenhancer-overrides-context-)
 - [Collection Methods](#collection-methods)
     - [find(collection, query, option)](#findcollection-query-option)
     - [findAsync(collection, query, option)](#findasynccollection-query-option)
@@ -61,7 +60,6 @@ __Table of Contents__
     - [plugKoaCookie(cookieConf, koaCtx)](#plugkoacookiecookieconf-koactx)
     - [plugSearchable({ fields: [] })](#plugsearchable-fields--)
 - [Store functions](#store-functions)
-    - [setOverrides(store, overrides)](#setoverridesstore-overrides-1)
     - [invalidateStore(store, option)](#invalidatestorestore-option)
     - [gcStore(store, option)](#gcstorestore-option)
     - [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
@@ -110,7 +108,7 @@ const MyApp = connect(
 )(PureComponent)
 
 // createStore
-const store = createStore(null, null, datavanEnhancer)
+const store = createStore(null, null, datavanEnhancer())
 
 render(<Provider store={store}><MyApp name="john" /></Provider>)
 ```
@@ -134,32 +132,42 @@ find(Users(state | dispatch | store), query)
 ```
 
 
-### datavanEnhancer
-datavan enhancer for redux
+### datavanEnhancer({ overrides, context })
+create datavan enhancer for redux
 ```js
+import { datavanEnhancer, datavanReducer } from 'datavan'
+
 // createStore
-const store = createStore(reducer, preloadedState, datavanEnhancer)
+const store = createStore(reducer, preloadedState, datavanEnhancer())
 
 // if you use combineReducers, you also need to use `datavanReducer`
-import { datavanEnhancer, datavanReducer } from 'datavan'
-const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer)
+const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer())
 
 find(Users(store), query)
 ```
 
-
-
-### setOverrides(store, overrides)
 set overrides to override collection specs
 ```js
-// support object override
-setOverrides(store, { users: { idField: 'id' }  })
+// with object override
+createStore(reducer, preloadedState, datavanEnhancer({
+  overrides: {
+    users: { idField: 'id' },
+  },
+}))
 
-// support function override
-setOverrides(store, { cookie: (spec) => newSpec  })
+// with function override
+createStore(reducer, preloadedState, datavanEnhancer({
+  overrides: {
+    cookie: (spec) => newSpec,
+  },
+}))
 
 // use plugin as override
-setOverrides(store, { cookie: plugCookie(cookieConf) })
+createStore(reducer, preloadedState, datavanEnhancer({
+  overrides: {
+    cookie: plugCookie(cookieConf),
+  },
+}))
 ```
 
 
@@ -213,6 +221,12 @@ get local changed documents
 const dirtyDocs = getSubmits(Users(state))
 ```
 
+### getOriginals(collection)
+get local changed documents' originals
+```js
+const originalDocs = getOriginals(Users(state))
+```
+
 ### set(collection, id, doc) | set(collection, doc)
 ```js
 set(Users(state), 'id-123', { _id: 'id-123', name: 'Mary' })
@@ -264,6 +278,13 @@ get all documents. This won't trigger onFetch()
 ```js
 const docsTable = getAll(Users(state))
 ```
+
+### submit(collection, onSubmitFunc)
+submit collection with onSubmitFunc. If onSubmitFunc is missing, defined onSubmit will be used
+```js
+await submit(Users(state))
+```
+
 
 
 
@@ -376,26 +397,26 @@ const Users = defineCollection('users', { dependencies: [Roles] })
 ### plugBrowser
 get and listen to browser resize, will mixin `getWidth()` and `getHeight()` functions
 ```js
-setOverrides(store, { browser: plugBrowser })  // plugBrowser is a object
+datavanEnhancer({ overrides: { browser: plugBrowser } })  // plugBrowser is a object
 ```
 
 ### plugLocalStorage(localStorage | sessionStorage)
 read, write localStorage or sessionStorage
 ```js
-setOverrides(store, { sessionStorage: plugLocalStorage(sessionStorage) })
+datavanEnhancer({ overrides: { sessionStorage: plugLocalStorage(sessionStorage) } })
 ```
 
 ### plugCookie(cookieConf)
 read, write browser cookie
 ```js
-setOverrides(store, { cookie: plugCookie(cookieConf) })
+datavanEnhancer({ overrides: { cookie: plugCookie(cookieConf) } })
 // cookieConf ref to [js-cookie](https://www.npmjs.com/package/js-cookie)
 ```
 
 ### plugKoaCookie(cookieConf, koaCtx)
 read, write cookie in koa
 ```js
-setOverrides(store, { cookie: plugKoaCookie(cookieConf, koaCtx) })
+datavanEnhancer({ overrides: { cookie: plugKoaCookie(cookieConf, koaCtx) } })
 // cookieConf ref to [cookies](https://www.npmjs.com/package/cookies)
 // koaCtx is koa ctx object
 ```
@@ -403,7 +424,9 @@ setOverrides(store, { cookie: plugKoaCookie(cookieConf, koaCtx) })
 ### plugSearchable({ fields: [] })
 add simple full-text search to collection
 ```js
-setOverrides(store, { users: plugSearchable({ fields: ['firstName', 'lastName', ...] }) })
+datavanEnhancer({ overrides: {
+  users: plugSearchable({ fields: ['firstName', 'lastName', ...] })
+} })
 // OR
 defineCollection('blogs', plugSearchable(...)({ idField: 'id', ...others }))
 ```
@@ -414,19 +437,20 @@ defineCollection('blogs', plugSearchable(...)({ idField: 'id', ...others }))
 
 # Store functions
 
-### setOverrides(store, overrides)
-
 ### invalidateStore(store, option)
+run auto invalidate on all collections
 
 ### gcStore(store, option)
+run auto gc on all collections
 
 ### serverPreload(store, renderCallback)
+render react components in server side. Reference to [Server Rendering](#server-rendering)
 
 ### getContext(store)
 
 ### setContext(store, ctx)
 
-
+### loadTables(store, tablesData)
 
 
 
@@ -447,7 +471,7 @@ defineCollection('blogs', plugSearchable(...)({ idField: 'id', ...others }))
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { defineCollection, datavanEnhancer, setOverrides, serverPreload } from '.'
+import { defineCollection, datavanEnhancer, serverPreload } from '.'
 
 // define collection
 const Users = defineCollection('users', {
@@ -462,13 +486,13 @@ const MyApp = connect((state, { username }) => {
 })(PureComponent)
 
 // create store
-const serverStore = datavanEnhancer(createStore)()
-
-setOverrides(serverStore, {
-  users: {
-    onFetch(query, option) { /* server side override */ },
+const serverStore = createStore(null, null, datavanEnhancer(
+  overrides: {
+    users: {
+      onFetch(query, option) { /* server side override */ },
+    },
   },
-})
+))
 
 // renderToString
 const html = await serverPreload(serverStore, () =>
@@ -482,7 +506,7 @@ const json = JSON.stringify(store.getState())
 
 // browser side
 const preloadedState = JSON.parse(json)
-const browserStore = datavanEnhancer(createStore)(null, preloadedState)
+const browserStore = createStore(null, preloadedState, datavanEnhancer())
 
 ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
 ```
