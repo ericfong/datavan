@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createTable } from './table'
+import { createTable } from '../table'
 
 it('onMutate', async () => {
   const collection = createTable({

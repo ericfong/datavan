@@ -1,10 +1,22 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { toMutation, addMutation } from './core/mutation'
+import { _get, getState, addMutation } from './table/base'
 import { withId } from './core/idUtil'
 import { findData } from './core/finder'
-import { _get, getState } from './state'
+
+// @auto-fold here
+function toMutation(change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  return mutation
+}
 
 export function setAll(core, change, option) {
   if (core.onSetAll) core.onSetAll(change, option)

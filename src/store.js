@@ -1,8 +1,6 @@
 import _ from 'lodash'
 
 import { allPendings } from './fetcher'
-import { takeMutation } from './core/mutation'
-import { DATAVAN_MUTATE } from './redux'
 import { invalidateAuto, resetTidyAuto, EXPIRED } from './table/gc'
 
 export function setOverrides(store, _overrides) {
@@ -15,32 +13,6 @@ export function invalidateStore(store, option = {}) {
 
 export function gcStore(store, option = {}) {
   _.each(store.collections, table => resetTidyAuto(table, option.all ? null : EXPIRED, option))
-}
-
-const vanMutate = (store, mutation) => store.dispatch({ type: DATAVAN_MUTATE, mutation })
-function emitFlush(store) {
-  const m = _.pickBy(_.mapValues(store.collections, coll => takeMutation(coll)))
-  if (!_.isEmpty(m)) vanMutate(store, m)
-  store.vanEmitting = null
-}
-
-let _forceEmitFlush = false
-export function forceEmitFlush(flush = true) {
-  _forceEmitFlush = flush
-}
-
-export function emit(store, flush) {
-  if (flush || _forceEmitFlush) return emitFlush(store)
-  const p = store.vanEmitting
-  if (p) return p
-
-  const curP = (store.vanEmitting = new Promise(resolve =>
-    setTimeout(() => {
-      if (curP === store.vanEmitting) emitFlush(store)
-      resolve()
-    })
-  ))
-  return curP
 }
 
 export function getStorePending(store) {

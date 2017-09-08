@@ -4,7 +4,7 @@ import { datavanEnhancer, defineCollection, setOverrides, plugBrowser } from '.'
 
 test('defineCollection', async () => {
   const Browser = defineCollection({ name: 'browser' })
-  const store = datavanEnhancer(createStore)()
+  const store = createStore(null, null, datavanEnhancer())
   setOverrides(store, {
     browser: plugBrowser,
   })
@@ -13,7 +13,7 @@ test('defineCollection', async () => {
 
 test('merge collections states again will not trigger new dispatch', async () => {
   const Users = defineCollection({ name: 'users' })
-  const store = datavanEnhancer(createStore)()
+  const store = createStore(null, null, datavanEnhancer())
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)

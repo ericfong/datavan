@@ -1,8 +1,7 @@
 import _ from 'lodash'
 
-import { invalidate, invalidateFetchAt } from '../submitter'
-import { getState } from '../state'
-import { addMutation } from '../core/mutation'
+import { invalidate, invalidateFetchAt } from './original'
+import { getState, addMutation } from './base'
 
 export const EXPIRED = 'EXPIRED'
 

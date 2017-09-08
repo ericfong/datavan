@@ -1,13 +1,8 @@
 import _ from 'lodash'
 
-import importResponse from './importResponse'
+import { addMutation } from './table/base'
+import importResponse from './table/importResponse'
 import { findMemory } from './core/memory'
-import { addForceMutation } from './core/mutation'
-
-const hasFetchAt = (self, fetchKey) => self._fetchAts[fetchKey]
-export const markFetchAt = (self, fetchKey) => {
-  self._fetchAts[fetchKey] = Date.now()
-}
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
@@ -44,8 +39,9 @@ function tryGetFetchQueryKey(self, query, option) {
 
   // console.log('tryGetFetchQueryKey hasFetchAt', !!hasFetchAt(self, fetchKey), fetchKey)
 
-  if (hasFetchAt(self, fetchKey)) return DONT_FETCH
-  markFetchAt(self, fetchKey)
+  const { _fetchAts } = self
+  if (_fetchAts[fetchKey]) return DONT_FETCH
+  _fetchAts[fetchKey] = Date.now()
 
   // console.log('tryGetFetchQueryKey _fetchingPromises', !!self._fetchingPromises[fetchKey], fetchKey)
   if (self._fetchingPromises[fetchKey]) return DONT_FETCH
@@ -57,11 +53,11 @@ function _fetch(table, query, option, fetchKey) {
     .onFetch(query, option, table)
     .then(res => {
       importResponse(table, res, fetchKey)
-      addForceMutation(table) // force render to update isFetching
+      addMutation(table, null) // force render to update isFetching
       return res
     })
     .catch(() => {
-      addForceMutation(table) // force render to update isFetching
+      addMutation(table, null) // force render to update isFetching
     })
 }
 

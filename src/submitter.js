@@ -1,38 +1,7 @@
 import _ from 'lodash'
 
-import importResponse from './importResponse'
-import { getState } from './state'
-import { addMutation, addForceMutation } from './core/mutation'
-
-export function invalidateFetchAt(table, ids) {
-  table._fetchAts = ids ? _.omit(table._fetchAts, ids) : {}
-}
-
-export function isDirty(core, id) {
-  return id in getState(core).originals
-}
-
-export function getSubmits(core) {
-  const { byId, originals } = getState(core)
-  return _.mapValues(originals, (v, k) => byId[k])
-}
-
-export function getOriginals(core) {
-  return getState(core).originals
-}
-
-export function invalidate(core, ids, option) {
-  invalidateFetchAt(core, ids)
-  // NOTE invalidate should not flashing UI
-  addForceMutation(core, option)
-}
-
-export function reset(core, ids, option) {
-  invalidateFetchAt(core, ids)
-  const mutSet = ids ? { $unset: ids } : { $set: {} }
-  const mut = { byId: mutSet, requests: mutSet, originals: mutSet }
-  addMutation(core, mut, option)
-}
+import { reset, getSubmits } from './table/original'
+import importResponse from './table/importResponse'
 
 export function importSubmitRes(core, submittedDocs, res) {
   if (res !== false) {

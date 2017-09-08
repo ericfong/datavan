@@ -7,6 +7,7 @@
     "babel": "cross-env NODE_ENV=test babel-node",
     "start": "npm run build:es6 -- --watch",
     "benchmark": "cross-env BENCHMARK=1 NODE_PATH=src jest --config=jest-benchmark-config.json",
+    "eslint": "eslint --ext jsx --ext js",
     "test": "cross-env NODE_PATH=src jest"
   },
   "name": "datavan",

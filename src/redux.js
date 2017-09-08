@@ -15,8 +15,8 @@ function rootReducer(state, action) {
   return state
 }
 
-export default function datavanEnhancer(_createStore) {
-  return (_reducer, _preloadedState, enhancer) => {
+export default function datavanEnhancer({ overrides, context } = {}) {
+  return _createStore => (_reducer, _preloadedState, enhancer) => {
     const preloadedState = _preloadedState || {}
     if (!preloadedState[STATE_NAMESPACE]) preloadedState[STATE_NAMESPACE] = {}
 
@@ -28,8 +28,8 @@ export default function datavanEnhancer(_createStore) {
     Object.assign(store, {
       collections: {},
       vanEmitting: null,
-      vanOverrides: {},
-      vanCtx: {},
+      vanOverrides: { ...overrides },
+      vanCtx: { ...context },
     })
 
     store.getState = function _getState() {
@@ -45,13 +45,6 @@ export default function datavanEnhancer(_createStore) {
       }
       return dispatch(action)
     }
-
-    // const subscribe = store.subscribe
-    // store.subscribe = function _subscribe(listener) {
-    //   // dv.duringMapState = true
-    //   // dv.duringMapState = false
-    //   return subscribe(listener)
-    // }
 
     return store
   }

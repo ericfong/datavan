@@ -3,12 +3,15 @@ import _ from 'lodash'
 import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
 import { withoutTmpId, TMP_ID_PREFIX } from './core/idUtil'
 import { calcFetchKey } from './core/keyUtil'
-import * as state from './state'
+import * as state from './table/base'
 import * as setter from './setter'
+import * as original from './table/original'
 import * as submitter from './submitter'
 import * as fetcher from './fetcher'
 
-const { getState, init } = state
+import { init } from './table/load'
+
+const { getState } = state
 
 const functions = {
   idField: '_id',
@@ -33,10 +36,18 @@ const functions = {
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
-_.each({ ...state, ...setter, ...submitter, ...fetcher }, (func, key) => {
+_.each({ ...state, ...setter, ...fetcher }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {
+    return func(this, ...args) // eslint-disable-line
+  }
+})
+_.each({ ...original, ...submitter }, (func, key) => {
+  if (key[0] === '_') return
+  // eslint-disable-next-line
+  functions[key] = function(...args) {
+    console.warn(`Please use import { ${key} } from 'datavan' instead of collection.${key}()`)
     return func(this, ...args) // eslint-disable-line
   }
 })

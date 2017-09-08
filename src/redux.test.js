@@ -23,7 +23,7 @@ test('merge state with redux dispatch changes by another reducer', async () => {
       return state
     },
     {},
-    datavanEnhancer
+    datavanEnhancer()
   )
 
   // init and set
@@ -52,7 +52,7 @@ test('combineReducers', async () => {
       datavan: datavanReducer,
     }),
     preloadState,
-    datavanEnhancer
+    datavanEnhancer()
   )
 
   expect(store.getState()).toMatchObject(preloadState)
@@ -66,7 +66,7 @@ test('combineReducers', async () => {
 
 it('same state', async () => {
   const Users = state => table(state, { name: 'users' })
-  const store = createStore(null, null, datavanEnhancer)
+  const store = createStore(null, null, datavanEnhancer())
   Users(store).set('u1', 'user 1 name!!')
 
   let runTime = 0
@@ -99,7 +99,7 @@ it('same state', async () => {
 
 it('basic', async () => {
   const Users = state => table(state, { name: 'users' })
-  const store = createStore(null, null, datavanEnhancer)
+  const store = createStore(null, null, datavanEnhancer())
 
   let lastClickValue
   const UserComp = connect(

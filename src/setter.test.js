@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { createTable } from './table'
 
+import { getState } from './table/base'
 import { setAll } from './setter'
-import { getState } from './state'
 
 test('setAll', async () => {
   const table = createTable({ onFetch: _.noop, _pendingState: { byId: { old: { _id: 'old', name: 'old' } } } })

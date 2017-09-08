@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createTable } from './table'
 import { getQueryIds } from './core/finder'
 import { TMP_ID_PREFIX as TMP } from './core/idUtil'
-import { onFetchById } from '.'
+import { onFetchById, invalidate } from '.'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 
@@ -97,7 +97,7 @@ test('fetch: false', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
   Users.find(['db-1'])
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  Users.invalidate()
+  invalidate(Users)
   Users.find(['db-1'], { fetch: false })
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
 })

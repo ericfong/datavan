@@ -1,30 +1,11 @@
 // import _ from 'lodash'
-import { createStore, combineReducers } from 'redux'
-import { datavanReducer, datavanEnhancer, defineCollection, setOverrides, getStorePending } from '.'
+import { createStore } from 'redux'
+import { datavanEnhancer, defineCollection, setOverrides, loadTables } from '..'
 
 const onFetch = () => Promise.resolve([])
 
-test('null response', async () => {
-  const Blogs = defineCollection({ name: 'blogs', onFetch: () => Promise.resolve(null) })
-  const store = createStore(
-    combineReducers({
-      other: state => state || null,
-      datavan: datavanReducer,
-    }),
-    { datavan: { blogs: { byId: { a: 123 } } } },
-    datavanEnhancer
-  )
-
-  // trigger fetch null
-  await Blogs(store).findAsync({})
-  // wait for flush collection states to redux
-  await getStorePending(store)
-
-  expect(Blogs(store).getAll()).toEqual({ a: 123 })
-  expect(Blogs(store).getState()).toEqual({ byId: { a: 123 }, requests: {}, originals: {} })
-})
-
 test('$request', async () => {
+  let store
   const Roles = defineCollection({ name: 'roles', idField: 'role' })
   const Blogs = defineCollection({ name: 'blogs', onFetch })
   const Users = defineCollection({
@@ -45,12 +26,15 @@ test('$request', async () => {
             roles: [{ role: 'reader' }],
             blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
           },
+        }).then(res => {
+          loadTables(store, res.$relations)
+          return res
         })
       }
     }),
     dependencies: [Roles, Blogs],
   })
-  const store = datavanEnhancer(createStore)()
+  store = createStore(null, null, datavanEnhancer())
   // test setOverrides
   setOverrides(store, { roles: { onFetch } })
 

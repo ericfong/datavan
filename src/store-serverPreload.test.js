@@ -18,7 +18,7 @@ test('server preload', async () => {
       return Promise.resolve([])
     },
   })
-  const store = datavanEnhancer(createStore)()
+  const store = createStore(null, null, datavanEnhancer())
 
   const UserComp = connect((state, props) => ({
     user: Users(state).findOne({ _id: props.userId }, { serverPreload: true }),
@@ -57,7 +57,7 @@ test('server preload', async () => {
   const isoData = JSON.parse(json)
 
   // client side
-  const browserDb = datavanEnhancer(createStore)(null, isoData)
+  const browserDb = createStore(null, isoData, datavanEnhancer())
   const browserWrapper = render(
     <Provider store={browserDb}>
       <FriendComp />

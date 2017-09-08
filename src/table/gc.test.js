@@ -2,7 +2,7 @@ import delay from 'delay'
 
 import { createTable } from '../table'
 import { resetTidyAuto } from './gc'
-import { getState } from '../state'
+import { getState } from './base'
 import { get, allPendings } from '../fetcher'
 
 test('gc', async () => {
