@@ -1,9 +1,9 @@
-import { createTable } from '.'
+import { createCollection } from '.'
 import { getAll } from './base'
 import { load, loadAsDefaults, loadAsAssigns } from './load'
 
 test('load', async () => {
-  const users = createTable({})
+  const users = createCollection({})
   load(users, { byId: { a: { x: 1, y: 1 } } })
   expect(getAll(users)).toEqual({ a: { x: 1, y: 1 } })
   load(users, { byId: { a: { x: 2 } } })

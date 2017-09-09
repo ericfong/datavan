@@ -6,7 +6,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanReducer, datavanEnhancer, table, getStorePending } from '.'
+import { datavanReducer, datavanEnhancer, collect, getStorePending } from '.'
 
 test('merge state with redux dispatch changes by another reducer', async () => {
   const preloadState = {
@@ -14,7 +14,7 @@ test('merge state with redux dispatch changes by another reducer', async () => {
       memory: { byId: { theme: 'light', locale: 'en' } },
     },
   }
-  const Memory = state => table(state, { name: 'memory' })
+  const Memory = state => collect(state, { name: 'memory' })
   const store = createStore(
     (state, action) => {
       if (action.type === 'autoRehydrate') {
@@ -44,7 +44,7 @@ test('combineReducers', async () => {
       memory: { byId: { theme: 'light' } },
     },
   }
-  const Memory = state => table(state, { name: 'memory' })
+  const Memory = state => collect(state, { name: 'memory' })
   const store = createStore(
     // combineReducers will remove all state that without keys
     combineReducers({
@@ -65,7 +65,7 @@ test('combineReducers', async () => {
 })
 
 it('same state', async () => {
-  const Users = state => table(state, { name: 'users' })
+  const Users = state => collect(state, { name: 'users' })
   const store = createStore(null, null, datavanEnhancer())
   Users(store).set('u1', 'user 1 name!!')
 
@@ -98,7 +98,7 @@ it('same state', async () => {
 })
 
 it('basic', async () => {
-  const Users = state => table(state, { name: 'users' })
+  const Users = state => collect(state, { name: 'users' })
   const store = createStore(null, null, datavanEnhancer())
 
   let lastClickValue

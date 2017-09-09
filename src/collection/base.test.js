@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { createTable } from '.'
+import { createCollection } from '.'
 
 it('onMutate', async () => {
-  const collection = createTable({
+  const collection = createCollection({
     onMutate: jest.fn(),
   })
 

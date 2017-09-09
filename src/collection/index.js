@@ -54,7 +54,7 @@ _.each({ ...original, ...submitter }, (func, key) => {
 
 const applyOverride = (spec, override) => (typeof plugin === 'function' ? override(spec) : Object.assign(spec, override))
 
-export function createTable(props) {
+export function createCollection(props) {
   const core = Object.assign({}, functions, props)
   init(core)
   return core
@@ -73,7 +73,7 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
-export function getTableFromStore(store, spec) {
+export function getCollectionFromStore(store, spec) {
   const { name } = spec
   const { collections } = store
   let collection = collections[name]
@@ -82,18 +82,18 @@ export function getTableFromStore(store, spec) {
     const _spec = override ? applyOverride(spec, override) : spec
 
     // has dep.spec mean it is a selector
-    _.each(_spec.dependencies, dep => getTableFromStore(store, dep.spec || dep))
+    _.each(_spec.dependencies, dep => getCollectionFromStore(store, dep.spec || dep))
 
-    collection = collections[name] = createTable({ ..._spec, store })
+    collection = collections[name] = createCollection({ ..._spec, store })
   }
   return collection
 }
 
 // shortcut for package export
-export function table(stateOrDispatch, spec) {
-  return getTableFromStore(getVan(stateOrDispatch), spec)
+export function collect(stateOrDispatch, spec) {
+  return getCollectionFromStore(getVan(stateOrDispatch), spec)
 }
-export default table
+export default collect
 
 export const defineCollection = (_spec, oldSpec, dependencies) => {
   let spec = _spec
@@ -103,7 +103,7 @@ export const defineCollection = (_spec, oldSpec, dependencies) => {
     //   `Use defineCollection({ name: '${spec}' }) instead of efineCollection('${spec}'). Please use object as spec directly instead of defineCollection`
     // )
   }
-  const selector = stateOrDispatch => table(stateOrDispatch, spec)
+  const selector = stateOrDispatch => collect(stateOrDispatch, spec)
   selector.spec = spec
   return selector
 }

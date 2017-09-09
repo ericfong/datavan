@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createTable } from '.'
+import { createCollection } from '.'
 import { getSubmits, submit } from '..'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
@@ -17,7 +17,7 @@ test('onSubmit', async () => {
     lastSubmit = changes
     return false
   }
-  const Users = createTable({
+  const Users = createCollection({
     name: 'users',
     onFetch,
     onSubmit: changes => doSubmit(changes),
@@ -73,7 +73,7 @@ test('onSubmit', async () => {
 })
 
 test('basic', async () => {
-  const Users = createTable({
+  const Users = createCollection({
     name: 'users',
     idField: 'id',
     onFetch,

@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createTable } from '.'
+import { createCollection } from '.'
 import { getQueryIds } from './util/findUtil'
 import { TMP_ID_PREFIX as TMP } from './util/idUtil'
 import { onFetchById, invalidate } from '..'
@@ -21,13 +21,13 @@ function echo(query) {
 }
 
 test('normalizeQuery', async () => {
-  const users = createTable({})
+  const users = createCollection({})
   expect(users.find()).toEqual([])
   expect(users.find({})).toEqual([])
 })
 
 test('hasFetch cache', async () => {
-  const users = createTable({
+  const users = createCollection({
     onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
   })
   users.find(['id-123'])
@@ -37,7 +37,7 @@ test('hasFetch cache', async () => {
 })
 
 test('onFetch with $invalidate', async () => {
-  const users2 = createTable({
+  const users2 = createCollection({
     onFetch: jest.fn(() => timeoutResolve({ 'id-123': undefined, $invalidate: ['id-123'] })),
   })
   users2.find(['id-123'])
@@ -47,7 +47,7 @@ test('onFetch with $invalidate', async () => {
 })
 
 test('without tmp-id', async () => {
-  const Users = createTable({ onFetch: jest.fn(echo) })
+  const Users = createCollection({ onFetch: jest.fn(echo) })
   // won't call onFetch if only null or tmp
   Users.find([`${TMP}-123`, null, `${TMP}-456`])
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
@@ -73,7 +73,7 @@ test('without tmp-id', async () => {
 })
 
 test('consider getFetchKey', async () => {
-  const users = createTable({ onFetch: jest.fn(echo), getFetchQuery: () => ({}), getFetchKey: () => '' })
+  const users = createCollection({ onFetch: jest.fn(echo), getFetchQuery: () => ({}), getFetchKey: () => '' })
   users.find(['db-1'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
   users.find(['db-2'])
@@ -92,7 +92,7 @@ test('consider getFetchKey', async () => {
 })
 
 test('fetch: false', async () => {
-  const Users = createTable({ onFetch: jest.fn(echo) })
+  const Users = createCollection({ onFetch: jest.fn(echo) })
   Users.find(['db-1'], { fetch: false })
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
   Users.find(['db-1'])
@@ -103,7 +103,7 @@ test('fetch: false', async () => {
 })
 
 test('batch get failback to find', async () => {
-  const Users = createTable({ onFetch: jest.fn(echo) })
+  const Users = createCollection({ onFetch: jest.fn(echo) })
   Users.get('1')
   Users.get('2')
   await Promise.all(Users.allPendings())
@@ -117,7 +117,7 @@ test('batch get failback to find', async () => {
 test('basic', async () => {
   let calledFind = 0
   let calledGet = 0
-  const Users = createTable({
+  const Users = createCollection({
     name: 'users',
     onFetch: jest.fn((query, option, collection) => {
       if (query) {

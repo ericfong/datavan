@@ -1,4 +1,4 @@
-export { table, defineCollection } from './collection'
+export { defineCollection, collect, createCollection } from './collection'
 
 export datavanEnhancer, { datavanReducer } from './redux'
 

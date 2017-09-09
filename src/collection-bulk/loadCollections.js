@@ -1,10 +1,10 @@
 import _ from 'lodash'
 
-import { getTableFromStore } from '../collection'
+import { getCollectionFromStore } from '../collection'
 import importResponse from '../collection/importResponse'
 
 export default function loadCollections(store, collectionsData) {
   _.each(collectionsData, (subRes, subName) => {
-    importResponse(getTableFromStore(store, { name: subName }), subRes)
+    importResponse(getCollectionFromStore(store, { name: subName }), subRes)
   })
 }

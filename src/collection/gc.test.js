@@ -1,12 +1,12 @@
 import delay from 'delay'
 
-import { createTable } from '.'
+import { createCollection } from '.'
 import { resetTidyAuto } from './gc'
 import { getState } from './base'
 import { get, allPendings } from './fetcher'
 
 test('gc', async () => {
-  const users = createTable({
+  const users = createCollection({
     name: 'users',
     onFetch: () => Promise.resolve([{ _id: 'b', name: 'b' }]),
     _pendingState: {
