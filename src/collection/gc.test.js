@@ -1,9 +1,9 @@
 import delay from 'delay'
 
-import { createTable } from '../table'
+import { createTable } from '.'
 import { resetTidyAuto } from './gc'
 import { getState } from './base'
-import { get, allPendings } from '../fetcher'
+import { get, allPendings } from './fetcher'
 
 test('gc', async () => {
   const users = createTable({

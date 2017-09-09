@@ -1,6 +1,6 @@
 import _ from 'lodash'
-import { createTable } from './table'
-import { getSubmits, submit } from '.'
+import { createTable } from '.'
+import { getSubmits, submit } from '..'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 

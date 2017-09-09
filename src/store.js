@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { allPendings } from './fetcher'
-import { invalidateAuto, resetTidyAuto, EXPIRED } from './table/gc'
+import { allPendings } from './collection/fetcher'
+import { invalidateAuto, resetTidyAuto, EXPIRED } from './collection/gc'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanOverrides, _overrides)

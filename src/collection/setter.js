@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { _get, getState, addMutation } from './table/base'
-import { withId } from './core/idUtil'
-import { findData } from './core/finder'
+import { _get, getState, addMutation } from './base'
+import { withId } from './util/idUtil'
+import { findData } from './util/findUtil'
 
 // @auto-fold here
 function toMutation(change) {

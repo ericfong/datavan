@@ -1,4 +1,4 @@
-import { createTable } from '../table'
+import { createTable } from '.'
 import { getAll } from './base'
 import { load, loadAsDefaults, loadAsAssigns } from './load'
 

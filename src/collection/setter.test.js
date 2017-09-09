@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import { createTable } from './table'
+import { createTable } from '.'
 
-import { getState } from './table/base'
+import { getState } from './base'
 import { setAll } from './setter'
 
 test('setAll', async () => {

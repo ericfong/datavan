@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
-import { addMutation } from './table/base'
-import importResponse from './table/importResponse'
-import { findMemory } from './core/memory'
+import { addMutation } from './base'
+import importResponse from './importResponse'
+import { findMemory } from './util/memoryUtil'
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {

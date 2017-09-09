@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { reset, getSubmits } from './table/original'
-import importResponse from './table/importResponse'
+import { reset, getSubmits } from './original'
+import importResponse from './importResponse'
 
 export function importSubmitRes(core, submittedDocs, res) {
   if (res !== false) {

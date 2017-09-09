@@ -1,15 +1,15 @@
 import _ from 'lodash'
 
-import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
-import { withoutTmpId, TMP_ID_PREFIX } from './core/idUtil'
-import { calcFetchKey } from './core/keyUtil'
-import * as state from './table/base'
+import { GET_DATAVAN, STATE_NAMESPACE } from '../redux'
+import { withoutTmpId, TMP_ID_PREFIX } from './util/idUtil'
+import { calcFetchKey } from './util/keyUtil'
+import * as state from './base'
 import * as setter from './setter'
-import * as original from './table/original'
+import * as original from './original'
 import * as submitter from './submitter'
 import * as fetcher from './fetcher'
 
-import { init } from './table/load'
+import { init } from './load'
 
 const { getState } = state
 

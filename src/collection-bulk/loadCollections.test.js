@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, setOverrides, loadTables } from '..'
+import { datavanEnhancer, defineCollection, setOverrides, loadCollections } from '..'
 
 const onFetch = () => Promise.resolve([])
 
@@ -27,7 +27,7 @@ test('$request', async () => {
             blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
           },
         }).then(res => {
-          loadTables(store, res.$relations)
+          loadCollections(store, res.$relations)
           return res
         })
       }

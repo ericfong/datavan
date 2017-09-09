@@ -450,7 +450,7 @@ render react components in server side. Reference to [Server Rendering](#server-
 
 ### setContext(store, ctx)
 
-### loadTables(store, tablesData)
+### loadCollections(store, collectionsData)
 
 
 
