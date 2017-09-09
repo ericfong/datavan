@@ -1,27 +1,25 @@
 import _ from 'lodash'
 
 import { reset, getSubmits } from './original'
-import importResponse from './importResponse'
+import { load } from './load'
 
-export function importSubmitRes(core, submittedDocs, res) {
+export function importSubmitRes(self, submittedDocs, res) {
   if (res !== false) {
     // return === false means don't consider current staging is submitted
 
     // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
-    reset(core, _.keys(submittedDocs))
+    reset(self, _.keys(submittedDocs))
 
-    if (res) {
-      importResponse(core, res)
-    }
+    if (res) load(self, res)
   }
   return res
 }
 
-export function submit(core, _submit) {
-  const submittedDocs = getSubmits(core)
-  const p = _submit ? _submit(submittedDocs, core) : core.onSubmit(submittedDocs, core)
+export function submit(self, _submit) {
+  const submittedDocs = getSubmits(self)
+  const p = _submit ? _submit(submittedDocs, self) : self.onSubmit(submittedDocs, self)
   return Promise.resolve(p).then(
-    docs => importSubmitRes(core, submittedDocs, docs),
+    docs => importSubmitRes(self, submittedDocs, docs),
     err => {
       // ECONNREFUSED = Cannot reach server
       // Not Found = api is too old

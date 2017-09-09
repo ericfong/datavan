@@ -20,7 +20,7 @@ export plugLocalStorage from './plug/localStorage'
 
 // table
 export { getState, getAll, addMutation } from './collection/base'
-export { load, loadAsDefaults, loadAsAssigns } from './collection/load'
+export { load, loadAsDefaults } from './collection/load'
 export { isDirty, getSubmits, invalidate, reset, getOriginals } from './collection/original'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, importSubmitRes } from './collection/submitter'

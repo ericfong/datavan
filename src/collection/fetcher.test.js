@@ -38,7 +38,7 @@ test('hasFetch cache', async () => {
 
 test('onFetch with $invalidate', async () => {
   const users2 = createCollection({
-    onFetch: jest.fn(() => timeoutResolve({ 'id-123': undefined, $invalidate: ['id-123'] })),
+    onFetch: jest.fn(() => timeoutResolve({ byId: { 'id-123': undefined }, $invalidate: ['id-123'] })),
   })
   users2.find(['id-123'])
   await Promise.all(users2.allPendings())

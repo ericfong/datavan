@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { getState, addMutation } from './base'
-import { getLoadMutation, loadAsAssigns, _loadAsRequest } from './load'
+import { getLoadMutation, _loadAsRequest } from './load'
 import { isDirty, invalidate } from './original'
 
 const getId = (doc, idField) => doc && doc[idField]
@@ -42,7 +42,7 @@ export default function importResponse(table, res, fetchKey) {
   const { byId } = getState(table)
   const ops = loopResponse(res, table.idField, (doc, id) => {
     if (isDirty(table, id)) return
-    mutation.byId[id] = getLoadMutation(doc, id, table, loadAsAssigns, byId)
+    mutation.byId[id] = getLoadMutation(doc, id, table, undefined, byId)
   })
 
   // do ops

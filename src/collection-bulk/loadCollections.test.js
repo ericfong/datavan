@@ -10,16 +10,20 @@ test('$request', async () => {
   const Blogs = defineCollection({ name: 'blogs', onFetch })
   const Users = defineCollection({
     name: 'users',
-    onFetch: jest.fn(({ $request }) => {
+    onFetch: jest.fn(({ $request }, { fetchKey }) => {
       if ($request === 'request-only-aggregate-count') {
-        return Promise.resolve({ $request: [$request, 100000] })
+        return Promise.resolve({
+          requests: {
+            [fetchKey]: [$request, 100000],
+          },
+        })
       }
       if ($request === 'complex-query-1') {
         return Promise.resolve([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }])
       }
       if ($request === 'complex-query-2') {
         return Promise.resolve({
-          $byId: {
+          byId: {
             4: { _id: '4', age: 20, roleId: '2' },
           },
           $relations: {

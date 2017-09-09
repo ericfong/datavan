@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { addMutation } from './base'
-import importResponse from './importResponse'
+import { load } from './load'
 import { findMemory } from './util/memoryUtil'
 
 // @auto-fold here
@@ -32,8 +32,8 @@ function checkOption(self, { fetch, serverPreload }) {
 function tryGetFetchQueryKey(self, query, option) {
   // NOTE support invalidate without flashing UI. So, cannot use "if (!option.missIds && !option.missQuery) return DONT_FETCH"
 
-  const fetchQuery = self.getFetchQuery(query, option)
-  const fetchKey = self.getFetchKey(fetchQuery, option)
+  const fetchQuery = (option.fetchQuery = self.getFetchQuery(query, option))
+  const fetchKey = (option.fetchKey = self.getFetchKey(fetchQuery, option))
   // console.log('tryGetFetchQueryKey: fetchKey=', fetchKey)
   if (fetchKey === false) return DONT_FETCH
 
@@ -48,16 +48,16 @@ function tryGetFetchQueryKey(self, query, option) {
   return { fetchQuery, fetchKey }
 }
 
-function _fetch(table, query, option, fetchKey) {
-  return table
-    .onFetch(query, option, table)
+function _fetch(self, query, option) {
+  return self
+    .onFetch(query, option, self)
     .then(res => {
-      importResponse(table, res, fetchKey)
-      addMutation(table, null) // force render to update isFetching
+      load(self, res)
+      addMutation(self, null) // force render to update isFetching
       return res
     })
     .catch(() => {
-      addMutation(table, null) // force render to update isFetching
+      addMutation(self, null) // force render to update isFetching
     })
 }
 
@@ -66,7 +66,7 @@ export function find(core, query = {}, option = {}) {
     if (checkOption(core, option)) {
       const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
       if (fetchKey !== false) {
-        const p = _fetch(core, fetchQuery, option, fetchKey)
+        const p = _fetch(core, fetchQuery, option)
         addFetchingPromise(core._fetchingPromises, fetchKey, p)
       }
     }
@@ -78,7 +78,7 @@ export function findAsync(core, query = {}, option = {}) {
   const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
   if (fetchKey !== false) {
     option.preparedData = null
-    return _fetch(core, fetchQuery, option, fetchKey).then(() => findMemory(core, query, option))
+    return _fetch(core, fetchQuery, option).then(() => findMemory(core, query, option))
   }
   return Promise.resolve(findMemory(core, query, option))
 }
@@ -95,7 +95,7 @@ export function get(core, id, option = {}) {
       // batch multiple get(id) to find([ids])
       const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
       if (fetchKey !== false) {
-        const p = _fetch(core, fetchQuery, option, fetchKey)
+        const p = _fetch(core, fetchQuery, option)
         addFetchingPromise(core._fetchingPromises, fetchKey, p)
       }
     }
