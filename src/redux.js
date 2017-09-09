@@ -15,13 +15,13 @@ function rootReducer(state, action) {
   return state
 }
 
-export default function datavanEnhancer(option = {}) {
-  if (typeof option === 'function') {
+export default function datavanEnhancer(ctx = {}) {
+  if (typeof ctx === 'function') {
     console.warn(
       'Please use datavanEnhancer to create enhancer instead directly as enhancer. Use as \'createStore(reducer, state, datavanEnhancer({ overrides, context }))\' instead of \'createStore(reducer, state, datavanEnhancer)\''
     )
   }
-  const { overrides, context } = option
+  const { overrides, context } = ctx
   return _createStore => (_reducer, _preloadedState, enhancer) => {
     const preloadedState = _preloadedState || {}
     if (!preloadedState[STATE_NAMESPACE]) preloadedState[STATE_NAMESPACE] = {}
@@ -33,9 +33,8 @@ export default function datavanEnhancer(option = {}) {
 
     Object.assign(store, {
       collections: {},
-      vanEmitting: null,
-      vanOverrides: { ...overrides },
-      vanCtx: { ...context },
+      vanCtx: { ...context, overrides: {}, ...ctx },
+      // ctx = { overrides, dispatchWaitUntil }
     })
 
     store.getState = function _getState() {

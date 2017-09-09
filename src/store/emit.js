@@ -9,11 +9,13 @@ function takeMutation(table) {
   }
   return ret
 }
-const vanMutate = (store, mutation) => store.dispatch({ type: DATAVAN_MUTATE, mutation })
-function emitFlush(store) {
-  const m = _.pickBy(_.mapValues(store.collections, takeMutation))
-  if (!_.isEmpty(m)) vanMutate(store, m)
-  store.vanEmitting = null
+
+function dispatchEmit(store) {
+  const mutation = _.pickBy(_.mapValues(store.collections, takeMutation))
+  if (!_.isEmpty(mutation)) {
+    store.dispatch({ type: DATAVAN_MUTATE, mutation })
+  }
+  store.vanCtx.vanEmitting = null
 }
 
 let _forceEmitFlush = false
@@ -22,15 +24,24 @@ export function forceEmitFlush(flush = true) {
 }
 
 export function emit(store, flush) {
-  if (flush || _forceEmitFlush) return emitFlush(store)
-  const p = store.vanEmitting
+  if (flush || _forceEmitFlush) return dispatchEmit(store)
+  const { vanCtx } = store
+  const p = vanCtx.vanEmitting
   if (p) return p
 
-  const curP = (store.vanEmitting = new Promise(resolve =>
-    setTimeout(() => {
-      if (curP === store.vanEmitting) emitFlush(store)
+  const curP = new Promise(resolve => {
+    const dispatchAndResolve = () => {
+      if (curP === vanCtx.vanEmitting) dispatchEmit(store)
       resolve()
-    })
-  ))
+    }
+    if (vanCtx.dispatchWaitUntil) {
+      return vanCtx.dispatchWaitUntil.then(() => {
+        delete vanCtx.dispatchWaitUntil
+        dispatchAndResolve()
+      })
+    }
+    setTimeout(dispatchAndResolve)
+  })
+  vanCtx.vanEmitting = curP
   return curP
 }

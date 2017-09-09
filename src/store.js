@@ -4,7 +4,7 @@ import { allPendings } from './collection/fetcher'
 import { invalidateAuto, resetTidyAuto, EXPIRED } from './collection/gc'
 
 export function setOverrides(store, _overrides) {
-  return Object.assign(store.vanOverrides, _overrides)
+  return Object.assign(store.vanCtx.overrides, _overrides)
 }
 
 export function invalidateStore(store, option = {}) {
@@ -16,7 +16,7 @@ export function gcStore(store, option = {}) {
 }
 
 export function getStorePending(store) {
-  const { vanEmitting, collections } = store
+  const { vanCtx: { vanEmitting }, collections } = store
   const promises = _.compact(_.flatMap(collections, allPendings))
   if (vanEmitting) promises.push(vanEmitting)
   if (promises.length <= 0) return null

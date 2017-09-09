@@ -78,7 +78,7 @@ export function getCollectionFromStore(store, spec) {
   const { collections } = store
   let collection = collections[name]
   if (!collection) {
-    const override = store.vanOverrides[name]
+    const override = store.vanCtx.overrides[name]
     const _spec = override ? applyOverride(spec, override) : spec
 
     // has dep.spec mean it is a selector
