@@ -132,7 +132,7 @@ find(Users(state | dispatch | store), query)
 ```
 
 
-### datavanEnhancer({ overrides, context })
+### datavanEnhancer({ overrides, ...context })
 create datavan enhancer for redux
 ```js
 import { datavanEnhancer, datavanReducer } from 'datavan'
@@ -285,6 +285,37 @@ submit collection with onSubmitFunc. If onSubmitFunc is missing, defined onSubmi
 await submit(Users(state))
 ```
 
+### load(table, data, option)
+load bulk data into store. data can be
+- Array of docs
+- Or a object with `{ byId: {}, originals: {}, requests: {} }`
+- Or Table of docs
+```js
+// Array of docs
+load(users, [
+  { _id: 'user-1', name: 'John' }
+])
+
+// Or a object with at least one of `{ byId: {}, originals: {}, requests: {} }`
+load(users, {
+  // byId is table of docs
+  byId: {
+    'user-1': { _id: 'user-1', name: 'John' },
+  },
+  // originals is table of modified docs' originals
+  originals: {
+    'user-1': { _id: 'user-1', name: 'Old Name' },
+  },
+  // requests is request cache
+  requests: {},
+})
+
+// Or Table of docs (byId)
+load(users, {
+  'user-1': { _id: 'user-1', name: 'John' },
+})
+```
+
 
 
 
@@ -386,6 +417,25 @@ depended collections will be created before this collection created.
 ```js
 const Roles = defineCollection('roles', {})
 const Users = defineCollection('users', { dependencies: [Roles] })
+```
+
+### initState
+another way to setup init collection state. With `{ byId: {}, originals: {}, requests: {} }` object tables.
+```js
+defineCollection('users', {
+  initState: {
+    // byId is table of docs
+    byId: {
+      'user-1': { _id: 'user-1', name: 'John' },
+    },
+    // originals is table of modified docs' originals
+    originals: {
+      'user-1': { _id: 'user-1', name: 'Old Name' },
+    },
+    // requests is request cache
+    requests: {},
+  },
+})
 ```
 
 

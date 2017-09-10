@@ -54,8 +54,8 @@ _.each({ ...original, ...submitter }, (func, key) => {
 
 const applyOverride = (spec, override) => (typeof plugin === 'function' ? override(spec) : Object.assign(spec, override))
 
-export function createCollection(props) {
-  const core = Object.assign({}, functions, props)
+export function createCollection(spec) {
+  const core = Object.assign({}, functions, spec)
   init(core)
   return core
 }
