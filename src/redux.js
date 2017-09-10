@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 export const STATE_NAMESPACE = 'datavan'
@@ -21,19 +22,19 @@ export default function datavanEnhancer(ctx = {}) {
       'Please use datavanEnhancer to create enhancer instead directly as enhancer. Use as \'createStore(reducer, state, datavanEnhancer({ overrides, context }))\' instead of \'createStore(reducer, state, datavanEnhancer)\''
     )
   }
-  const { overrides, context } = ctx
-  return _createStore => (_reducer, _preloadedState, enhancer) => {
-    const preloadedState = _preloadedState || {}
-    if (!preloadedState[STATE_NAMESPACE]) preloadedState[STATE_NAMESPACE] = {}
+  return _createStore => (_reducer, preloadedState, enhancer) => {
+    // set default preload state
+    const preload = _.defaultsDeep(preloadedState, { [STATE_NAMESPACE]: { _timestamp: Date.now() } })
 
     const finalReducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
-    const store = _createStore(finalReducer, preloadedState, enhancer)
+    const store = _createStore(finalReducer, preload, enhancer)
 
     const { getState, dispatch } = store
 
+    // create van
     Object.assign(store, {
       collections: {},
-      vanCtx: { ...context, overrides: {}, ...ctx },
+      vanCtx: { ...ctx.context, overrides: {}, ...ctx },
       // ctx = { overrides, dispatchWaitUntil }
     })
 

@@ -1,10 +1,13 @@
 import _ from 'lodash'
 
 import { getCollectionFromStore } from '../collection'
-import { load } from '../collection/load'
+import { load, loadAsDefaults } from '../collection/load'
 
-export default function loadCollections(store, collectionsData, option) {
-  _.each(collectionsData, (data, name) => {
+export default function loadCollections(store, vanData, option = {}) {
+  const inTimestamp = vanData._timestamp
+  const isMerge = !inTimestamp || inTimestamp > (store.getState().datavan._timestamp || 0)
+  option.loadAs = isMerge ? undefined : loadAsDefaults
+  _.each(vanData, (data, name) => {
     load(getCollectionFromStore(store, { name }), data, option)
   })
 }

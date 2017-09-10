@@ -1,11 +1,11 @@
 import _ from 'lodash'
 import { DATAVAN_MUTATE } from '../redux'
 
-function takeMutation(table) {
+function takeMutation(coll) {
   let ret
-  if (table._pendingState) {
-    ret = { $set: table._pendingState }
-    table._pendingState = undefined
+  if (coll._pendingState) {
+    ret = { $set: coll._pendingState }
+    coll._pendingState = undefined
   }
   return ret
 }
