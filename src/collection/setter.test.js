@@ -5,7 +5,7 @@ import { getState } from './base'
 import { setAll } from './setter'
 
 test('setAll', async () => {
-  const table = createCollection({ onFetch: _.noop, _pendingState: { byId: { old: { _id: 'old', name: 'old' } } } })
+  const table = createCollection({ onFetch: _.noop, initState: { byId: { old: { _id: 'old', name: 'old' } } } })
 
   // first set
   setAll(table, { a: 1, old: { _id: 'old', name: 'new' } })

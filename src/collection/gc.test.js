@@ -9,7 +9,7 @@ test('gc', async () => {
   const users = createCollection({
     name: 'users',
     onFetch: () => Promise.resolve([{ _id: 'b', name: 'b' }]),
-    _pendingState: {
+    initState: {
       byId: { a: 1 },
     },
     gcTime: 3600 * 1000,
