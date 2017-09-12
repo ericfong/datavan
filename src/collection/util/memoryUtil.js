@@ -1,10 +1,23 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
+import { getState } from '../base'
 import { findData } from './findUtil'
 
 export function calcQueryKey(query, option) {
   return stringify([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
+}
+
+function findDataOrRequest(self, query, option) {
+  // request-only (only for Fetcher case?)
+  if (query.$request) {
+    if (Object.keys(query).length === 1) {
+      return getState(self).requests[option.queryKey]
+    }
+    query = _.omit(query, '$request')
+  }
+
+  return findData(self, query, option)
 }
 
 export function findMemory(self, query, option) {
@@ -29,7 +42,7 @@ export function findMemory(self, query, option) {
   }
 
   // MISS
-  const ret = (_memory[queryKey] = findData(self, query, option))
+  const ret = (_memory[queryKey] = findDataOrRequest(self, query, option))
   return ret
 }
 

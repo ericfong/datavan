@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { getState } from '../base'
-
 // @auto-fold here
 function mongoToLodash(sort) {
   const fields = []
@@ -66,35 +64,31 @@ function filterDataByIds(data, ids) {
 }
 
 // @auto-fold here
-function prepareFindData(table, query) {
-  const data = table.onGetAll()
-  const ids = getQueryIds(query, table.idField)
+function prepareFindData(self, query) {
+  const data = self.onGetAll()
+  const ids = getQueryIds(query, self.idField)
   return ids ? filterDataByIds(data, ids) : data
 }
 
-export function findData(table, query, option) {
-  const preparedData = prepareFindData(table, query)
+function runHook(self, hook, firstArg, ...args) {
+  if (hook) {
+    const result = hook(firstArg, ...args)
+    if (result) return result
+  }
+  return firstArg
+}
 
-  // id Array
-  if (Array.isArray(query)) {
-    return processOption(preparedData, option)
+export function findData(self, query, option) {
+  let docs = prepareFindData(self, query)
+
+  // query is object instead of id-array  (id-array should be done by prepareFindData)
+  if (!Array.isArray(query)) {
+    const hookedQuery = runHook(self, option.preFind || self.preFind, query, option)
+
+    docs = doQuery(docs, hookedQuery)
+
+    docs = runHook(self, option.postFind || self.postFind, docs, query, option)
   }
 
-  // request-only (only for Fetcher case?)
-  if (query.$request) {
-    if (Object.keys(query).length === 1) {
-      return getState(table).requests[option.queryKey]
-    }
-    query = _.omit(query, '$request')
-  }
-
-  const onFind = option.onFind || table.onFind
-  if (onFind) {
-    const result = onFind(preparedData, query, option, table)
-    if (result !== undefined) {
-      return result
-    }
-  }
-
-  return processOption(doQuery(preparedData, query), option)
+  return processOption(docs, option)
 }

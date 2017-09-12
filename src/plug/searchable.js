@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import searchTextTokenizer from 'search-text-tokenizer'
-import { processOption } from '../collection/util/findUtil'
 
-function indexOfTerm(term, value) {
+function indexOfTerm(term, value, valueStr) {
   if (!value) return -1
   const type = typeof value
   if (type === 'string') {
@@ -14,7 +13,7 @@ function indexOfTerm(term, value) {
       if (Math.trunc(value) === parseInt(term, 10)) {
         return 0
       }
-    } else if (`${value}` === term) {
+    } else if (valueStr === term) {
       // float, full match
       return 0
     }
@@ -22,34 +21,33 @@ function indexOfTerm(term, value) {
   return -1
 }
 
-function getMatch(term, testObj, fieldArr) {
-  for (let i = 0, ii = fieldArr.length; i < ii; i++) {
-    const field = fieldArr[i]
-    const value = _.get(testObj, field)
-    const index = indexOfTerm(term, value)
+function matchTerm(item, term) {
+  // eslint-disable-next-line
+  for (const field in item) {
+    const value = item[field]
+    const valueStr = `${value}`
+    const index = indexOfTerm(term, value, valueStr)
+    // console.log('>> matchTerm >>', index, value, term)
     if (index >= 0) {
-      return { term, field, index, value, percentage: term.length / value.length }
+      return { term, field, index, value, percentage: term.length / valueStr.length }
     }
   }
   return null
 }
 
-function getMatches(doc, keywords, fieldArr) {
-  return _.map(keywords, keyword => {
+function matchKeywords(item, keywords) {
+  const matches = _.map(keywords, keyword => {
     const { term, exclude } = keyword
-    const fieldIndex = getMatch(term, doc, fieldArr)
+    const fieldIndex = matchTerm(item, term)
     if (exclude) {
       return fieldIndex ? null : { term, exclude: true, field: 'exclude', index: 0, percentage: 0.5 }
     }
     return fieldIndex
   })
+  return _.every(matches) ? matches : null
 }
 
-function matchKeywords(doc, keywords, fieldArr) {
-  const matches = getMatches(doc, keywords, fieldArr)
-
-  if (!_.every(matches)) return false
-
+function calcRelevance(matches) {
   let sort = 1000
   for (let i = 0, ii = matches.length; i < ii; i++) {
     const match = matches[i]
@@ -74,9 +72,7 @@ function matchKeywords(doc, keywords, fieldArr) {
     // diff field or first field
     sort -= match.percentage
   }
-
-  doc._sort = sort
-  return true
+  return sort
 }
 
 function tokenizeKeywords(keywordStr) {
@@ -85,53 +81,71 @@ function tokenizeKeywords(keywordStr) {
   return _.uniq(searchTextTokenizer(keywordStr))
 }
 
-export function doSearch(docs, keywordStr, getSearchFields) {
-  const wholeSearchStr = keywordStr.trim().toLowerCase()
-  if (!wholeSearchStr) return docs
-  const keywords = _.map(tokenizeKeywords(wholeSearchStr), keyword => {
+const getFieldsDefault = doc => doc
+
+export function doSearch(docs, keywordStr, _getFields) {
+  // normalize searchStr
+  const searchStr = _.trim(keywordStr).toLowerCase()
+
+  // empty searchStr
+  if (!searchStr) return docs
+
+  // tokenize keywords
+  const keywords = _.map(tokenizeKeywords(searchStr), keyword => {
     if (keyword.tag) {
       // kind of remove tag feature
       keyword.term = `${keyword.tag}:${keyword.term}`
     }
     return keyword
   })
+
+  // empty keywords
   if (keywords.length === 0) return docs
 
-  const results = []
-  _.each(docs, doc => {
-    const fieldArr = getSearchFields(doc)
+  // normalize getFields function
+  let getFields = _getFields
+  if (!getFields) {
+    getFields = getFieldsDefault
+  } else if (Array.isArray(getFields)) {
+    const fieldNames = getFields
+    getFields = doc => _.pick(doc, fieldNames)
+  }
 
-    const wholeMatch = getMatch(wholeSearchStr, doc, fieldArr)
+  // filter
+  const items = []
+  _.each(docs, doc => {
+    const item = getFields(doc)
+
+    const wholeMatch = matchTerm(item, searchStr)
     if (wholeMatch) {
-      doc._sort = 1 - wholeMatch.percentage
-      results.push(doc)
+      item._sort = 1 - wholeMatch.percentage
+      // console.log('>>>>>>>>>>>>>', item._sort)
+      item._doc = doc
+      items.push(item)
       return
     }
 
-    if (matchKeywords(doc, keywords, fieldArr)) {
-      // matchKeywords will fill-up _sort
-      results.push(doc)
+    const matches = matchKeywords(item, keywords)
+    if (matches) {
+      item._sort = calcRelevance(matches)
+      item._doc = doc
+      items.push(item)
     }
   })
 
-  return _.sortBy(results, '_sort')
+  // sort
+  return _.map(_.sortBy(items, '_sort'), '_doc')
 }
 
-function defaultFields(doc) {
-  return _.keys(doc)
-}
-
-export default function plugSearchable({ fields = defaultFields }) {
+export default function plugSearchable({ fields }) {
   return spec =>
     Object.assign({}, spec, {
-      onFind(state, query, option) {
+      preFind(query) {
+        return _.omit(query, '$search')
+      },
+      postFind(docs, query) {
         if ('$search' in query) {
-          const getSearchFields = Array.isArray(fields) ? () => fields : fields
-          let result = doSearch(state, query.$search, getSearchFields)
-          if (!Array.isArray(result)) {
-            result = _.values(result)
-          }
-          return processOption(result, option)
+          return doSearch(docs, query.$search, fields)
         }
       },
     })

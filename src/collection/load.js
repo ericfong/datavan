@@ -37,7 +37,8 @@ export function load(self, data, { loadAs = loadAsMerge } = {}) {
   if (Array.isArray(data)) {
     // array of docs
     const idField = self.idField
-    data = { byId: _.keyBy(data, (doc, i) => (doc && doc[idField]) || i) }
+    const byId = _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
+    data = { byId }
   } else if ('byId' in data || 'originals' in data || 'requests' in data) {
     // directly use data
   } else {
