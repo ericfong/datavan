@@ -1,5 +1,8 @@
 import _ from 'lodash'
-import stringify from 'fast-stable-stringify'
+// faster but cannot convert Date object
+// import stringify from 'fast-stable-stringify'
+// slower but can convert Date
+import stringify from 'json-stable-stringify'
 
 const ops = ['sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map']
 const fetchOps = [...ops, 'fields']
