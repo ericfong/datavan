@@ -66,7 +66,7 @@ function prepareFindData(self, query) {
 // @auto-fold here
 function runHook(self, hook, firstArg, ...args) {
   if (hook) {
-    const result = hook(firstArg, ...args)
+    const result = hook(firstArg, ...args, self)
     if (result) return result
   }
   return firstArg
