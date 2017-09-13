@@ -140,12 +140,11 @@ export function doSearch(docs, keywordStr, _getFields) {
 export default function plugSearchable({ fields }) {
   return spec =>
     Object.assign({}, spec, {
-      preFind(query) {
-        return _.omit(query, '$search')
-      },
-      postFind(docs, query) {
+      preFind(docs, query) {
         if ('$search' in query) {
-          return doSearch(docs, query.$search, fields)
+          const ret = doSearch(docs, query.$search, fields)
+          delete query.$search
+          return ret
         }
       },
     })

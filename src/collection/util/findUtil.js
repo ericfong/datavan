@@ -70,6 +70,7 @@ function prepareFindData(self, query) {
   return ids ? filterDataByIds(data, ids) : data
 }
 
+// @auto-fold here
 function runHook(self, hook, firstArg, ...args) {
   if (hook) {
     const result = hook(firstArg, ...args)
@@ -83,9 +84,9 @@ export function findData(self, query, option) {
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
-    const hookedQuery = runHook(self, option.preFind || self.preFind, query, option)
+    docs = runHook(self, option.preFind || self.preFind, docs, query, option)
 
-    docs = doQuery(docs, hookedQuery)
+    docs = doQuery(docs, query)
 
     docs = runHook(self, option.postFind || self.postFind, docs, query, option)
   }
