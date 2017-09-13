@@ -32,6 +32,7 @@ export function processOption(arr, option) {
     } else if (option.map) {
       arr = _.map(arr, option.map)
     }
+    // NOTE no need to support fields in memory
   }
   return arr
 }
