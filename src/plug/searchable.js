@@ -75,32 +75,33 @@ function calcRelevance(matches) {
   return sort
 }
 
-function tokenizeKeywords(keywordStr) {
+export function tokenizeKeywords(searchStr) {
   // can use tag which extracted from searchTextTokenizer in future
   // '-car' => [ { term: 'car', exclude: true } ]
-  return _.uniq(searchTextTokenizer(keywordStr))
+  const keywords = searchTextTokenizer(searchStr)
+  if (keywords.length === 0) return null
+
+  return _.uniqBy(
+    _.map(keywords, keyword => {
+      if (keyword.tag) {
+        // kind of remove tag feature
+        keyword.term = `${keyword.tag}:${keyword.term}`
+      }
+      return keyword
+    }),
+    'term'
+  )
 }
 
 const getFieldsDefault = doc => doc
 
-export function doSearch(docs, keywordStr, _getFields) {
+export function doSearch(docs, _searchStr, _getFields) {
   // normalize searchStr
-  const searchStr = _.trim(keywordStr).toLowerCase()
+  const searchStr = _.trim(_searchStr).toLowerCase()
+  if (!searchStr) return null
 
-  // empty searchStr
-  if (!searchStr) return docs
-
-  // tokenize keywords
-  const keywords = _.map(tokenizeKeywords(searchStr), keyword => {
-    if (keyword.tag) {
-      // kind of remove tag feature
-      keyword.term = `${keyword.tag}:${keyword.term}`
-    }
-    return keyword
-  })
-
-  // empty keywords
-  if (keywords.length === 0) return docs
+  const keywords = tokenizeKeywords(searchStr)
+  if (!keywords) return docs
 
   // normalize getFields function
   let getFields = _getFields

@@ -14,8 +14,8 @@ export { getQueryIds, onFetchById } from './collection/util/idUtil'
 export plugBrowser from './plug/browser'
 export plugCookie from './plug/cookie'
 export plugKoaCookie from './plug/koaCookie'
-export plugSearchable, { doSearch } from './plug/searchable'
 export plugLocalStorage from './plug/localStorage'
+export plugSearchable, { doSearch, tokenizeKeywords } from './plug/searchable'
 
 // table
 export { getState, getAll, addMutation } from './collection/base'
