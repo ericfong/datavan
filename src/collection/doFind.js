@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
+import { getQueryIds } from './util/idUtil'
+
 // @auto-fold here
 function mongoToLodash(sort) {
   const fields = []
@@ -45,16 +47,6 @@ function doQuery(data, query) {
 }
 
 // @auto-fold here
-export function getQueryIds(query, idField) {
-  if (Array.isArray(query)) return query
-  const idQuery = query[idField]
-  if (idQuery) {
-    if (Array.isArray(idQuery.$in)) return idQuery.$in
-    if (typeof idQuery === 'string') return [idQuery]
-  }
-}
-
-// @auto-fold here
 function filterDataByIds(data, ids) {
   return ids.reduce((result, id) => {
     const doc = data[id]
@@ -79,7 +71,7 @@ function runHook(self, hook, firstArg, ...args) {
   return firstArg
 }
 
-export function findData(self, query, option) {
+export default function doFind(self, query, option) {
   let docs = prepareFindData(self, query)
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)

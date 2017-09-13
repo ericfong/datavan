@@ -1,8 +1,8 @@
 import _ from 'lodash'
+
 import { createCollection } from '.'
-import { getQueryIds } from './util/findUtil'
-import { TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { onFetchById, invalidate } from '..'
+import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
+import { invalidate } from '..'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 

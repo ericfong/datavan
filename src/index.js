@@ -8,8 +8,7 @@ export { forceEmitFlush } from './store/emit'
 
 // utils
 export getSetters from './util/getSetters'
-export { onFetchById } from './collection/util/keyUtil'
-export { getQueryIds } from './collection/util/findUtil'
+export { getQueryIds, onFetchById } from './collection/util/idUtil'
 
 // plugins
 export plugBrowser from './plug/browser'
@@ -25,6 +24,7 @@ export { isDirty, getSubmits, invalidate, reset, getOriginals } from './collecti
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, importSubmitRes } from './collection/submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './collection/fetcher'
+export memoizedFind from './collection/memoizedFind'
 export { resetTidyAuto } from './collection/gc'
 
 // table-bulk

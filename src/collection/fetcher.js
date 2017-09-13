@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { addMutation } from './base'
 import { load } from './load'
-import { findMemory } from './util/memoryUtil'
+import memoizedFind from './memoizedFind'
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
@@ -71,16 +71,16 @@ export function find(core, query = {}, option = {}) {
       }
     }
   }
-  return findMemory(core, query, option)
+  return memoizedFind(core, query, option)
 }
 
 export function findAsync(core, query = {}, option = {}) {
   const { fetchQuery, fetchKey } = tryGetFetchQueryKey(core, query, option)
   if (fetchKey !== false) {
     option.preparedData = null
-    return _fetch(core, fetchQuery, option).then(() => findMemory(core, query, option))
+    return _fetch(core, fetchQuery, option).then(() => memoizedFind(core, query, option))
   }
-  return Promise.resolve(findMemory(core, query, option))
+  return Promise.resolve(memoizedFind(core, query, option))
 }
 
 export function getAsync(core, id, option = {}) {

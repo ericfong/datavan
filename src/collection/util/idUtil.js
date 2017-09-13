@@ -36,10 +36,16 @@ export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
-export function withId(core, doc) {
-  const idField = core.idField
-  if (!doc[idField]) {
-    doc[idField] = core.genId()
+export function getQueryIds(query, idField) {
+  if (Array.isArray(query)) return query
+  const idQuery = query[idField]
+  if (idQuery) {
+    if (Array.isArray(idQuery.$in)) return idQuery.$in
+    if (typeof idQuery === 'string') return [idQuery]
   }
-  return doc
+}
+
+export function onFetchById(query, idField, func) {
+  const ids = getQueryIds(query, idField)
+  return Promise.all(_.map(ids, func)).then(values => _.zipObject(ids, values))
 }

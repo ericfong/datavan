@@ -2,8 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { _get, getState, addMutation } from './base'
-import { withId } from './util/idUtil'
-import { findData } from './util/findUtil'
+import doFind from './doFind'
 
 // @auto-fold here
 function toMutation(change) {
@@ -16,6 +15,14 @@ function toMutation(change) {
     mutation[key] = { $set: value }
   })
   return mutation
+}
+
+function withId(core, doc) {
+  const idField = core.idField
+  if (!doc[idField]) {
+    doc[idField] = core.genId()
+  }
+  return doc
 }
 
 export function setAll(core, change, option) {
@@ -87,7 +94,7 @@ export function insert(core, docs, option) {
 }
 
 export function update(core, query, updates, option = {}) {
-  const oldDocs = findData(core, query, option)
+  const oldDocs = doFind(core, query, option)
   const change = {}
   const idField = core.idField
   _.each(oldDocs, doc => {
@@ -105,7 +112,7 @@ export function update(core, query, updates, option = {}) {
 }
 
 export function remove(core, query, option = {}) {
-  const removedDocs = findData(core, query, option)
+  const removedDocs = doFind(core, query, option)
   setAll(core, { $unset: _.map(removedDocs, core.idField) }, option)
   return removedDocs
 }

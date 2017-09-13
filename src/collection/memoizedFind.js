@@ -1,12 +1,8 @@
 import _ from 'lodash'
-import stringify from 'fast-stable-stringify'
 
-import { getState } from '../base'
-import { findData } from './findUtil'
-
-export function calcQueryKey(query, option) {
-  return stringify([query, _.pick(option, 'sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map')])
-}
+import { calcQueryKey } from './util/keyUtil'
+import { getState } from './base'
+import doFind from './doFind'
 
 function findDataOrRequest(self, query, option) {
   // request-only (only for Fetcher case?)
@@ -17,11 +13,12 @@ function findDataOrRequest(self, query, option) {
     query = _.omit(query, '$request')
   }
 
-  return findData(self, query, option)
+  return doFind(self, query, option)
 }
 
-export function findMemory(self, query, option) {
+export default function memoizedFind(self, query, option) {
   let { _memory } = self
+  // if (option.cacheOnly) return _memory[calcQueryKey(query, option)]
   const { _memoryById } = self
 
   // reset cache or not
@@ -36,7 +33,6 @@ export function findMemory(self, query, option) {
   option.queryKey = queryKey
 
   // HIT
-  // console.log('findMemory', queryKey in queryCaches, queryKey)
   if (queryKey in _memory) {
     return _memory[queryKey]
   }
@@ -45,7 +41,3 @@ export function findMemory(self, query, option) {
   const ret = (_memory[queryKey] = findDataOrRequest(self, query, option))
   return ret
 }
-
-// findMemoryOnly(query, option) {
-//   return queryCaches[calcQueryKey(query, option)]
-// },
