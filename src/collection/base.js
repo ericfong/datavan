@@ -1,4 +1,4 @@
-import _ from 'lodash'
+// import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { emit } from '../store/emit'
@@ -7,13 +7,13 @@ const vanState = store => store.getState().datavan
 const getStoreTableState = table => table.store && vanState(table.store)[table.name]
 export function getState(table) {
   const currState = getStoreTableState(table)
-  if (currState !== table._lastState) {
-    table._lastState = currState
-    if (table._pendingState) {
-      // convert to load?
-      _.merge(table._pendingState, currState)
-    }
-  }
+  // if (currState !== table._lastState) {
+  //   table._lastState = currState
+  //   if (table._pendingState) {
+  //     // convert to load?
+  //     _.merge(table._pendingState, currState)
+  //   }
+  // }
   return table._pendingState || currState
 }
 

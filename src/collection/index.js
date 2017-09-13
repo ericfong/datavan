@@ -73,11 +73,11 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
-export function getCollectionFromStore(store, spec) {
+export function getCollectionFromStore(store, spec, creation) {
   const { name } = spec
   const { collections } = store
   let collection = collections[name]
-  if (!collection) {
+  if (!collection && creation !== false) {
     const override = store.vanCtx.overrides[name]
     const _spec = override ? applyOverride(spec, override) : spec
 

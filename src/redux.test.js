@@ -6,31 +6,27 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanReducer, datavanEnhancer, collect, getStorePending } from '.'
+import { datavanReducer, datavanEnhancer, collect, getStorePending, loadCollections } from '.'
 
 test('merge state with redux dispatch changes by another reducer', async () => {
-  const preloadState = {
-    datavan: {
-      memory: { byId: { theme: 'light', locale: 'en' } },
-    },
-  }
   const Memory = state => collect(state, { name: 'memory' })
-  const store = createStore(
-    (state, action) => {
-      if (action.type === 'autoRehydrate') {
-        return preloadState
-      }
-      return state
-    },
-    {},
-    datavanEnhancer()
-  )
+  const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer())
 
   // init and set
   Memory(store).set('theme', 'dark')
 
   // dispatch and change before flush
-  store.dispatch({ type: 'autoRehydrate' })
+  const datavan = loadCollections(store, {
+    memory: { byId: { theme: 'light', locale: 'en' } },
+  })
+  store.dispatch({
+    type: 'rehydrate',
+    // NOTE need to loadCollections and merge into datavan namespace
+    state: {
+      ...store.getState(),
+      datavan,
+    },
+  })
 
   Memory(store).set('after', 'yes')
 
