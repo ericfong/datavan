@@ -19,7 +19,7 @@ function fetchByIdsDebounce() {
 }
 */
 
-export function batcher(func) {
+export default function batcher(cb) {
   let argsArr = []
   let resolveArr = []
   let rejectArr = []
@@ -32,7 +32,7 @@ export function batcher(func) {
     resolveArr = []
     rejectArr = []
 
-    return Promise.resolve(func(_argsArr))
+    return Promise.resolve(cb(_argsArr))
       .then(retArr => {
         _.each(_resolveArr, (resolve, i) => resolve(retArr[i]))
         return retArr
@@ -63,25 +63,24 @@ export function batcher(func) {
   return enqueue
 }
 
-function _runNext(funcs, i, args) {
-  const func = funcs[i]
-  if (!func) return
-  return func(...args, (...nextArgs) => _runNext(funcs, i + 1, nextArgs.length > 0 ? nextArgs : args))
-}
-export function joinMiddlewares(...funcs) {
-  return (...args) => _runNext(funcs, 0, args)
-}
-
-export function makeBatchIdQuery() {
-  const batch = batcher(argsArr => {
-    const next = _.last(_.last(argsArr))
-    const ids = _.flatten(_.map(argsArr, args => args[0]))
-    return next(ids)
-  })
-  return (query, option, next) => {
-    if (Array.isArray(query)) {
-      return batch(query, option, next)
-    }
-    return next()
-  }
-}
+// function _runNext(funcs, i, args) {
+//   const func = funcs[i]
+//   if (!func) return
+//   return func(...args, (...nextArgs) => _runNext(funcs, i + 1, nextArgs.length > 0 ? nextArgs : args))
+// }
+// export function joinMiddlewares(...funcs) {
+//   return (...args) => _runNext(funcs, 0, args)
+// }
+// export function makeBatchIdQuery() {
+//   const batch = batcher(argsArr => {
+//     const next = _.last(_.last(argsArr))
+//     const ids = _.flatten(_.map(argsArr, args => args[0]))
+//     return next(ids)
+//   })
+//   return (query, option, next) => {
+//     if (Array.isArray(query)) {
+//       return batch(query, option, next)
+//     }
+//     return next()
+//   }
+// }

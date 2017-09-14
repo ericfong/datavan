@@ -6,10 +6,6 @@ export datavanEnhancer, { datavanReducer } from './redux'
 export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, gcStore } from './store'
 export { forceEmitFlush } from './store/emit'
 
-// utils
-export getSetters from './util/getSetters'
-export { getQueryIds, onFetchById } from './collection/util/idUtil'
-
 // plugins
 export plugBrowser from './plug/browser'
 export plugCookie from './plug/cookie'
@@ -29,3 +25,8 @@ export { resetTidyAuto } from './collection/gc'
 
 // table-bulk
 export loadCollections from './collection-bulk/loadCollections'
+
+// utils
+export getSetters from './util/getSetters'
+export { getQueryIds, onFetchById } from './collection/util/idUtil'
+export batcher from './util/batcher'
