@@ -76,32 +76,37 @@ function calcRelevance(matches) {
 }
 
 export function tokenizeKeywords(searchStr) {
+  if (!searchStr) return null
   // can use tag which extracted from searchTextTokenizer in future
   // '-car' => [ { term: 'car', exclude: true } ]
   const keywords = searchTextTokenizer(searchStr)
   if (keywords.length === 0) return null
 
-  return _.uniqBy(
-    _.map(keywords, keyword => {
-      if (keyword.tag) {
-        // kind of remove tag feature
-        keyword.term = `${keyword.tag}:${keyword.term}`
-      }
-      return keyword
-    }),
-    'term'
-  )
+  return _.map(keywords, keyword => {
+    if (keyword.tag) {
+      // kind of remove tag feature
+      keyword.term = `${keyword.tag}:${keyword.term}`
+    }
+    return keyword
+  })
 }
 
 const getFieldsDefault = doc => doc
 
-export function doSearch(docs, _searchStr, _getFields) {
-  // normalize searchStr
-  const searchStr = _.trim(_searchStr).toLowerCase()
-  if (!searchStr) return null
+export function doSearch(docs, search, _getFields) {
+  const keywords = Array.isArray(search) ? search : tokenizeKeywords(_.trim(search).toLowerCase())
+  if (!keywords || keywords.length === 0) return docs
 
-  const keywords = tokenizeKeywords(searchStr)
-  if (!keywords) return docs
+  let hasExclude = false
+  const terms = _.map(keywords, keyword => {
+    if (keyword.exclude) hasExclude = true
+    return keyword.term
+  })
+  const noExcludeSearchStr = hasExclude ? null : terms.join(' ')
+  // console.log('>>>', noExcludeSearchStr)
+
+  // TODO consider to uniqBy terms (should be after gen noExcludeSearchStr)
+  // _.uniqBy(keywords, 'term')
 
   // normalize getFields function
   let getFields = _getFields
@@ -117,13 +122,15 @@ export function doSearch(docs, _searchStr, _getFields) {
   _.each(docs, doc => {
     const item = getFields(doc)
 
-    const wholeMatch = matchTerm(item, searchStr)
-    if (wholeMatch) {
-      item._sort = 1 - wholeMatch.percentage
-      // console.log('>>>>>>>>>>>>>', item._sort)
-      item._doc = doc
-      items.push(item)
-      return
+    if (noExcludeSearchStr) {
+      const wholeMatch = matchTerm(item, noExcludeSearchStr)
+      if (wholeMatch) {
+        item._sort = 1 - wholeMatch.percentage
+        // console.log('>>>>>>>>>>>>>', item._sort)
+        item._doc = doc
+        items.push(item)
+        return
+      }
     }
 
     const matches = matchKeywords(item, keywords)
