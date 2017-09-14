@@ -8,7 +8,11 @@ function findDataOrRequest(self, query, option) {
   // request-only (only for Fetcher case?)
   if (query.$request) {
     if (Object.keys(query).length === 1) {
-      return getState(self).requests[option.queryKey]
+      const { requests } = getState(self)
+      const fetchKey = option.fetchKey
+      if (fetchKey in requests) {
+        return requests[fetchKey]
+      }
     }
     query = _.omit(query, '$request')
   }
