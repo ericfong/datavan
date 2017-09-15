@@ -29,5 +29,6 @@ test('gc', async () => {
 
   // gc will remove a and keep b
   resetTidyAuto(users)
-  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: {} })
+  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null } })
+  expect(Object.keys(users._fetchAts)).toEqual(['b'])
 })

@@ -15,10 +15,9 @@ export const getLoadMutation = (v, id, self, loadAs = loadAsMerge, srcs) => {
   return { $set: loadAs(v, id, self, srcs) }
 }
 
-function _loop(self, func) {
-  const mut = {}
+function _loop(mut = {}, items, func) {
   const $merge = {}
-  _.each(self, (value, id) => {
+  _.each(items, (value, id) => {
     if (id === '$unset') {
       mut.$unset = value
     } else {
@@ -32,7 +31,7 @@ function _loop(self, func) {
   return mut
 }
 
-export function load(self, data, { loadAs = loadAsMerge } = {}) {
+export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   if (!data) return
   if (Array.isArray(data)) {
     // array of docs
@@ -49,28 +48,26 @@ export function load(self, data, { loadAs = loadAsMerge } = {}) {
   // tables of docs / ops
   const { byId, originals } = getState(self)
   const { _fetchAts } = self
-  const mut = {}
-  mut.byId = _loop(data.byId, (v, id) => {
+  mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
     if (id in originals) return
     _fetchAts[id] = Date.now()
     return loadAs(v, id, self, byId)
   })
-  mut.originals = _loop(data.originals, (v, id) => {
+  mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
     _fetchAts[id] = Date.now()
     return loadAs(v, id, self, originals)
   })
-  mut.requests = _loop(data.requests, (v, fetchKey) => {
-    _fetchAts[fetchKey] = Date.now()
+  mutation.requests = _loop(mutation.requests, data.requests, (v, id) => {
+    _fetchAts[id] = Date.now()
     return v
   })
 
+  // explicit to invalidate some data, should to the last operation for load
   if (data.$invalidate) {
-    // same as invalidateFetchAt
     self._fetchAts = _.omit(_fetchAts, data.$invalidate)
-    // console.log('>>>', self._fetchAts, data.$invalidate)
   }
 
-  addMutation(self, mut)
+  addMutation(self, mutation)
 }
 export const loadAsDefaults = (v, id, self, targets) => {
   const data = self.cast(v)

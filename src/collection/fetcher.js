@@ -52,7 +52,9 @@ function _fetch(self, query, option) {
   return self
     .onFetch(query, option, self)
     .then(res => {
-      load(self, res)
+      // force to set requests[fetchKey] to null
+      option.mutation = { requests: { [option.fetchKey]: { $set: null } } }
+      load(self, res, option)
       addMutation(self, null) // force render to update isFetching
       return res
     })

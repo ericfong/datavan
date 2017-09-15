@@ -10,6 +10,7 @@ function createMemoize(func, preparer) {
   function memoizer(state, argument) {
     if (prepare) prepare(argument, state)
 
+    // TODO consider state change from load data
     if (!shallowEqual(argument, lastArg)) {
       // apply arguments instead of spreading for performance.
       lastResult = func.call(null, state, argument)
