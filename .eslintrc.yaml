@@ -48,7 +48,6 @@ rules:
         - error
         - time
         - timeEnd
-  no-invalid-this: error
   no-mixed-operators: off
   no-multi-assign: off
   no-param-reassign: off
