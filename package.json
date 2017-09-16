@@ -38,6 +38,8 @@
     "lodash": "4.16.4",
     "mingo": "2.0.1",
     "prop-types": "15.5.10",
+    "react": "15.6.1",
+    "react-dom": "15.6.1",
     "react-redux": "5.0.6",
     "recompose": "0.25.0",
     "redux": "3.7.2",
@@ -76,8 +78,6 @@
     "invariant": "^2.2.2",
     "jest": "20.0.4",
     "jsdom": "11.2.0",
-    "react": "15.6.1",
-    "react-dom": "15.6.1",
     "react-hot-loader": "3.0.0-beta.6",
     "react-test-renderer": "15.6.1"
   },

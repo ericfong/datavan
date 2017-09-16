@@ -13,8 +13,8 @@ function _genOnChange(self, pathStr, pathArr, getError, preChange) {
       event.persist()
     }
 
-    // prepare nextFormValues
-    const nextFormValues = { ...self._getValues() }
+    // prepare nextValues
+    const nextValues = self.cloneValues()
 
     // prepare state and call preChange
     const data = {
@@ -22,16 +22,16 @@ function _genOnChange(self, pathStr, pathArr, getError, preChange) {
       errorText: getError ? getError(value) : undefined,
       pathStr,
       pathArr,
-      nextFormValues,
+      nextValues,
     }
     if (preChange) preChange(event, data)
 
     // set value (expect data.value may be changed)
-    _.set(nextFormValues, pathArr, data.value)
+    _.set(nextValues, pathArr, data.value)
 
     const { errors } = self.state
     self.setState({
-      values: nextFormValues,
+      values: nextValues,
       errors: {
         ...errors,
         [pathStr]: data.errorText,
@@ -56,6 +56,15 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
 
     onChanges = {}
     onGetErrors = {}
+
+    getValues = () => {
+      return this.state.values || this.props[formOriginal]
+    }
+
+    cloneValues = () => {
+      return this.state.values ? { ...this.state.values } : _.cloneDeep(this.props[formOriginal])
+    }
+
     memorizes = {}
 
     form = {
@@ -71,7 +80,7 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
       },
 
       checkError: () => {
-        const errors = checkAllErrors(this.onGetErrors, this._getValues())
+        const errors = checkAllErrors(this.onGetErrors, this.getValues())
         this.setState({ isStrict: true, errors })
         return _.first(_.compact(_.values(errors)))
       },
@@ -84,10 +93,6 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
       // setStrict: (isStrict = true) => {
       //   this.setState({ isStrict })
       // },
-    }
-
-    _getValues = () => {
-      return this.state.values || this.props[formOriginal]
     }
 
     bindForm = (pathStr, { getError, preChange } = {}) => {
@@ -112,7 +117,7 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
       }
 
       const { errors, isStrict } = this.state
-      const value = _.get(this._getValues(), pathArr, '')
+      const value = _.get(this.getValues(), pathArr, '')
       const errorText = value || isStrict ? _.get(errors, pathStr) : undefined
       return memorize(value, errorText)
     }
@@ -123,7 +128,7 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
         bindForm: this.bindForm,
         form: this.form,
         formState: this.state,
-        formValues: this._getValues(),
+        formValues: this.getValues(),
       })
     }
   }
