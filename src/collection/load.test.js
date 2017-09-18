@@ -2,8 +2,24 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { createCollection, defineCollection, datavanEnhancer, getAll, get, set, loadCollections } from '..'
+import { createCollection, defineCollection, datavanEnhancer, getAll, get, find, set, loadCollections, allPendings } from '..'
 import { load, loadAsDefaults } from './load'
+
+test('load _findAts,_getAts and no re-fetch-find', async () => {
+  const users = createCollection({
+    initState: {
+      byId: { 1: { _id: '1', name: 'A' } },
+      requests: { '[{"name":"A"},{}]': null },
+    },
+    onFetch: jest.fn(),
+  })
+  expect(Object.keys(users._getAts)).toEqual(['1'])
+  expect(Object.keys(users._findAts)).toEqual(['[{"name":"A"},{}]'])
+
+  find(users, { name: 'A' })
+  await allPendings(users)
+  expect(users.onFetch).toHaveBeenCalledTimes(0)
+})
 
 const Tasks = defineCollection('tasks', {
   idField: 'id',

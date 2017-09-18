@@ -7,19 +7,16 @@ import { isTmpId } from './util/idUtil'
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
-  if (promise && promise.then) {
-    fetchingPromises[fetchKey] = promise
-    promise
-      .then(ret => {
-        if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
-        return ret
-      })
-      .catch(err => {
-        if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
-        return Promise.reject(err)
-      })
-  }
+  fetchingPromises[fetchKey] = promise
   return promise
+    .then(ret => {
+      if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
+      return ret
+    })
+    .catch(err => {
+      if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
+      return Promise.reject(err)
+    })
 }
 
 const DONT_FETCH = { fetchKey: false }
@@ -63,8 +60,7 @@ function checkGet(self, id, option) {
 }
 
 function _fetch(self, query, option) {
-  return self
-    .onFetch(query, option, self)
+  return Promise.resolve(self.onFetch(query, option, self))
     .then(res => {
       // force to set requests[fetchKey] to null
       option.mutation = { requests: { [option.fetchKey]: { $set: null } } }
