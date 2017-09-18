@@ -2,6 +2,7 @@ import { connect } from 'react-redux'
 import { shallowEqual } from 'recompose'
 
 function createMemoize(func, preparer) {
+  let lastState = null
   let lastArg = null
   let lastResult = null
 
@@ -10,12 +11,14 @@ function createMemoize(func, preparer) {
   function memoizer(state, argument) {
     if (prepare) prepare(argument, state)
 
-    // TODO consider state change from load data
-    if (!shallowEqual(argument, lastArg)) {
+    // TODO consider state change for load data
+    // console.log('>>>', state !== lastState, !shallowEqual(argument, lastArg))
+    if (state !== lastState || !shallowEqual(argument, lastArg)) {
       // apply arguments instead of spreading for performance.
       lastResult = func.call(null, state, argument)
     }
 
+    lastState = state
     lastArg = argument
     return lastResult
   }
