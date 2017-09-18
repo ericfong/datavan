@@ -1,7 +1,7 @@
 import delay from 'delay'
 
 import { createCollection } from '.'
-import { resetTidyAuto } from './gc'
+import { garbageCollect } from './original'
 import { getState } from './base'
 import { get, find, allPendings } from './fetcher'
 
@@ -16,7 +16,7 @@ test('gc', async () => {
   })
 
   // won't gc recent docs
-  resetTidyAuto(users)
+  garbageCollect(users)
   expect(getState(users)).toEqual({ byId: { a: 1 }, originals: {}, requests: {} })
 
   // shorten the gcTime
@@ -28,9 +28,10 @@ test('gc', async () => {
   find(users, { name: 'b' })
   await allPendings(users)
 
-  // gc will remove a and keep b
-  resetTidyAuto(users)
-  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null, '[{"name":"b"},{}]': null } })
+  // gc will remove a and keep b, and remove related query
+  // TODO detect "Related" query
+  garbageCollect(users)
+  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null } })
   expect(Object.keys(users._getAts)).toEqual(['b'])
-  expect(Object.keys(users._findAts)).toEqual(['[{"name":"b"},{}]'])
+  expect(Object.keys(users._findAts)).toEqual([])
 })

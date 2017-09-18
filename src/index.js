@@ -16,12 +16,11 @@ export plugSearchable, { doSearch, tokenizeKeywords } from './plug/searchable'
 // table
 export { getState, getAll, addMutation } from './collection/base'
 export { load, loadAsDefaults } from './collection/load'
-export { isDirty, getSubmits, invalidate, reset, getOriginals } from './collection/original'
+export { isDirty, getOriginals, getSubmits, invalidate, reset, garbageCollect } from './collection/original'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, importSubmitRes } from './collection/submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './collection/fetcher'
 export memoizedFind from './collection/memoizedFind'
-export { resetTidyAuto } from './collection/gc'
 
 // table-bulk
 export loadCollections from './collection-bulk/loadCollections'

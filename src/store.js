@@ -1,18 +1,18 @@
 import _ from 'lodash'
 
 import { allPendings } from './collection/fetcher'
-import { invalidateAuto, resetTidyAuto, EXPIRED } from './collection/gc'
+import { invalidate, garbageCollect, EXPIRED, ALL } from './collection/original'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanCtx.overrides, _overrides)
 }
 
 export function invalidateStore(store, option = {}) {
-  _.each(store.collections, table => invalidateAuto(table, option.all ? null : EXPIRED, option))
+  _.each(store.collections, table => invalidate(table, option.all ? ALL : EXPIRED, option))
 }
 
 export function gcStore(store, option = {}) {
-  _.each(store.collections, table => resetTidyAuto(table, option.all ? null : EXPIRED, option))
+  _.each(store.collections, table => garbageCollect(table, option.all ? ALL : EXPIRED, option))
 }
 
 export function getStorePending(store) {
