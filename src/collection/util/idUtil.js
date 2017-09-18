@@ -1,9 +1,10 @@
 import _ from 'lodash'
 
 export const TMP_ID_PREFIX = 'dvtmp-'
+export const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmpIdPrefix)
+
 const sortUniq = ids => _.sortedUniq(ids.sort())
-const notTmpId = (id, tmpIdPrefix) => id && !_.startsWith(id, tmpIdPrefix)
-const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(sortUniq(ids), id => notTmpId(id, tmpIdPrefix))
+const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(sortUniq(ids), id => !isTmpId(id, tmpIdPrefix))
 
 export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   if (Array.isArray(query)) {
@@ -19,7 +20,7 @@ export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (matcher) {
-      if (typeof matcher === 'string' && _.startsWith(matcher, tmpIdPrefix)) {
+      if (typeof matcher === 'string' && isTmpId(matcher, tmpIdPrefix)) {
         return false
       } else if (matcher.$in) {
         const $in = sortUniqFilter(matcher.$in, tmpIdPrefix)

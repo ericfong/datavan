@@ -5,16 +5,17 @@ import { getState, addMutation } from './base'
 
 export const EXPIRED = 'EXPIRED'
 
-function getExpiredIds(table) {
-  if (!table.gcTime) return []
-  const expire = Date.now() - table.gcTime
+function getExpiredIds(self) {
+  if (!self.gcTime) return []
+  const expire = Date.now() - self.gcTime
   const expiredIds = []
-  _.each(table._fetchAts, (fetchAt, id) => {
-    if (fetchAt <= expire) {
+  const checker = (at, id) => {
+    if (at <= expire) {
       expiredIds.push(id)
     }
-  })
-  // console.log('getExpiredIds', table._fetchAts, expiredIds)
+  }
+  _.each(self._getAts, checker)
+  _.each(self._findAts, checker)
   return expiredIds
 }
 

@@ -3,7 +3,7 @@ import delay from 'delay'
 import { createCollection } from '.'
 import { resetTidyAuto } from './gc'
 import { getState } from './base'
-import { get, allPendings } from './fetcher'
+import { get, find, allPendings } from './fetcher'
 
 test('gc', async () => {
   const users = createCollection({
@@ -25,10 +25,12 @@ test('gc', async () => {
 
   // set b's fetchAt
   get(users, 'b')
+  find(users, { name: 'b' })
   await allPendings(users)
 
   // gc will remove a and keep b
   resetTidyAuto(users)
-  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null } })
-  expect(Object.keys(users._fetchAts)).toEqual(['b'])
+  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null, '[{"name":"b"},{}]': null } })
+  expect(Object.keys(users._getAts)).toEqual(['b'])
+  expect(Object.keys(users._findAts)).toEqual(['[{"name":"b"},{}]'])
 })

@@ -7,14 +7,6 @@ export const loadAsMerge = (v, id, self, targets) => {
   return typeof data === 'object' ? { ...targets[id], ...data } : data
 }
 
-// TODO remove this
-export const _loadAsRequest = v => v
-// TODO remove this
-export const getLoadMutation = (v, id, self, loadAs = loadAsMerge, srcs) => {
-  self._fetchAts[id] = Date.now()
-  return { $set: loadAs(v, id, self, srcs) }
-}
-
 function _loop(mut = {}, items, func) {
   const $merge = {}
   _.each(items, (value, id) => {
@@ -47,24 +39,26 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
 
   // tables of docs / ops
   const { byId, originals } = getState(self)
-  const { _fetchAts } = self
+  const { _getAts, _findAts } = self
   mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
     if (id in originals) return
-    _fetchAts[id] = Date.now()
+    _getAts[id] = Date.now()
     return loadAs(v, id, self, byId)
   })
   mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
-    _fetchAts[id] = Date.now()
+    // may not need to set _getAts
+    _getAts[id] = Date.now()
     return loadAs(v, id, self, originals)
   })
   mutation.requests = _loop(mutation.requests, data.requests, (v, id) => {
-    _fetchAts[id] = Date.now()
+    _findAts[id] = Date.now()
     return v
   })
 
   // explicit to invalidate some data, should to the last operation for load
   if (data.$invalidate) {
-    self._fetchAts = _.omit(_fetchAts, data.$invalidate)
+    self._getAts = _.omit(_getAts, data.$invalidate)
+    self._findAts = _.omit(_findAts, data.$invalidate)
   }
 
   addMutation(self, mutation)
@@ -77,7 +71,8 @@ export const loadAsDefaults = (v, id, self, targets) => {
 export function init(self) {
   self._memory = {}
   self._fetchingPromises = {}
-  self._fetchAts = {}
+  self._findAts = {}
+  self._getAts = {}
 
   // raw store state that not yet init
   const rawStoreState = getState(self)

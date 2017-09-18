@@ -2,8 +2,9 @@ import _ from 'lodash'
 
 import { getState, addMutation } from './base'
 
-export function invalidateFetchAt(table, ids) {
-  table._fetchAts = ids ? _.omit(table._fetchAts, ids) : {}
+export function invalidateFetchAt(self, ids) {
+  self._getAts = ids ? _.omit(self._getAts, ids) : {}
+  self._findAts = ids ? _.omit(self._findAts, ids) : {}
 }
 
 export function isDirty(table, id) {
@@ -31,3 +32,7 @@ export function reset(table, ids, option) {
   const mut = { byId: mutSet, requests: mutSet, originals: mutSet }
   addMutation(table, mut, option)
 }
+
+// One function to handle:
+// ids = null | AUTO_EXPIRED | [array-of-ids-or-query]
+// invalidate | resetTidy-only | reset all

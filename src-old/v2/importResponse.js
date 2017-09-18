@@ -4,6 +4,12 @@ import { getState, addMutation } from './base'
 import { getLoadMutation, _loadAsRequest } from './load'
 import { isDirty, invalidate } from './original'
 
+// TODO remove this
+const getLoadMutation = (v, id, self, loadAs = loadAsMerge, srcs) => {
+  self._fetchAts[id] = Date.now()
+  return { $set: loadAs(v, id, self, srcs) }
+}
+
 const getId = (doc, idField) => doc && doc[idField]
 
 function loopResponse(res, idField, handleOne) {
