@@ -1,5 +1,4 @@
 import { JSDOM } from 'jsdom'
-import injectTapEventPlugin from 'react-tap-event-plugin'
 
 const jsdom = new JSDOM('')
 
@@ -16,5 +15,3 @@ Object.keys(jsdom.window).forEach(property => {
 global.navigator = {
   userAgent: 'node.js',
 }
-
-injectTapEventPlugin()
