@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { allPendings } from './collection/fetcher'
-import { invalidate, garbageCollect, EXPIRED, ALL } from './collection/original'
+import { allPendings } from '../collection/fetcher'
+import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanCtx.overrides, _overrides)

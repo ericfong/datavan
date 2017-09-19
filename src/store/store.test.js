@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, setOverrides, plugBrowser } from '.'
+import { datavanEnhancer, defineCollection, setOverrides, plugBrowser } from '..'
 
 test('defineCollection', async () => {
   const Browser = defineCollection({ name: 'browser' })

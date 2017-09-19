@@ -6,10 +6,10 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanReducer, datavanEnhancer, collect, getStorePending, loadCollections } from '.'
+import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections } from '.'
 
 test('merge state with redux dispatch changes by another reducer', async () => {
-  const Memory = state => collect(state, { name: 'memory' })
+  const Memory = defineCollection('memory')
   const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer())
 
   // init and set
@@ -40,7 +40,7 @@ test('combineReducers', async () => {
       memory: { byId: { theme: 'light' } },
     },
   }
-  const Memory = state => collect(state, { name: 'memory' })
+  const Memory = defineCollection('memory')
   const store = createStore(
     // combineReducers will remove all state that without keys
     combineReducers({
@@ -61,7 +61,7 @@ test('combineReducers', async () => {
 })
 
 it('same state', async () => {
-  const Users = state => collect(state, { name: 'users' })
+  const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer())
   Users(store).set('u1', 'user 1 name!!')
 
@@ -71,11 +71,7 @@ it('same state', async () => {
     return {
       user1: Users(state).get('u1'),
     }
-  })(props =>
-    (<span>
-      {props.user1}
-    </span>)
-  )
+  })(props => <span>{props.user1}</span>)
   const wrapper = mount(
     <Provider store={store}>
       <UserComp />
@@ -94,7 +90,7 @@ it('same state', async () => {
 })
 
 it('basic', async () => {
-  const Users = state => collect(state, { name: 'users' })
+  const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer())
 
   let lastClickValue
@@ -109,11 +105,7 @@ it('basic', async () => {
     })
   )(props => {
     props.onClick()
-    return (
-      <span>
-        {props.user1}
-      </span>
-    )
+    return <span>{props.user1}</span>
   })
 
   Users(store).set('u1', 'user 1 name!!')

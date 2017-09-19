@@ -1,7 +1,7 @@
 import delay from 'delay'
 
 import { createCollection } from '.'
-import { garbageCollect } from './original'
+import { garbageCollect } from './invalidate'
 import { getState } from './base'
 import { get, find, allPendings } from './fetcher'
 

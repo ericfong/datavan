@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
-import { reset, getSubmits } from './original'
+import { getSubmits } from './base'
+import { reset } from './invalidate'
 import { load } from './load'
 
 export function importSubmitRes(self, submittedDocs, res) {

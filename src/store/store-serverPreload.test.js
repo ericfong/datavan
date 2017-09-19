@@ -5,8 +5,9 @@ import React from 'react'
 import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
-import { datavanEnhancer, defineCollection, serverPreload } from '.'
-import { getQueryIds } from './collection/util/idUtil'
+
+import { datavanEnhancer, defineCollection, serverPreload } from '..'
+import { getQueryIds } from '../collection/util/idUtil'
 
 test('server preload', async () => {
   const Users = defineCollection({
@@ -24,11 +25,7 @@ test('server preload', async () => {
     user: Users(state).findOne({ _id: props.userId }, { serverPreload: true }),
   }))(props => {
     const user = props.user || {}
-    return (
-      <span>
-        {user.name}
-      </span>
-    )
+    return <span>{user.name}</span>
   })
 
   const FriendComp = connect(state => ({

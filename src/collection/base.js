@@ -1,8 +1,9 @@
-// import _ from 'lodash'
+import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { emit } from '../store/emit'
 
+// getState
 const vanState = store => store.getState().datavan
 const getStoreTableState = table => table.store && vanState(table.store)[table.name]
 export function getState(table) {
@@ -17,6 +18,7 @@ export function getState(table) {
   return table._pendingState || currState
 }
 
+// mutate
 export function addMutation(table, mut, option) {
   const prevState = getState(table)
   const mutation = mut || { $set: { ...prevState } }
@@ -29,7 +31,8 @@ export function addMutation(table, mut, option) {
   return nextState
 }
 
-// move out the following?
+// ===========================================================================================
+// base-methods
 
 export function getAll(table) {
   return table.onGetAll()
@@ -37,4 +40,17 @@ export function getAll(table) {
 
 export function _get(table, id) {
   return table.onGet(id)
+}
+
+export function getOriginals(table) {
+  return getState(table).originals
+}
+
+export function getSubmits(table) {
+  const { byId, originals } = getState(table)
+  return _.mapValues(originals, (v, k) => byId[k])
+}
+
+export function isDirty(table, id) {
+  return id in getState(table).originals
 }
