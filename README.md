@@ -1,16 +1,14 @@
 ![https://img.shields.io/npm/v/datavan.svg](https://img.shields.io/npm/v/datavan.svg?style=flat-square) [![state](https://img.shields.io/badge/state-alpha-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/datavan.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/datavan.svg?style=flat-square)]()
 
-> wrap redux state into mongodb-like collections, customizable fetching and submitting logic
+__Redux with MongoDB-like API__
 
 __Features__
 - based on [redux](https://www.npmjs.com/package/redux)
-- can access regular http/async/promise api
-- results are auto cached
-- already have reselect like memoize layer, don't need to think about createSelector
-- also work for sync datasource (ex: localStorage)
-- support offline or server-side-render (resolve conflict on your own)
+- customizable fetch, submit, sync logic (can access http/async/promise api)
+- with `reselect` like memoize layer, don't need to think about createSelector
+- supports server rendering
+- supports offline (persistent, conflict-resolve on your own)
 - with searchable plugin
-- persistent on your own
 - code in es6, support tree-shaking
 
 __How It works?__
