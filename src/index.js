@@ -6,7 +6,8 @@ export { invalidate, reset, garbageCollect } from './collection/invalidate'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, importSubmitRes } from './collection/submitter'
 export { find, findAsync, get, getAsync, findOne, allPendings } from './collection/fetcher'
-export memoizedFind from './collection/memoizedFind'
+export memoizedFind from './collection/findInMemory'
+export findInMemory from './collection/findInMemory'
 
 // redux
 export { defineCollection } from './defineCollection'

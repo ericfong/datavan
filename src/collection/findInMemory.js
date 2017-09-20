@@ -20,7 +20,7 @@ function findDataOrRequest(self, query, option) {
   return doFind(self, query, option)
 }
 
-export default function memoizedFind(self, query, option) {
+export default function findInMemory(self, query, option = {}) {
   let { _memory } = self
   // if (option.cacheOnly) return _memory[calcQueryKey(query, option)]
   const { _memoryById } = self
