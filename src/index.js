@@ -23,10 +23,11 @@ export plugBrowser from './plug/browser'
 export plugCookie from './plug/cookie'
 export plugKoaCookie from './plug/koaCookie'
 export plugLocalStorage from './plug/localStorage'
-export plugSearchable, { doSearch, tokenizeKeywords } from './plug/searchable'
+export plugSearchable from './plug/searchable'
 
 // utils
 export getSetters from './util/getSetters'
 export { getQueryIds, onFetchById } from './collection/util/idUtil'
 export batcher from './util/batcher'
 export withBindForm from './util/withBindForm'
+export searchObjects, { tokenizeKeywords } from './util/searchObjects'

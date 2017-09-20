@@ -23,7 +23,7 @@ __Table of Contents__
 - [Getting Started](#getting-started)
 - [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
     - [defineCollection(name, spec)](#definecollectionname-spec)
-    - [datavanEnhancer({ overrides, context })](#datavanenhancer-overrides-context-)
+    - [datavanEnhancer({ overrides, ...context })](#datavanenhancer-overrides-context-)
 - [Collection Methods](#collection-methods)
     - [find(collection, query, option)](#findcollection-query-option)
     - [findAsync(collection, query, option)](#findasynccollection-query-option)
@@ -32,6 +32,7 @@ __Table of Contents__
     - [getAsync(collection, query, option)](#getasynccollection-query-option)
     - [setAll(collection, valuesTable)](#setallcollection-valuestable)
     - [getSubmits(collection)](#getsubmitscollection)
+    - [getOriginals(collection)](#getoriginalscollection)
     - [set(collection, id, doc) | set(collection, doc)](#setcollection-id-doc--setcollection-doc)
     - [del(collection, id)](#delcollection-id)
     - [insert(collection, doc | docs)](#insertcollection-doc--docs)
@@ -40,6 +41,8 @@ __Table of Contents__
     - [invalidate(collection, ids)](#invalidatecollection-ids)
     - [reset(collection, ids, option)](#resetcollection-ids-option)
     - [getAll(collection)](#getallcollection)
+    - [submit(collection, onSubmitFunc)](#submitcollection-onsubmitfunc)
+    - [load(table, data, option)](#loadtable-data-option)
 - [Collection Spec](#collection-spec)
     - [idField](#idfield)
     - [onFetch(fetchQuery, option, collection)](#onfetchfetchquery-option-collection)
@@ -53,6 +56,7 @@ __Table of Contents__
     - [onSetAll(newDocs, option)](#onsetallnewdocs-option)
     - [onMutate(nextById, prevById, mutation)](#onmutatenextbyid-prevbyid-mutation)
     - [dependencies: Array of other collection selectors](#dependencies-array-of-other-collection-selectors)
+    - [initState](#initstate)
 - [Plugins](#plugins)
     - [plugBrowser](#plugbrowser)
     - [plugLocalStorage(localStorage | sessionStorage)](#pluglocalstoragelocalstorage--sessionstorage)
@@ -65,8 +69,9 @@ __Table of Contents__
     - [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
     - [getContext(store)](#getcontextstore)
     - [setContext(store, ctx)](#setcontextstore-ctx)
+    - [loadCollections(store, collectionsData)](#loadcollectionsstore-collectionsdata)
 - [Util functions](#util-functions)
-    - [doSearch(docs, keywordStr, getSearchFields)](#dosearchdocs-keywordstr-getsearchfields)
+    - [searchObjects(docs, keywordStr, getSearchFields)](#searchobjectsdocs-keywordstr-getsearchfields)
 - [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
@@ -506,7 +511,7 @@ render react components in server side. Reference to [Server Rendering](#server-
 
 # Util functions
 
-### doSearch(docs, keywordStr, getSearchFields)
+### searchObjects(docs, keywordStr, getSearchFields)
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | docs | `[doc]` | __required__ | the source of searching docs |
