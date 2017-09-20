@@ -48,7 +48,7 @@ export function garbageCollect(self, ids = EXPIRED, option) {
 
   const byId = { $unset: _.filter(ids ? omitedGets : Object.keys(oldById), isTidy) }
   const requests = ids ? { $unset: omitedFinds } : { $set: {} }
-  addMutation(self, { byId, requests, originals }, option)
+  addMutation(self, { byId, requests }, option)
 }
 
 export function reset(self, ids = ALL, option) {
