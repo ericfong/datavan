@@ -7,7 +7,7 @@ import * as state from './base'
 import * as setter from './setter'
 import * as invalidate from './invalidate'
 import * as submitter from './submitter'
-import * as fetcher from './fetcher'
+import * as find from './find'
 
 const { getState } = state
 
@@ -34,7 +34,7 @@ const functions = {
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
-_.each({ ...state, ...setter, ...fetcher }, (func, key) => {
+_.each({ ...state, ...setter, ...find }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {

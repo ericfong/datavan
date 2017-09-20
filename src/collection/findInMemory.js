@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { calcQueryKey } from './util/keyUtil'
 import { getState } from './base'
-import doFind from './doFind'
+import findInState from './findInState'
 
 function findDataOrRequest(self, query, option) {
   // request-only (only for Fetcher case?)
@@ -17,7 +17,7 @@ function findDataOrRequest(self, query, option) {
     query = _.omit(query, '$request')
   }
 
-  return doFind(self, query, option)
+  return findInState(self, query, option)
 }
 
 export default function findInMemory(self, query, option = {}) {

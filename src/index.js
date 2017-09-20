@@ -5,7 +5,7 @@ export { load, loadAsDefaults } from './collection/load'
 export { invalidate, reset, garbageCollect } from './collection/invalidate'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, importSubmitRes } from './collection/submitter'
-export { find, findAsync, get, getAsync, findOne, allPendings } from './collection/fetcher'
+export { find, findAsync, get, getAsync, findOne, allPendings } from './collection/find'
 export memoizedFind from './collection/findInMemory'
 export findInMemory from './collection/findInMemory'
 

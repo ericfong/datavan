@@ -3,7 +3,7 @@ import delay from 'delay'
 import { createCollection } from '.'
 import { garbageCollect } from './invalidate'
 import { getState } from './base'
-import { get, find, allPendings } from './fetcher'
+import { get, find, allPendings } from './find'
 
 test('gc', async () => {
   const users = createCollection({

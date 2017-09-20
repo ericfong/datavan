@@ -15,7 +15,7 @@ function mongoToLodash(sort) {
 }
 
 // @auto-fold here
-export function processOption(arr, option) {
+function processOption(arr, option) {
   if (option) {
     if (option.sort) {
       const [fields, orders] = mongoToLodash(option.sort)
@@ -72,7 +72,7 @@ function runHook(self, hook, firstArg, ...args) {
   return firstArg
 }
 
-export default function doFind(self, query, option) {
+export default function findInState(self, query, option) {
   let docs = prepareFindData(self, query)
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)

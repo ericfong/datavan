@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { allPendings } from '../collection/fetcher'
+import { allPendings } from '../collection/find'
 import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
 
 export function setOverrides(store, _overrides) {
