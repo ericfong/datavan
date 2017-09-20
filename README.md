@@ -57,24 +57,16 @@ __Table of Contents__
     - [onMutate(nextById, prevById, mutation)](#onmutatenextbyid-prevbyid-mutation)
     - [dependencies: Array of other collection selectors](#dependencies-array-of-other-collection-selectors)
     - [initState](#initstate)
-- [Plugins](#plugins)
-    - [plugBrowser](#plugbrowser)
-    - [plugLocalStorage(localStorage | sessionStorage)](#pluglocalstoragelocalstorage--sessionstorage)
-    - [plugCookie(cookieConf)](#plugcookiecookieconf)
-    - [plugKoaCookie(cookieConf, koaCtx)](#plugkoacookiecookieconf-koactx)
-    - [plugSearchable({ fields: [] })](#plugsearchable-fields--)
-- [Store functions](#store-functions)
-    - [invalidateStore(store, option)](#invalidatestorestore-option)
-    - [gcStore(store, option)](#gcstorestore-option)
-    - [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
-    - [getContext(store)](#getcontextstore)
-    - [setContext(store, ctx)](#setcontextstore-ctx)
-    - [loadCollections(store, collectionsData)](#loadcollectionsstore-collectionsdata)
-- [Util functions](#util-functions)
-    - [searchObjects(docs, keywordStr, getSearchFields)](#searchobjectsdocs-keywordstr-getsearchfields)
-- [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
+
+__Other Docs__
+- [Server Rendering](https://github.com/ericfong/datavan/blob/master/doc/Server_Rendering.md)
+- [Store functions](https://github.com/ericfong/datavan/blob/master/doc/Store_Functions.md)
+- [Plugins](https://github.com/ericfong/datavan/blob/master/doc/Plugins.md)
+- [Util functions](https://github.com/ericfong/datavan/tree/master/doc/util)
+
+
 
 
 
@@ -441,127 +433,4 @@ defineCollection('users', {
     requests: {},
   },
 })
-```
-
-
-
-
-
-# Plugins
-
-### plugBrowser
-get and listen to browser resize, will mixin `getWidth()` and `getHeight()` functions
-```js
-datavanEnhancer({ overrides: { browser: plugBrowser } })  // plugBrowser is a object
-```
-
-### plugLocalStorage(localStorage | sessionStorage)
-read, write localStorage or sessionStorage
-```js
-datavanEnhancer({ overrides: { sessionStorage: plugLocalStorage(sessionStorage) } })
-```
-
-### plugCookie(cookieConf)
-read, write browser cookie
-```js
-datavanEnhancer({ overrides: { cookie: plugCookie(cookieConf) } })
-// cookieConf ref to [js-cookie](https://www.npmjs.com/package/js-cookie)
-```
-
-### plugKoaCookie(cookieConf, koaCtx)
-read, write cookie in koa
-```js
-datavanEnhancer({ overrides: { cookie: plugKoaCookie(cookieConf, koaCtx) } })
-// cookieConf ref to [cookies](https://www.npmjs.com/package/cookies)
-// koaCtx is koa ctx object
-```
-
-### plugSearchable({ fields: [] })
-add simple full-text search to collection
-```js
-datavanEnhancer({ overrides: {
-  users: plugSearchable({ fields: ['firstName', 'lastName', ...] })
-} })
-// OR
-defineCollection('blogs', plugSearchable(...)({ idField: 'id', ...others }))
-```
-
-
-
-
-
-# Store functions
-
-### invalidateStore(store, option)
-run auto invalidate on all collections
-
-### gcStore(store, option)
-run auto gc on all collections
-
-### serverPreload(store, renderCallback)
-render react components in server side. Reference to [Server Rendering](#server-rendering)
-
-### getContext(store)
-
-### setContext(store, ctx)
-
-### loadCollections(store, collectionsData)
-
-
-
-# Util functions
-
-### searchObjects(docs, keywordStr, getSearchFields)
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| docs | `[doc]` | __required__ | the source of searching docs |
-| keywordStr | `string` | __required__ | search keyword string |
-| getSearchFields | `function` | __required__ | `function(doc) { return ['name', 'search-field', ...] }` function that return array of field names for searching per doc |
-
-
-
-
-
-# Server Rendering
-```js
-import { createStore } from 'redux'
-import { Provider, connect } from 'react-redux'
-import { defineCollection, datavanEnhancer, serverPreload } from '.'
-
-// define collection
-const Users = defineCollection('users', {
-  onFetch(query, option) { /* browser side implementation */ },
-})
-
-// connect react component
-const MyApp = connect((state, { username }) => {
-  return {
-    user: Users(state).findOne({ username }, { serverPreload: true }),
-  }
-})(PureComponent)
-
-// create store
-const serverStore = createStore(null, null, datavanEnhancer(
-  overrides: {
-    users: {
-      onFetch(query, option) { /* server side override */ },
-    },
-  },
-))
-
-// renderToString
-const html = await serverPreload(serverStore, () =>
-  ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
-)
-
-// transfer data to browser
-const json = JSON.stringify(store.getState())
-
-// -------
-
-// browser side
-const preloadedState = JSON.parse(json)
-const browserStore = createStore(null, preloadedState, datavanEnhancer())
-
-ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
 ```
