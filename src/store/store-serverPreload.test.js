@@ -6,7 +6,7 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 
-import { datavanEnhancer, defineCollection, serverPreload } from '..'
+import { datavanEnhancer, defineCollection, serverPreload, findOne } from '..'
 import { getQueryIds } from '../collection/util/idUtil'
 
 test('server preload', async () => {
@@ -22,14 +22,14 @@ test('server preload', async () => {
   const store = createStore(null, null, datavanEnhancer())
 
   const UserComp = connect((state, props) => ({
-    user: Users(state).findOne({ _id: props.userId }, { serverPreload: true }),
+    user: findOne(Users(state), { _id: props.userId }, { serverPreload: true }),
   }))(props => {
     const user = props.user || {}
     return <span>{user.name}</span>
   })
 
   const FriendComp = connect(state => ({
-    user: Users(state).findOne({ _id: 'u2' }, { serverPreload: true }),
+    user: findOne(Users(state), { _id: 'u2' }, { serverPreload: true }),
   }))(props => {
     const user = props.user || {}
     return (

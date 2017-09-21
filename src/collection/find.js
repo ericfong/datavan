@@ -1,6 +1,4 @@
-import _ from 'lodash'
-
-import { addMutation } from './base'
+import { getState, addMutation } from './base'
 import { load } from './load'
 import findInMemory from './findInMemory'
 import { isTmpId } from './util/idUtil'
@@ -19,17 +17,19 @@ function addFetchingPromise(fetchingPromises, fetchKey, promise) {
     })
 }
 
+// @auto-fold here
 function checkOption(self, { fetch, serverPreload }) {
+  if (!self.onFetch) return false
   if (fetch === false) return false
   if (self.store && self.store.vanCtx.duringServerPreload && !serverPreload) return false
   return true
 }
 
-function _fetch(self, query, option) {
+function doFetch(self, query, option) {
+  getState(self).fetchAts[option.fetchKey] = 1
+
   return Promise.resolve(self.onFetch(query, option, self))
     .then(res => {
-      // force to set requests[fetchKey] to null
-      option.mutation = { requests: { [option.fetchKey]: { $set: null } } }
       load(self, res, option)
       addMutation(self, null) // force render to update isFetching
       return res
@@ -39,93 +39,44 @@ function _fetch(self, query, option) {
     })
 }
 
-function markAts(self, atKey, key) {
-  const ats = self[atKey]
-  if (ats[key]) return false
-  ats[key] = Date.now()
-}
-
-// ======================================================================================
-// find
-// ======================================================================================
-
-function checkFind(self, query, option) {
-  // NOTE support invalidate without flashing UI. So, cannot use "if (!option.missIds && !option.missQuery) return DONT_FETCH"
-
-  const fetchQuery = (option.fetchQuery = self.getFetchQuery(query, option))
+function checkFetch(self, fetchQuery, option) {
   const fetchKey = (option.fetchKey = self.getFetchKey(fetchQuery, option))
-  // console.log('checkFind: fetchKey=', fetchKey)
   if (fetchKey === false) return false
 
-  if (markAts(self, '_findAts', fetchKey) === false) return false
+  const fetchAts = getState(self).fetchAts
+  // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
+  if (fetchAts[fetchKey]) return false
+  // fetchAts is set in doFetch
 
-  if (self._fetchingPromises[fetchKey]) return false
-  return fetchQuery
-}
-
-export function find(core, query = {}, option = {}) {
-  if (core.onFetch) {
-    if (checkOption(core, option)) {
-      const fetchQuery = checkFind(core, query, option)
-      if (fetchQuery !== false) {
-        const p = _fetch(core, fetchQuery, option)
-        addFetchingPromise(core._fetchingPromises, option.fetchKey, p)
-      }
-    }
+  // want to return fetching promise for findAsync
+  const _fetchingPromises = self._fetchingPromises
+  let promise = _fetchingPromises[fetchKey]
+  if (!promise) {
+    promise = doFetch(self, fetchQuery, option)
+    addFetchingPromise(_fetchingPromises, fetchKey, promise)
   }
-  return findInMemory(core, query, option)
-}
-
-export function findAsync(core, query = {}, option = {}) {
-  const fetchQuery = checkFind(core, query, option)
-  if (fetchQuery !== false) {
-    option.preparedData = null
-    return _fetch(core, fetchQuery, option).then(() => findInMemory(core, query, option))
-  }
-  return Promise.resolve(findInMemory(core, query, option))
+  return promise
 }
 
 // ======================================================================================
-// get
+// find & get
 // ======================================================================================
 
-function checkGet(self, id, option) {
-  if (isTmpId(id)) return false
-  const fetchQuery = (option.fetchQuery = [id])
-  const fetchKey = (option.fetchKey = self.getFetchKey(fetchQuery, option))
+export function find(self, query = {}, option = {}) {
+  if (checkOption(self, option)) {
+    checkFetch(self, self.getFetchQuery(query, option), option)
+  }
+  return findInMemory(self, query, option)
+}
 
-  if (markAts(self, '_getAts', fetchKey) === false) return false
-
-  if (self._fetchingPromises[fetchKey]) return false
-  return fetchQuery
+export function findAsync(self, query = {}, option = {}) {
+  const promise = checkFetch(self, self.getFetchQuery(query, option), option)
+  return Promise.resolve(promise).then(() => findInMemory(self, query, option))
 }
 
 export function get(self, id, option = {}) {
-  if (self.onFetch) {
-    if (!id) return undefined
-    if (checkOption(self, option)) {
-      const fetchQuery = checkGet(self, id, option)
-      if (fetchQuery !== false) {
-        const p = _fetch(self, fetchQuery, option)
-        addFetchingPromise(self._fetchingPromises, option.fetchKey, p)
-      }
-    }
+  if (checkOption(self, option) && !isTmpId(id)) {
+    checkFetch(self, [id], option)
   }
   return self.onGet(id, option)
-}
-
-export function getAsync(core, id, option = {}) {
-  return findAsync(core, [id], option).then(_.first)
-}
-
-// ======================================================================================
-// extra
-// ======================================================================================
-
-export function findOne(core, query, option) {
-  return find(core, query, { ...option, limit: 1 })[0]
-}
-
-export function allPendings(core) {
-  return Object.values(core._fetchingPromises)
 }

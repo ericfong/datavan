@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { createCollection } from '.'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate } from '..'
+import { invalidate, allPendings } from '..'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 
@@ -31,7 +31,7 @@ test('hasFetch cache', async () => {
     onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
   })
   users.find(['id-123'])
-  await Promise.all(users.allPendings())
+  await Promise.all(allPendings(users))
   users.find(['id-123'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
@@ -41,7 +41,7 @@ test('onFetch with $invalidate', async () => {
     onFetch: jest.fn(() => timeoutResolve({ byId: { 'id-123': undefined }, $invalidate: ['id-123'] })),
   })
   users2.find(['id-123'])
-  await Promise.all(users2.allPendings())
+  await Promise.all(allPendings(users2))
   users2.find(['id-123'])
   expect(users2.onFetch).toHaveBeenCalledTimes(2)
 })
@@ -86,7 +86,7 @@ test('consider getFetchKey', async () => {
   // invalid id won't refetch
   users.find([null])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
-  await Promise.all(users.allPendings())
+  await Promise.all(allPendings(users))
   users.find([null])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
@@ -102,16 +102,14 @@ test('fetch: false', async () => {
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
 })
 
-test('batch get failback to find', async () => {
-  const Users = createCollection({ onFetch: jest.fn(echo) })
-  Users.get('1')
-  Users.get('2')
-  await Promise.all(Users.allPendings())
-  expect(Users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
-
-  // TODO expect(Users.onFetch).toHaveBeenCalledTimes(1)
-
-  expect(await Users.findAsync({ _id: '3' })).toEqual([{ _id: '3', name: 'Echo-3' }])
+test('get failback to find', async () => {
+  const users = createCollection({ onFetch: jest.fn(echo) })
+  users.get('1')
+  users.get('2')
+  await Promise.all(allPendings(users))
+  expect(users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
+  // TODO expect(users.onFetch).toHaveBeenCalledTimes(1)
+  expect(await users.findAsync({ _id: '3' })).toEqual([{ _id: '3', name: 'Echo-3' }])
 })
 
 test('basic', async () => {
@@ -142,23 +140,22 @@ test('basic', async () => {
 
   // normal get
   expect(Users.get('u1')).toBe(undefined)
-  await Promise.all(Users.allPendings())
+  await Promise.all(allPendings(Users))
   expect(Users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
   expect(Users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
-  await Promise.all(Users.allPendings())
+  await Promise.all(allPendings(Users))
   expect(Users.find({}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
-  // won't affect calledGet, because search or find will fill individual cacheTimes
-  Users.get('u2')
-  await Promise.all(Users.allPendings())
+  Users.get('u1')
+  await Promise.all(allPendings(Users))
   expect(calledGet).toBe(1)
 
   // load something missing
   Users.get('not_exists')
-  await Promise.all(Users.allPendings())
+  await Promise.all(allPendings(Users))
   expect(calledGet).toBe(2)
 
   // load local won't affect

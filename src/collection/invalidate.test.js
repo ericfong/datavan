@@ -1,37 +1,36 @@
-import delay from 'delay'
-
 import { createCollection } from '.'
 import { garbageCollect } from './invalidate'
 import { getState } from './base'
-import { get, find, allPendings } from './find'
+import { get, find, allPendings } from '..'
 
 test('gc', async () => {
   const users = createCollection({
     name: 'users',
     onFetch: () => Promise.resolve([{ _id: 'b', name: 'b' }]),
     initState: {
-      byId: { a: 1 },
+      byId: { a: 'Hi' },
     },
     gcTime: 3600 * 1000,
   })
 
-  // won't gc recent docs
-  garbageCollect(users)
-  expect(getState(users)).toEqual({ byId: { a: 1 }, originals: {}, requests: {} })
+  // load will set _byIdAts
+  expect(users._byIdAts).toEqual({ a: 1 })
 
-  // shorten the gcTime
-  users.gcTime = 100
-  await delay(users.gcTime)
+  garbageCollect(users)
+  // _byIdAts reduced
+  expect(users._byIdAts).toEqual({ a: 0 })
+  // a still in byId
+  expect(getState(users)).toEqual({ byId: { a: 'Hi' }, originals: {}, fetchAts: {} })
 
   // set b's fetchAt
   get(users, 'b')
   find(users, { name: 'b' })
   await allPendings(users)
 
-  // gc will remove a and keep b, and remove related query
-  // TODO detect "Related" query
+  // shorten the gcTime to force gc
+  users.gcTime = 0
   garbageCollect(users)
-  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, requests: { b: null } })
-  expect(Object.keys(users._getAts)).toEqual(['b'])
-  expect(Object.keys(users._findAts)).toEqual([])
+  // gc will remove a and keep b, and remove related query
+  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, fetchAts: {} })
+  expect(Object.keys(users._byIdAts)).toEqual(['b'])
 })

@@ -8,7 +8,7 @@ import { mount } from 'enzyme'
 import '../tool/test-setup'
 import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections } from '.'
 
-test('merge state with redux dispatch changes by another reducer', async () => {
+test('merge state with redux dispatch changes by another reducer', () => {
   const Memory = defineCollection('memory')
   const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer())
 
@@ -60,7 +60,7 @@ test('combineReducers', async () => {
   expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
 })
 
-it('same state', async () => {
+test('same state', () => {
   const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer())
   Users(store).set('u1', 'user 1 name!!')
@@ -89,7 +89,7 @@ it('same state', async () => {
   expect(runTime).toBe(2)
 })
 
-it('basic', async () => {
+test('basic', () => {
   const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer())
 

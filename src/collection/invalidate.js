@@ -7,32 +7,43 @@ import { getState, addMutation } from './base'
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
-function _omitAts(self, atKey, ids) {
+function _omitAts(state, atKey, ids) {
   let omitedIds
   if (ids === EXPIRED) {
     omitedIds = []
-    if (self.onFetch && self.gcTime > 0) {
-      const expire = Date.now() - self.gcTime
-      self[atKey] = _.omitBy(self[atKey], (at, id) => {
-        const shouldBeOmit = at <= expire
-        if (shouldBeOmit) omitedIds.push(id)
-        return shouldBeOmit
-      })
-    }
+    state[atKey] = _.reduce(
+      state[atKey],
+      (acc, at, id) => {
+        at -= 1
+        const shouldBeOmit = at < 0
+        if (shouldBeOmit) {
+          omitedIds.push(id)
+        } else {
+          acc[id] = at
+        }
+        return acc
+      },
+      {}
+    )
   } else if (ids) {
     omitedIds = ids
-    self[atKey] = _.omit(self[atKey], ids)
+    state[atKey] = _.omit(state[atKey], ids)
   } else {
-    omitedIds = Object.keys(self[atKey])
-    self[atKey] = {}
+    // ALL
+    omitedIds = Object.keys(state[atKey])
+    state[atKey] = {}
   }
   return omitedIds
 }
 
-function _invalidate(self, ids) {
-  const omitedGets = _omitAts(self, '_getAts', ids)
-  const omitedFinds = _omitAts(self, '_findAts', omitedGets.length > 0 ? ALL : ids)
-  return { omitedGets, omitedFinds }
+export function _invalidate(self, ids) {
+  if (self.onFetch) {
+    const delByIds = _omitAts(self, '_byIdAts', ids)
+    // TODO only drop related fetchs
+    const delFetchKeys = _omitAts(getState(self), 'fetchAts', delByIds.length > 0 ? ALL : ids)
+    return { delByIds, delFetchKeys }
+  }
+  return { delByIds: [], delFetchKeys: [] }
 }
 
 export function invalidate(self, ids = EXPIRED, option) {
@@ -40,22 +51,36 @@ export function invalidate(self, ids = EXPIRED, option) {
   addMutation(self, null, option)
 }
 
+export function reset(self, ids = ALL, option) {
+  const { delByIds, delFetchKeys } = _invalidate(self, ids)
+
+  const byId = ids ? { $unset: delByIds } : { $set: {} }
+  const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
+  const originals = byId
+  addMutation(self, { byId, fetchAts, originals }, option)
+}
+
 // reset will reset both dirty and tidy docs, garbageCollect only reset tidy docs
-export function garbageCollect(self, ids = EXPIRED, option) {
-  const { omitedGets, omitedFinds } = _invalidate(self, ids)
+function _garbageCollect(self, ids = EXPIRED, option) {
+  const { delByIds, delFetchKeys } = _invalidate(self, ids)
   const { byId: oldById, originals } = getState(self)
   const isTidy = id => !(id in originals)
 
-  const byId = { $unset: _.filter(ids ? omitedGets : Object.keys(oldById), isTidy) }
-  const requests = ids ? { $unset: omitedFinds } : { $set: {} }
-  addMutation(self, { byId, requests }, option)
+  const byId = { $unset: _.filter(ids ? delByIds : Object.keys(oldById), isTidy) }
+  const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
+  addMutation(self, { byId, fetchAts }, option)
 }
 
-export function reset(self, ids = ALL, option) {
-  const { omitedGets, omitedFinds } = _invalidate(self, ids)
-
-  const byId = ids ? { $unset: omitedGets } : { $set: {} }
-  const requests = ids ? { $unset: omitedFinds } : { $set: {} }
-  const originals = byId
-  addMutation(self, { byId, requests, originals }, option)
+export function garbageCollect(self, ids, option) {
+  if (option && option.force) {
+    _garbageCollect(self, ids, option)
+  }
+  if (self.gcTime >= 0) {
+    const now = Date.now()
+    const expire = now - self.gcTime
+    if (!self._gcAt || self._gcAt <= expire) {
+      self._gcAt = now
+      _garbageCollect(self, ids, option)
+    }
+  }
 }

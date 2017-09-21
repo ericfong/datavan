@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import { getState, addMutation } from './base'
+import { _invalidate } from './invalidate'
 
 export const loadAsMerge = (v, id, self, targets) => {
   const data = self.cast(v)
@@ -9,9 +10,10 @@ export const loadAsMerge = (v, id, self, targets) => {
 
 function _loop(mut = {}, items, func) {
   const $merge = {}
+  let unset
   _.each(items, (value, id) => {
     if (id === '$unset') {
-      mut.$unset = value
+      unset = value
     } else {
       const v = func(value, id)
       if (v !== undefined) {
@@ -20,6 +22,8 @@ function _loop(mut = {}, items, func) {
       }
     }
   })
+  // ensure $unset in the last
+  if (unset) mut.$unset = unset
   return mut
 }
 
@@ -30,7 +34,7 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
     const idField = self.idField
     const byId = _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
     data = { byId }
-  } else if ('byId' in data || 'originals' in data || 'requests' in data) {
+  } else if ('byId' in data) {
     // directly use data
   } else {
     // table of docs
@@ -39,26 +43,19 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
 
   // tables of docs / ops
   const { byId, originals } = getState(self)
-  const { _getAts, _findAts } = self
+  const { _byIdAts } = self
   mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
     if (id in originals) return
-    _getAts[id] = Date.now()
+    _byIdAts[id] = 1
     return loadAs(v, id, self, byId)
   })
   mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
-    // may not need to set _getAts
-    _getAts[id] = Date.now()
     return loadAs(v, id, self, originals)
   })
-  mutation.requests = _loop(mutation.requests, data.requests, (v, id) => {
-    _findAts[id] = Date.now()
-    return v
-  })
+  mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
 
-  // explicit to invalidate some data, should to the last operation for load
   if (data.$invalidate) {
-    self._getAts = _.omit(_getAts, data.$invalidate)
-    self._findAts = _.omit(_findAts, data.$invalidate)
+    _invalidate(self, data.$invalidate)
   }
 
   addMutation(self, mutation)
@@ -71,8 +68,7 @@ export const loadAsDefaults = (v, id, self, targets) => {
 export function init(self) {
   self._memory = {}
   self._fetchingPromises = {}
-  self._findAts = {}
-  self._getAts = {}
+  self._byIdAts = {}
 
   // raw store state that not yet init
   const rawStoreState = getState(self)
@@ -83,7 +79,7 @@ export function init(self) {
   const _pendingState = self._pendingState
 
   // new pending state
-  self._pendingState = _.defaults({}, { byId: {}, requests: {}, originals: {} })
+  self._pendingState = _.defaults({}, { byId: {}, fetchAts: {}, originals: {} })
 
   if (_pendingState) load(self, _pendingState)
   if (self.initState) load(self, self.initState)

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { createCollection } from '.'
-import { getSubmits, submit } from '..'
+import { getSubmits, submit, findOne, allPendings } from '..'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
@@ -85,12 +85,12 @@ test('basic', async () => {
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
-  const car = Users.findOne({ name: 'Car' })
+  const car = findOne(Users, { name: 'Car' })
   Users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car 2'])
 
   // mix data from server
   Users.get('u1')
-  await Promise.all(Users.allPendings())
+  await Promise.all(allPendings(Users))
   expect(_.map(Users.onGetAll(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })
