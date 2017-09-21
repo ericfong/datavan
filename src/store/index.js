@@ -1,18 +1,18 @@
 import _ from 'lodash'
 
 import { allPendings } from '../collection/find-extra'
-import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
+import { invalidate, garbageCollect, throttle, EXPIRED, ALL } from '../collection/invalidate'
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanCtx.overrides, _overrides)
 }
 
 export function invalidateStore(store, option = {}) {
-  _.each(store.collections, table => invalidate(table, option.all ? ALL : EXPIRED, option))
+  _.each(store.collections, coll => throttle(coll, invalidate, option.all ? ALL : EXPIRED, option))
 }
 
 export function gcStore(store, option = {}) {
-  _.each(store.collections, table => garbageCollect(table, option.all ? ALL : EXPIRED, option))
+  _.each(store.collections, coll => throttle(coll, garbageCollect, option.all ? ALL : EXPIRED, option))
 }
 
 export function getStorePending(store) {

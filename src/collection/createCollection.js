@@ -8,6 +8,7 @@ import * as setter from './setter'
 import * as invalidate from './invalidate'
 import * as submitter from './submitter'
 import * as find from './find'
+import * as findExtra from './find-extra'
 
 const { getState } = state
 
@@ -34,14 +35,14 @@ const functions = {
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
-_.each({ ...state, ...setter, ...find }, (func, key) => {
+_.each({ ...state, ...find }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {
     return func(this, ...args) // eslint-disable-line
   }
 })
-_.each({ ...invalidate, ...submitter }, (func, key) => {
+_.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {

@@ -61,7 +61,7 @@ export function reset(self, ids = ALL, option) {
 }
 
 // reset will reset both dirty and tidy docs, garbageCollect only reset tidy docs
-function _garbageCollect(self, ids = EXPIRED, option) {
+export function garbageCollect(self, ids = EXPIRED, option) {
   const { delByIds, delFetchKeys } = _invalidate(self, ids)
   const { byId: oldById, originals } = getState(self)
   const isTidy = id => !(id in originals)
@@ -71,16 +71,16 @@ function _garbageCollect(self, ids = EXPIRED, option) {
   addMutation(self, { byId, fetchAts }, option)
 }
 
-export function garbageCollect(self, ids, option) {
+export function throttle(self, func, ids, option) {
   if (option && option.force) {
-    _garbageCollect(self, ids, option)
+    func(self, ids, option)
   }
   if (self.gcTime >= 0) {
     const now = Date.now()
     const expire = now - self.gcTime
     if (!self._gcAt || self._gcAt <= expire) {
       self._gcAt = now
-      _garbageCollect(self, ids, option)
+      func(self, ids, option)
     }
   }
 }
