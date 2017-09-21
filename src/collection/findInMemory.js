@@ -1,24 +1,20 @@
-import _ from 'lodash'
-
 import { calcQueryKey } from './util/keyUtil'
-import { getState } from './base'
 import findInState from './findInState'
 
-function findDataOrRequest(self, query, option) {
-  // request-only (only for Fetcher case?)
-  if (query.$request) {
-    if (Object.keys(query).length === 1) {
-      const { requests } = getState(self)
-      const fetchKey = option.fetchKey
-      if (fetchKey in requests) {
-        return requests[fetchKey]
-      }
-    }
-    query = _.omit(query, '$request')
-  }
-
-  return findInState(self, query, option)
-}
+// function findDataOrRequest(self, query, option) {
+//   // request-only (only for Fetcher case?)
+//   if (query.$request) {
+//     if (Object.keys(query).length === 1) {
+//       const { requests } = getState(self)
+//       const fetchKey = option.fetchKey
+//       if (fetchKey in requests) {
+//         return requests[fetchKey]
+//       }
+//     }
+//     query = _.omit(query, '$request')
+//   }
+//   return findInState(self, query, option)
+// }
 
 export default function findInMemory(self, query, option = {}) {
   let { _memory } = self
@@ -42,6 +38,6 @@ export default function findInMemory(self, query, option = {}) {
   }
 
   // MISS
-  const ret = (_memory[queryKey] = findDataOrRequest(self, query, option))
+  const ret = (_memory[queryKey] = findInState(self, query, option))
   return ret
 }
