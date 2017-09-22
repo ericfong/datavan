@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { getState, addMutation } from './base'
-import { _invalidate } from './invalidate'
+import { _invalidate, GC_GENERATION } from './invalidate'
 
 export const loadAsMerge = (v, id, self, targets) => {
   const data = self.cast(v)
@@ -46,7 +46,7 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   const { _byIdAts } = self
   mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
     if (id in originals) return
-    _byIdAts[id] = 1
+    _byIdAts[id] = GC_GENERATION
     return loadAs(v, id, self, byId)
   })
   mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {

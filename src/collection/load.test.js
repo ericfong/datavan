@@ -4,12 +4,11 @@ import delay from 'delay'
 
 import { createCollection, defineCollection, datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings, getQueryIds } from '..'
 import { load, loadAsDefaults } from './load'
-
-const echo = query => _.map(getQueryIds(query, '_id'), _id => (_id ? { _id, name: _.toUpper(_id) } : undefined))
+import onFetchEcho from '../test/onFetchEcho'
 
 test('save&load will not re-fetch by ids', async () => {
   // get serverUsers state
-  const onFetch = jest.fn(echo)
+  const onFetch = jest.fn(onFetchEcho)
   const serverUsers = createCollection({ onFetch })
   find(serverUsers, ['a', 'b', 'c'])
   find(serverUsers, { name: 'A' })
@@ -18,11 +17,8 @@ test('save&load will not re-fetch by ids', async () => {
 
   // new browser collection
   const users = createCollection({ onFetch, initState: serverState })
-  expect(getState(users)).toEqual({
-    byId: { a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } },
-    fetchAts: { '[["a","b","c"],{}]': 1, '[{"name":"A"},{}]': 1 },
-    originals: {},
-  })
+  expect(getState(users).byId).toEqual({ a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } })
+  expect(_.keys(getState(users).fetchAts)).toEqual(['[["a","b","c"],{}]', '[{"name":"A"},{}]'])
   expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
 
   // reset

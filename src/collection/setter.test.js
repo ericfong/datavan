@@ -20,7 +20,7 @@ test('setAll', async () => {
   expect(getState(table).originals).toEqual({ a: undefined, old: { _id: 'old', name: 'old' } })
 })
 
-it('insert & find', async () => {
+test('insert & find', async () => {
   const collection = createCollection({})
 
   const inserted = insert(collection, [{ name: 'A' }, { name: 'B' }])

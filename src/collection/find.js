@@ -1,4 +1,5 @@
 import { getState, addMutation } from './base'
+import { GC_GENERATION } from './invalidate'
 import { load } from './load'
 import { prepareFindData } from './findInState'
 import findInMemory from './findInMemory'
@@ -26,7 +27,7 @@ function checkOption(self, { fetch, serverPreload }) {
 }
 
 function doFetch(self, query, option) {
-  getState(self).fetchAts[option.fetchKey] = 1
+  getState(self).fetchAts[option.fetchKey] = GC_GENERATION
 
   return Promise.resolve(self.onFetch(query, option, self))
     .then(res => {
@@ -41,7 +42,7 @@ function doFetch(self, query, option) {
 
 function checkFetch(self, query, option) {
   prepareFindData(self, query, option)
-  if (option.allIdsFound) return false
+  if (option.allIdsHit) return false
 
   const fetchQuery = self.getFetchQuery(query, option)
   const fetchKey = (option.fetchKey = self.getFetchKey(fetchQuery, option))

@@ -1,36 +1,59 @@
 import { createCollection } from '.'
-import { garbageCollect } from './invalidate'
+import { garbageCollect, GC_GENERATION, _invalidate } from './invalidate'
 import { getState } from './base'
-import { get, find, allPendings } from '..'
+import { get, find, allPendings, getAsync } from '..'
+import { echoValue } from '../test/onFetchEcho'
+
+test('only gc old docs but keep new docs', async () => {
+  const onFetch = jest.fn(echoValue)
+  const users = createCollection({ onFetch, gcTime: 0 })
+
+  // fetch 'a'
+  await getAsync(users, 'a')
+  const oldByIdAtA = users._byIdAts.a
+  expect(oldByIdAtA).toBeTruthy()
+
+  garbageCollect(users)
+  // gc keep 'a'
+  expect(getState(users).byId).toEqual({ a: 'A' })
+  // _byIdAts.a reduced
+  expect(users._byIdAts.a).toBeLessThan(oldByIdAtA)
+
+  // fetch 'b'
+  await getAsync(users, 'b')
+
+  // loop gc until drop 'a' but keep 'b'
+  for (let i = 1; i < GC_GENERATION; i++) garbageCollect(users)
+  expect(getState(users).byId).toEqual({ b: 'B' })
+
+  // will not re-fetch 'b'
+  onFetch.mockClear()
+  expect(onFetch).toHaveBeenCalledTimes(0)
+  get(users, 'b')
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // invalidate 'b'
+  _invalidate(users, ['b'])
+  // 'b' remain
+  expect(getState(users).byId).toEqual({ b: 'B' })
+  // but No _byIdAts
+  expect(users._byIdAts.b).toBeFalsy()
+
+  // re-fetch 'b' after invalidate
+  get(users, 'b')
+  expect(onFetch).toHaveBeenCalledTimes(1)
+})
 
 test('gc', async () => {
   const users = createCollection({
-    name: 'users',
-    onFetch: () => Promise.resolve([{ _id: 'b', name: 'b' }]),
+    onFetch: echoValue,
     initState: {
       byId: { a: 'Hi' },
     },
     gcTime: 3600 * 1000,
   })
 
-  // load will set _byIdAts
-  expect(users._byIdAts).toEqual({ a: 1 })
-
-  garbageCollect(users)
-  // _byIdAts reduced
-  expect(users._byIdAts).toEqual({ a: 0 })
-  // a still in byId
-  expect(getState(users)).toEqual({ byId: { a: 'Hi' }, originals: {}, fetchAts: {} })
-
-  // set b's fetchAt
-  get(users, 'b')
-  find(users, { name: 'b' })
-  await allPendings(users)
-
-  // shorten the gcTime to force gc
-  users.gcTime = 0
-  garbageCollect(users)
-  // gc will remove a and keep b, and remove related query
-  expect(getState(users)).toEqual({ byId: { b: { _id: 'b', name: 'b' } }, originals: {}, fetchAts: {} })
-  expect(Object.keys(users._byIdAts)).toEqual(['b'])
+  for (let i = 0; i < GC_GENERATION; i++) garbageCollect(users)
+  expect(getState(users).byId).toEqual({})
+  expect('a' in users._byIdAts).toBeFalsy()
 })

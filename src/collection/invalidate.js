@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { getState, addMutation } from './base'
 
-// invalidate / reset / garbageCollect
+export const GC_GENERATION = 3
 
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
@@ -15,7 +15,8 @@ function _omitAts(state, atKey, ids) {
       state[atKey],
       (acc, at, id) => {
         at -= 1
-        const shouldBeOmit = at < 0
+        // console.log('>>>', atKey, at, id)
+        const shouldBeOmit = at <= 0
         if (shouldBeOmit) {
           omitedIds.push(id)
         } else {

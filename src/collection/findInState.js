@@ -48,17 +48,19 @@ function doQuery(data, query) {
 }
 
 // @auto-fold here
-function filterDataByIds(data, ids, option) {
-  let allIdsFound = true
+function filterDataByIds(self, data, ids, option) {
+  let allIdsHit = true
   const ret = ids.reduce((result, id) => {
+    // console.log('<<<', id, self._byIdAts[id])
     if (id in data) {
       result.push(data[id])
-    } else {
-      allIdsFound = false
+    }
+    if (!self._byIdAts[id]) {
+      allIdsHit = false
     }
     return result
   }, [])
-  option.allIdsFound = allIdsFound
+  option.allIdsHit = allIdsHit
   return ret
 }
 
@@ -68,7 +70,7 @@ export function prepareFindData(self, query, option) {
   const ids = getQueryIds(query, self.idField)
   let prepared
   if (ids) {
-    prepared = filterDataByIds(data, ids, option)
+    prepared = filterDataByIds(self, data, ids, option)
   } else {
     prepared = data
   }

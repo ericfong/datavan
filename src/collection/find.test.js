@@ -3,10 +3,9 @@ import _ from 'lodash'
 import { createCollection } from '.'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
 import { invalidate, allPendings } from '..'
+import onFetchEcho from '../test/onFetchEcho'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
-
-const echo = query => _.map(getQueryIds(query, '_id'), _id => (_id ? { _id, name: _.toUpper(_id) } : undefined))
 
 test('normalizeQuery', async () => {
   const users = createCollection({})
@@ -35,7 +34,7 @@ test('onFetch with $invalidate', async () => {
 })
 
 test('without tmp-id', async () => {
-  const Users = createCollection({ onFetch: jest.fn(echo) })
+  const Users = createCollection({ onFetch: jest.fn(onFetchEcho) })
   // won't call onFetch if only null or tmp
   Users.find([`${TMP}-123`, null, `${TMP}-456`])
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
@@ -61,7 +60,7 @@ test('without tmp-id', async () => {
 })
 
 test('consider getFetchKey', async () => {
-  const users = createCollection({ onFetch: jest.fn(echo), getFetchQuery: () => ({}), getFetchKey: () => '' })
+  const users = createCollection({ onFetch: jest.fn(onFetchEcho), getFetchQuery: () => ({}), getFetchKey: () => '' })
   users.find(['db-1'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
   users.find(['db-2'])
@@ -80,7 +79,7 @@ test('consider getFetchKey', async () => {
 })
 
 test('fetch: false', async () => {
-  const Users = createCollection({ onFetch: jest.fn(echo) })
+  const Users = createCollection({ onFetch: jest.fn(onFetchEcho) })
   Users.find(['db-1'], { fetch: false })
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
   Users.find(['db-1'])
