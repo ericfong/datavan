@@ -36,6 +36,7 @@ export default function findInMemory(self, query, option = {}) {
   if (queryKey in _memory) {
     return _memory[queryKey]
   }
+  // console.log('findInMemory', queryKey, _memory[queryKey])
 
   // MISS
   const ret = (_memory[queryKey] = findInState(self, query, option))

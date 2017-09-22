@@ -89,6 +89,8 @@ function runHook(self, hook, firstArg, ...args) {
 
 export default function findInState(self, query, option) {
   let docs = prepareFindData(self, query, option)
+  // prevent re-use option
+  delete option.preparedData
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
