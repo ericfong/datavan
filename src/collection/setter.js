@@ -46,7 +46,9 @@ export function setAll(core, change, option) {
     const { originals } = getState(core)
     const keepOriginal = k => {
       if (!(k in originals)) {
-        mutOriginals[k] = { $set: _get(core, k) }
+        // BUG if original === undefined, it won't be persist
+        const v = _get(core, k)
+        mutOriginals[k] = { $set: v === undefined ? null : v }
       }
     }
     _.each(change, (value, key) => {
