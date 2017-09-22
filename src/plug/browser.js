@@ -1,3 +1,5 @@
+import { setAll } from '../collection/setter'
+
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return
   self[listenerKey] = true
@@ -7,18 +9,18 @@ function ensureListener(self, listenerKey, addListenerFunc) {
 function addOnResize(self) {
   if (global.window) {
     window.addEventListener('resize', () => {
-      self.setAll({
+      setAll(self, {
         width: window.innerWidth,
         height: window.innerHeight,
       })
     })
-    self.setAll({
+    setAll(self, {
       width: window.innerWidth,
       height: window.innerHeight,
     })
   } else {
     // default value for node
-    self.setAll({
+    setAll(self, {
       width: 360,
       height: 640,
     })
