@@ -1,6 +1,46 @@
 // import _ from 'lodash'
+import delay from 'delay'
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, setOverrides, plugBrowser, set } from '..'
+
+import { GC_GENERATION } from '../collection/invalidate'
+import { datavanEnhancer, defineCollection, setOverrides, plugBrowser, set, gcStore, invalidateStore, getState } from '..'
+
+test('gcStore all&now', async () => {
+  const gcTime = 1
+  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
+  const store = createStore(null, null, datavanEnhancer())
+
+  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
+  gcStore(store, { all: true, now: true })
+  expect(getState(Users(store)).byId).toEqual({})
+})
+
+test('gcStore', async () => {
+  const gcTime = 1
+  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
+  const store = createStore(null, null, datavanEnhancer())
+
+  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
+  for (let i = 0; i < GC_GENERATION; i++) {
+    await delay(gcTime) // eslint-disable-line
+    gcStore(store)
+  }
+  expect(getState(Users(store)).byId).toEqual({})
+})
+
+test('invalidateStore', async () => {
+  const gcTime = 1
+  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
+  const store = createStore(null, null, datavanEnhancer())
+
+  expect(Users(store)._byIdAts.a).toBeTruthy()
+  for (let i = 0; i < GC_GENERATION; i++) {
+    await delay(gcTime) // eslint-disable-line
+    invalidateStore(store)
+  }
+  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
+  expect(Users(store)._byIdAts.a).toBeFalsy()
+})
 
 test('defineCollection', async () => {
   const Browser = defineCollection({ name: 'browser' })

@@ -73,7 +73,7 @@ export function garbageCollect(self, ids = EXPIRED, option) {
 }
 
 export function throttle(self, func, ids, option) {
-  if (option && option.force) {
+  if (option && option.now) {
     func(self, ids, option)
   }
   if (self.gcTime >= 0) {
