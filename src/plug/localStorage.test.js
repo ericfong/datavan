@@ -1,5 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, plugLocalStorage } from '..'
+import { datavanEnhancer, defineCollection, plugLocalStorage, set } from '..'
 
 global.localStorage = {
   getItem(id) {
@@ -23,7 +23,7 @@ it('basic', async () => {
   store2.subscribe(subscriber2)
 
   expect(LocalStorage(store1).get('u1')).toBe(null)
-  LocalStorage(store1).set('u1', 'hi', { flush: true })
+  set(LocalStorage(store1), 'u1', 'hi', { flush: true })
   expect(subscriber1).toHaveBeenCalledTimes(1)
   expect(LocalStorage(store1).get('u1')).toBe('hi')
 
@@ -31,7 +31,7 @@ it('basic', async () => {
 
   // should access global localStorage
   expect(LocalStorage(store2).get('u1')).toBe('hi')
-  LocalStorage(store2).set('u1', 'world', { flush: true })
+  set(LocalStorage(store2), 'u1', 'world', { flush: true })
   expect(subscriber2).toHaveBeenCalledTimes(1)
 
   // console.log('>>> table1')

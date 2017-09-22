@@ -6,14 +6,14 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import '../tool/test-setup'
-import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections } from '.'
+import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections, set } from '.'
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const Memory = defineCollection('memory')
   const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer())
 
   // init and set
-  Memory(store).set('theme', 'dark')
+  set(Memory(store), 'theme', 'dark')
 
   // dispatch and change before flush
   const datavan = loadCollections(store, {
@@ -28,7 +28,7 @@ test('merge state with redux dispatch changes by another reducer', () => {
     },
   })
 
-  Memory(store).set('after', 'yes')
+  set(Memory(store), 'after', 'yes')
 
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en' })
   expect(Memory(store).getState().byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
@@ -54,7 +54,7 @@ test('combineReducers', async () => {
   expect(store.getState()).toMatchObject(preloadState)
   expect(Memory(store).getAll()).toEqual({ theme: 'light' })
 
-  Memory(store).set('theme', 'dark')
+  set(Memory(store), 'theme', 'dark')
   await getStorePending(store)
   expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
   expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
@@ -63,7 +63,7 @@ test('combineReducers', async () => {
 test('same state', () => {
   const Users = defineCollection('users')
   const store = createStore(null, null, datavanEnhancer())
-  Users(store).set('u1', 'user 1 name!!')
+  set(Users(store), 'u1', 'user 1 name!!')
 
   let runTime = 0
   const UserComp = connect(state => {
@@ -81,11 +81,11 @@ test('same state', () => {
   expect(runTime).toBe(1)
 
   // same value
-  Users(store).set('u1', 'user 1 name!!')
+  set(Users(store), 'u1', 'user 1 name!!')
   expect(runTime).toBe(1)
 
   // diff value
-  Users(store).set('u1', 'Changed', { flush: true })
+  set(Users(store), 'u1', 'Changed', { flush: true })
   expect(runTime).toBe(2)
 })
 
@@ -108,7 +108,7 @@ test('basic', () => {
     return <span>{props.user1}</span>
   })
 
-  Users(store).set('u1', 'user 1 name!!')
+  set(Users(store), 'u1', 'user 1 name!!')
 
   const wrapper = mount(
     <Provider store={store}>

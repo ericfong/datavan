@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { insert } from '..'
 import { createCollection } from '.'
 
 import { getState } from './base'
@@ -22,7 +23,7 @@ test('setAll', async () => {
 it('insert & find', async () => {
   const collection = createCollection({})
 
-  const inserted = collection.insert([{ name: 'A' }, { name: 'B' }])
+  const inserted = insert(collection, [{ name: 'A' }, { name: 'B' }])
   expect(_.map(inserted, 'name')).toEqual(['A', 'B'])
   expect(_.map(collection.onGetAll(), 'name')).toEqual(['A', 'B'])
 

@@ -1,6 +1,6 @@
 // import _ from 'lodash'
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, setOverrides, plugBrowser } from '..'
+import { datavanEnhancer, defineCollection, setOverrides, plugBrowser, set } from '..'
 
 test('defineCollection', async () => {
   const Browser = defineCollection({ name: 'browser' })
@@ -18,9 +18,9 @@ test('merge collections states again will not trigger new dispatch', async () =>
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  Users(store).set('u1', 'user 1 name!!', { flush: true })
+  set(Users(store), 'u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  Users(store).set('u1', 'user 1 name!!', { flush: true })
+  set(Users(store), 'u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 })

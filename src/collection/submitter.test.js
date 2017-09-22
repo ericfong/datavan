@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { createCollection } from '.'
-import { getSubmits, submit, findOne, allPendings } from '..'
+import { getSubmits, submit, findOne, allPendings, insert, update, remove } from '..'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
@@ -23,26 +23,26 @@ test('onSubmit', async () => {
     onSubmit: changes => doSubmit(changes),
   })
 
-  Users.insert({ name: 'Apple' })
+  insert(Users, { name: 'Apple' })
   await submit(Users)
   expect(_.size(lastSubmit)).toBe(1)
   expect(getOne(lastSubmit)).toMatchObject({ name: 'Apple' })
 
-  Users.insert({ name: 'Car' })
+  insert(Users, { name: 'Car' })
   await submit(Users)
   expect(_.size(lastSubmit)).toBe(2)
   expect(getOne(lastSubmit)).toMatchObject({ name: 'Car' })
 
-  Users.update({ name: 'Car' }, { $merge: { name: 'Car 2' } })
+  update(Users, { name: 'Car' }, { $merge: { name: 'Car 2' } })
   await submit(Users)
   expect(_.size(lastSubmit)).toBe(2)
   expect(getOne(lastSubmit)).toMatchObject({ name: 'Car 2' })
 
-  const removeDoc = Users.insert({ name: 'Remove' })
+  const removeDoc = insert(Users, { name: 'Remove' })
   await submit(Users)
   expect(Users.get(removeDoc._id)).toBe(removeDoc)
   // remove
-  Users.remove({ name: 'Remove' })
+  remove(Users, { name: 'Remove' })
   await submit(Users)
   // have a id set to undefined
   expect(_.size(getSubmits(Users))).toBe(3)
@@ -63,7 +63,7 @@ test('onSubmit', async () => {
       []
     )
   }
-  Users.update({ name: 'Car 2' }, { $merge: { name: 'Car 3' } })
+  update(Users, { name: 'Car 2' }, { $merge: { name: 'Car 3' } })
   await submit(Users)
   // all changes submitted
   expect(_.map(lastSubmit, 'name')).toEqual(['Apple', 'Car 3', undefined])
@@ -79,14 +79,14 @@ test('basic', async () => {
     onFetch,
   })
 
-  Users.insert({ name: 'Apple' })
-  Users.insert({ name: 'Car' })
+  insert(Users, { name: 'Apple' })
+  insert(Users, { name: 'Car' })
   expect(_.map(Users.onGetAll(), 'name')).toEqual(['Apple', 'Car'])
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
   const car = findOne(Users, { name: 'Car' })
-  Users.update({ id: car.id }, { $merge: { name: 'Car 2' } })
+  update(Users, { id: car.id }, { $merge: { name: 'Car 2' } })
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car 2'])
 
   // mix data from server
