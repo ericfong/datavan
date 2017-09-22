@@ -6,19 +6,7 @@ import { invalidate, allPendings } from '..'
 
 const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
 
-function echo(query) {
-  const ids = getQueryIds(query, '_id')
-  // console.log('echo', ids)
-  return Promise.resolve(
-    _.compact(
-      _.map(ids, _id => {
-        if (_id) {
-          return { _id, name: `Echo-${_id}` }
-        }
-      })
-    )
-  )
-}
+const echo = query => _.map(getQueryIds(query, '_id'), _id => (_id ? { _id, name: _.toUpper(_id) } : undefined))
 
 test('normalizeQuery', async () => {
   const users = createCollection({})
@@ -100,16 +88,6 @@ test('fetch: false', async () => {
   invalidate(Users)
   Users.find(['db-1'], { fetch: false })
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
-})
-
-test('get failback to find', async () => {
-  const users = createCollection({ onFetch: jest.fn(echo) })
-  users.get('1')
-  users.get('2')
-  await Promise.all(allPendings(users))
-  expect(users.get('1')).toEqual({ _id: '1', name: 'Echo-1' })
-  // TODO expect(users.onFetch).toHaveBeenCalledTimes(1)
-  expect(await users.findAsync({ _id: '3' })).toEqual([{ _id: '3', name: 'Echo-3' }])
 })
 
 test('basic', async () => {

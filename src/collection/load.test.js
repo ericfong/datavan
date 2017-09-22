@@ -2,22 +2,47 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { createCollection, defineCollection, datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings } from '..'
+import { createCollection, defineCollection, datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings, getQueryIds } from '..'
 import { load, loadAsDefaults } from './load'
 
-test('load _findAts,_getAts and no re-fetch-find', async () => {
-  const users = createCollection({
-    initState: {
-      byId: { 1: { _id: '1', name: 'A' } },
-      fetchAts: { '[{"name":"A"},{}]': 1 },
-    },
-    onFetch: jest.fn(),
-  })
-  expect(Object.keys(getState(users).fetchAts)).toEqual(['[{"name":"A"},{}]'])
+const echo = query => _.map(getQueryIds(query, '_id'), _id => (_id ? { _id, name: _.toUpper(_id) } : undefined))
 
+test('save&load will not re-fetch by ids', async () => {
+  // get serverUsers state
+  const onFetch = jest.fn(echo)
+  const serverUsers = createCollection({ onFetch })
+  find(serverUsers, ['a', 'b', 'c'])
+  find(serverUsers, { name: 'A' })
+  await allPendings(serverUsers)
+  const serverState = getState(serverUsers)
+
+  // new browser collection
+  const users = createCollection({ onFetch, initState: serverState })
+  expect(getState(users)).toEqual({
+    byId: { a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } },
+    fetchAts: { '[["a","b","c"],{}]': 1, '[{"name":"A"},{}]': 1 },
+    originals: {},
+  })
+  expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
+
+  // reset
+  onFetch.mockClear()
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Won't re-fetch in new store
+  find(users, ['a', 'b', 'c'])
   find(users, { name: 'A' })
-  await allPendings(users)
-  expect(users.onFetch).toHaveBeenCalledTimes(0)
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Won't re-fetch for id query
+  find(users, ['a', 'b'])
+  expect(onFetch).toHaveBeenCalledTimes(0)
+  get(users, 'a')
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Will re-fetch for not-fetch before
+  get(users, 'x')
+  expect(onFetch).toHaveBeenCalledTimes(1)
 })
 
 const Tasks = defineCollection('tasks', {

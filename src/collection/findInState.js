@@ -48,19 +48,32 @@ function doQuery(data, query) {
 }
 
 // @auto-fold here
-function filterDataByIds(data, ids) {
-  return ids.reduce((result, id) => {
-    const doc = data[id]
-    if (doc) result.push(doc)
+function filterDataByIds(data, ids, option) {
+  let allIdsFound = true
+  const ret = ids.reduce((result, id) => {
+    if (id in data) {
+      result.push(data[id])
+    } else {
+      allIdsFound = false
+    }
     return result
   }, [])
+  option.allIdsFound = allIdsFound
+  return ret
 }
 
-// @auto-fold here
-function prepareFindData(self, query) {
+export function prepareFindData(self, query, option) {
+  if (option.preparedData) return option.preparedData
   const data = self.onGetAll()
   const ids = getQueryIds(query, self.idField)
-  return ids ? filterDataByIds(data, ids) : data
+  let prepared
+  if (ids) {
+    prepared = filterDataByIds(data, ids, option)
+  } else {
+    prepared = data
+  }
+  option.preparedData = prepared
+  return prepared
 }
 
 // @auto-fold here
@@ -73,7 +86,7 @@ function runHook(self, hook, firstArg, ...args) {
 }
 
 export default function findInState(self, query, option) {
-  let docs = prepareFindData(self, query)
+  let docs = prepareFindData(self, query, option)
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {

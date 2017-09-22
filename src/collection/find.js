@@ -1,7 +1,7 @@
 import { getState, addMutation } from './base'
 import { load } from './load'
+import { prepareFindData } from './findInState'
 import findInMemory from './findInMemory'
-import { isTmpId } from './util/idUtil'
 
 // @auto-fold here
 function addFetchingPromise(fetchingPromises, fetchKey, promise) {
@@ -39,7 +39,11 @@ function doFetch(self, query, option) {
     })
 }
 
-function checkFetch(self, fetchQuery, option) {
+function checkFetch(self, query, option) {
+  prepareFindData(self, query, option)
+  if (option.allIdsFound) return false
+
+  const fetchQuery = self.getFetchQuery(query, option)
   const fetchKey = (option.fetchKey = self.getFetchKey(fetchQuery, option))
   if (fetchKey === false) return false
 
@@ -64,18 +68,18 @@ function checkFetch(self, fetchQuery, option) {
 
 export function find(self, query = {}, option = {}) {
   if (checkOption(self, option)) {
-    checkFetch(self, self.getFetchQuery(query, option), option)
+    checkFetch(self, query, option)
   }
   return findInMemory(self, query, option)
 }
 
 export function findAsync(self, query = {}, option = {}) {
-  const promise = checkFetch(self, self.getFetchQuery(query, option), option)
+  const promise = checkFetch(self, query, option)
   return Promise.resolve(promise).then(() => findInMemory(self, query, option))
 }
 
 export function get(self, id, option = {}) {
-  if (checkOption(self, option) && !isTmpId(id)) {
+  if (checkOption(self, option)) {
     checkFetch(self, [id], option)
   }
   return self.onGet(id, option)
