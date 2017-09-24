@@ -5,20 +5,6 @@ import { prepareFindData } from './findInState'
 import findInMemory from './findInMemory'
 
 // @auto-fold here
-function addFetchingPromise(fetchingPromises, fetchKey, promise) {
-  fetchingPromises[fetchKey] = promise
-  return promise
-    .then(ret => {
-      if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
-      return ret
-    })
-    .catch(err => {
-      if (fetchingPromises[fetchKey] === promise) delete fetchingPromises[fetchKey]
-      return Promise.reject(err)
-    })
-}
-
-// @auto-fold here
 function checkOption(self, { fetch, serverPreload }) {
   if (!self.onFetch) return false
   if (fetch === false) return false
@@ -29,15 +15,33 @@ function checkOption(self, { fetch, serverPreload }) {
 function doFetch(self, query, option) {
   getState(self).fetchAts[option.fetchKey] = GC_GENERATION
 
-  return Promise.resolve(self.onFetch(query, option, self))
-    .then(res => {
-      load(self, res, option)
-      addMutation(self, null) // force render to update isFetching
-      return res
+  return Promise.resolve(self.onFetch(query, option, self)).then(res => load(self, res, option))
+}
+
+// @auto-fold here
+function wrapFetchPromise(self, fetchQuery, option) {
+  const { _fetchingPromises } = self
+  const { fetchKey } = option
+  const oldPromise = _fetchingPromises[fetchKey]
+  if (oldPromise) return oldPromise
+
+  const promise = doFetch(self, fetchQuery, option)
+    .then(ret => {
+      if (_fetchingPromises[fetchKey] === promise) {
+        delete _fetchingPromises[fetchKey]
+        addMutation(self, null) // force render to update isFetching
+      }
+      return ret
     })
-    .catch(() => {
-      addMutation(self, null) // force render to update isFetching
+    .catch(err => {
+      if (_fetchingPromises[fetchKey] === promise) {
+        delete _fetchingPromises[fetchKey]
+        addMutation(self, null) // force render to update isFetching
+      }
+      return Promise.reject(err)
     })
+  _fetchingPromises[fetchKey] = promise
+  return promise
 }
 
 function checkFetch(self, query, option) {
@@ -54,13 +58,7 @@ function checkFetch(self, query, option) {
   // fetchAts is set in doFetch
 
   // want to return fetching promise for findAsync
-  const _fetchingPromises = self._fetchingPromises
-  let promise = _fetchingPromises[fetchKey]
-  if (!promise) {
-    promise = doFetch(self, fetchQuery, option)
-    addFetchingPromise(_fetchingPromises, fetchKey, promise)
-  }
-  return promise
+  return wrapFetchPromise(self, fetchQuery, option)
 }
 
 // ======================================================================================
@@ -75,8 +73,7 @@ export function find(self, query = {}, option = {}) {
 }
 
 export function findAsync(self, query = {}, option = {}) {
-  const promise = checkFetch(self, query, option)
-  return Promise.resolve(promise).then(() => findInMemory(self, query, option))
+  return checkFetch(self, query, option).then(() => findInMemory(self, query, option))
 }
 
 export function get(self, id, option = {}) {

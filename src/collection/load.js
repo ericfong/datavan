@@ -43,8 +43,9 @@ function submitted(self, idTable, option) {
 }
 
 export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
+  if (!data) return data
+
   // normalize
-  if (!data) return
   if (Array.isArray(data)) {
     // array of docs
     const idField = self.idField
@@ -78,6 +79,8 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   // NOTE for server to pick-it back invalidate or reset data
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
+
+  return data
 }
 
 export function init(self) {
