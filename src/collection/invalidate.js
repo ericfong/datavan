@@ -16,11 +16,11 @@ function _omitAts(state, atKey, ids) {
       (acc, at, id) => {
         at -= 1
         // console.log('>>>', atKey, at, id)
-        const shouldBeOmit = at <= 0
-        if (shouldBeOmit) {
-          omitedIds.push(id)
-        } else {
+        const shouldKeep = at > 0
+        if (shouldKeep) {
           acc[id] = at
+        } else {
+          omitedIds.push(id)
         }
         return acc
       },
@@ -37,7 +37,7 @@ function _omitAts(state, atKey, ids) {
   return omitedIds
 }
 
-export function _invalidate(self, ids) {
+function _invalidate(self, ids) {
   if (self.onFetch) {
     const delByIds = _omitAts(self, '_byIdAts', ids)
     // TODO only drop related fetchs

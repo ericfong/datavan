@@ -4,7 +4,7 @@ export { getState, getAll, addMutation, getOriginals, getSubmits, isDirty } from
 export { load, loadAsDefaults } from './collection/load'
 export { invalidate, reset, garbageCollect } from './collection/invalidate'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
-export { submit, importSubmitRes } from './collection/submitter'
+export { submit, getSubmitted } from './collection/submitter'
 export { find, findAsync, get } from './collection/find'
 export { getAsync, findOne, allPendings } from './collection/find-extra'
 export memoizedFind from './collection/findInMemory'

@@ -1,7 +1,7 @@
 import { createCollection } from '.'
-import { garbageCollect, GC_GENERATION, _invalidate } from './invalidate'
+import { garbageCollect, GC_GENERATION, invalidate } from './invalidate'
 import { getState } from './base'
-import { get, find, allPendings, getAsync } from '..'
+import { get, getAsync } from '..'
 import { echoValue } from '../test/onFetchEcho'
 
 test('only gc old docs but keep new docs', async () => {
@@ -33,7 +33,7 @@ test('only gc old docs but keep new docs', async () => {
   expect(onFetch).toHaveBeenCalledTimes(0)
 
   // invalidate 'b'
-  _invalidate(users, ['b'])
+  invalidate(users, ['b'])
   // 'b' remain
   expect(getState(users).byId).toEqual({ b: 'B' })
   // but No _byIdAts

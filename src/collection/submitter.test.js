@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { createCollection } from '.'
-import { getSubmits, submit, findOne, allPendings, insert, update, remove } from '..'
+import { getSubmits, submit, findOne, allPendings, insert, update, remove, getSubmitted } from '..'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
@@ -20,7 +20,7 @@ test('onSubmit', async () => {
   const Users = createCollection({
     name: 'users',
     onFetch,
-    onSubmit: changes => doSubmit(changes),
+    onSubmit: (changes, self) => doSubmit(changes, self),
   })
 
   insert(Users, { name: 'Apple' })
@@ -50,25 +50,27 @@ test('onSubmit', async () => {
 
   // onSubmit with feedback
 
-  doSubmit = changes => {
+  doSubmit = (changes, self) => {
     lastSubmit = changes
-    return _.reduce(
+    const arr = _.reduce(
       changes,
-      (ret, doc) => {
+      (ret, doc, oldId) => {
         if (doc) {
-          ret.push({ ...doc, _id: `stored-${Math.random()}` })
+          ret.push({ ...doc, _key: oldId, _id: `stored-${Math.random()}` })
         }
         return ret
       },
       []
     )
+    const $submitted = getSubmitted(self, changes, arr, '_key')
+    return { byId: _.keyBy(arr, '_id'), $submitted }
   }
   update(Users, { name: 'Car 2' }, { $merge: { name: 'Car 3' } })
   await submit(Users)
   // all changes submitted
   expect(_.map(lastSubmit, 'name')).toEqual(['Apple', 'Car 3', undefined])
   expect(_.size(lastSubmit)).toBe(3)
-  expect(_.compact(_.map(Users.onGetAll(), 'name')).sort()).toEqual(['Apple', 'Car 3'])
+  expect(_.map(Users.getAll(), 'name').sort()).toEqual(['Apple', 'Car 3'])
   expect(_.isEmpty(getSubmits(Users))).toBe(true)
 })
 

@@ -1,33 +1,49 @@
 import _ from 'lodash'
 
 import { getState, addMutation } from './base'
-import { _invalidate, GC_GENERATION } from './invalidate'
+import { invalidate, reset, GC_GENERATION } from './invalidate'
 
+export const loadAsDefaults = (v, id, self, targets) => {
+  const data = self.cast(v)
+  return typeof data === 'object' ? { ...data, ...targets[id] } : data
+}
 export const loadAsMerge = (v, id, self, targets) => {
   const data = self.cast(v)
   return typeof data === 'object' ? { ...targets[id], ...data } : data
 }
 
+// @auto-fold here
 function _loop(mut = {}, items, func) {
   const $merge = {}
-  let unset
   _.each(items, (value, id) => {
-    if (id === '$unset') {
-      unset = value
-    } else {
-      const v = func(value, id)
-      if (v !== undefined) {
-        $merge[id] = v
-        mut.$merge = $merge
-      }
+    if (id[0] === '$') return
+    const v = func(value, id)
+    if (v !== undefined) {
+      $merge[id] = v
+      mut.$merge = $merge
     }
   })
-  // ensure $unset in the last
-  if (unset) mut.$unset = unset
   return mut
 }
 
+function submitted(self, idTable, option) {
+  const { byId } = getState(self)
+  const { _byIdAts } = self
+  const $unset = []
+  const byIdMerge = {}
+  _.each(idTable, (newId, oldId) => {
+    // move oldId to newId
+    if (newId) {
+      byIdMerge[newId] = byId[oldId]
+      delete _byIdAts[oldId]
+    }
+    $unset.push(oldId)
+  })
+  addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
+}
+
 export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
+  // normalize
   if (!data) return
   if (Array.isArray(data)) {
     // array of docs
@@ -35,13 +51,16 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
     const byId = _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
     data = { byId }
   } else if ('byId' in data) {
-    // directly use data
+    // directly use data (data may have $ops)
   } else {
     // table of docs
     data = { byId: data }
   }
 
-  // tables of docs / ops
+  // $submitted before loadAsMerge or loadAsDefaults
+  if (data.$submitted) submitted(self, data.$submitted)
+
+  // load byId, originals, fetchAts
   const { byId, originals } = getState(self)
   const { _byIdAts } = self
   mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
@@ -54,15 +73,11 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   })
   mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
 
-  if (data.$invalidate) {
-    _invalidate(self, data.$invalidate)
-  }
-
   addMutation(self, mutation)
-}
-export const loadAsDefaults = (v, id, self, targets) => {
-  const data = self.cast(v)
-  return typeof data === 'object' ? { ...data, ...targets[id] } : data
+
+  // NOTE for server to pick-it back invalidate or reset data
+  if (data.$invalidate) invalidate(self, data.$invalidate)
+  if (data.$reset) reset(self, data.$reset)
 }
 
 export function init(self) {
