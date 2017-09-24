@@ -15,25 +15,26 @@ const { getState } = state
 const functions = {
   idField: '_id',
   // gcTime: 60 * 1000,
-  onGetAll() {
-    return getState(this).byId
-  },
-  onGet(id) {
-    return this.onGetAll()[id]
-  },
-  // onInit()
-  // onFind() {} : return result,
-  // onSetAll(change, option) {},                 // called on every set
-  // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
-  // onFetch() {},
-  // onSubmit() {},
-  // onImport(table)
+  // onInit(),
+  // onFetch(),
+  // onSubmit(),
   getFetchQuery(query) {
     return withoutTmpId(query, this.idField)
   },
   getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
+
+  // preFind()
+  // postFind()
+  // onSetAll(change, option) {},                 // called on every set
+  // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
+  onGetAll() {
+    return getState(this).byId
+  },
+  onGet(id) {
+    return this.onGetAll()[id]
+  },
 }
 _.each({ ...state, ...find }, (func, key) => {
   if (key[0] === '_') return

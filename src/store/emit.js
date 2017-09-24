@@ -30,17 +30,10 @@ export function emit(store, flush) {
   if (p) return p
 
   const curP = new Promise(resolve => {
-    const dispatchAndResolve = () => {
+    setTimeout(() => {
       if (curP === vanCtx.vanEmitting) dispatchEmit(store)
       resolve()
-    }
-    if (vanCtx.dispatchWaitUntil) {
-      return vanCtx.dispatchWaitUntil.then(() => {
-        delete vanCtx.dispatchWaitUntil
-        dispatchAndResolve()
-      })
-    }
-    setTimeout(dispatchAndResolve)
+    })
   })
   vanCtx.vanEmitting = curP
   return curP

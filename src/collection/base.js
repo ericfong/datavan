@@ -9,14 +9,14 @@ export function getState(self) {
 }
 
 // mutate
-export function addMutation(table, mut, option) {
-  const prevState = getState(table)
+export function addMutation(self, mut, option) {
+  const prevState = getState(self)
   const mutation = mut || { $set: { ...prevState } }
   const nextState = mutateUtil(prevState, mutation)
   if (nextState !== prevState) {
-    table._pendingState = nextState
-    if (table.onMutate) table.onMutate(nextState.byId, prevState.byId, mutation)
-    if (table.store) emit(table.store, option && option.flush)
+    self._pendingState = nextState
+    if (self.onMutate) self.onMutate(nextState.byId, prevState.byId, mutation)
+    if (self.store) emit(self.store, option && option.flush)
   }
   return nextState
 }

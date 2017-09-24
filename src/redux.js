@@ -22,6 +22,9 @@ export default function datavanEnhancer(ctx = {}) {
       'Please use datavanEnhancer to create enhancer instead directly as enhancer. Use as \'createStore(reducer, state, datavanEnhancer({ overrides, context }))\' instead of \'createStore(reducer, state, datavanEnhancer)\''
     )
   }
+  if (ctx.context) {
+    console.warn('Please use \'datavanEnhancer({ overrides, a, b })\' instead of \'datavanEnhancer({ overrides, context: { a, b } })\'')
+  }
   return _createStore => (_reducer, preloadedState, enhancer) => {
     // set default preload state
     const preload = _.defaultsDeep(preloadedState, { [STATE_NAMESPACE]: { _timestamp: Date.now() } })
@@ -35,7 +38,7 @@ export default function datavanEnhancer(ctx = {}) {
     Object.assign(store, {
       collections: {},
       vanCtx: { ...ctx.context, overrides: {}, ...ctx },
-      // ctx = { overrides, dispatchWaitUntil }
+      // ctx = { overrides }
     })
 
     store.getState = function _getState() {
