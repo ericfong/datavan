@@ -73,7 +73,7 @@ export function find(self, query = {}, option = {}) {
 }
 
 export function findAsync(self, query = {}, option = {}) {
-  return checkFetch(self, query, option).then(() => findInMemory(self, query, option))
+  return Promise.resolve(checkFetch(self, query, option)).then(() => findInMemory(self, query, option))
 }
 
 export function get(self, id, option = {}) {
