@@ -13,20 +13,14 @@ import * as findExtra from './find-extra'
 const { getState } = state
 
 const functions = {
+  // __proxy__
   idField: '_id',
   // gcTime: 60 * 1000,
   // onInit(),
-  // onFetch(),
-  // onSubmit(),
-  getFetchQuery(query) {
-    return withoutTmpId(query, this.idField)
-  },
-  getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
-  cast: v => v,
-  genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
-
   // preFind()
   // postFind()
+  cast: v => v,
+  genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
   // onSetAll(change, option) {},                 // called on every set
   // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
   onGetAll() {
@@ -35,6 +29,14 @@ const functions = {
   onGet(id) {
     return this.onGetAll()[id]
   },
+
+  // __backend__
+  getFetchQuery(query) {
+    return withoutTmpId(query, this.idField)
+  },
+  getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
+  // onFetch(),
+  // onSubmit(),
 }
 _.each({ ...state, ...find }, (func, key) => {
   if (key[0] === '_') return

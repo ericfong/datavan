@@ -5,7 +5,7 @@ import { prepareFindData } from './findInState'
 import findInMemory from './findInMemory'
 
 // @auto-fold here
-function checkOption(self, { fetch, serverPreload }) {
+function checkInMapState(self, { fetch, serverPreload }) {
   if (!self.onFetch) return false
   if (fetch === false) return false
   if (self.store && self.store.vanCtx.duringServerPreload && !serverPreload) return false
@@ -44,7 +44,7 @@ function wrapFetchPromise(self, fetchQuery, option) {
   return promise
 }
 
-function checkFetch(self, query, option) {
+function checkFetch(self, query, option, isDirect) {
   prepareFindData(self, query, option)
   if (option.allIdsHit) return false
 
@@ -58,7 +58,7 @@ function checkFetch(self, query, option) {
   // fetchAts is set in doFetch
 
   // want to return fetching promise for findAsync
-  return wrapFetchPromise(self, fetchQuery, option)
+  return isDirect ? doFetch(self, fetchQuery, option) : wrapFetchPromise(self, fetchQuery, option)
 }
 
 // ======================================================================================
@@ -66,14 +66,12 @@ function checkFetch(self, query, option) {
 // ======================================================================================
 
 export function find(self, query = {}, option = {}) {
-  if (checkOption(self, option)) {
-    checkFetch(self, query, option)
-  }
+  if (checkInMapState(self, option)) checkFetch(self, query, option)
   return findInMemory(self, query, option)
 }
 
 export function findAsync(self, query = {}, option = {}) {
-  return Promise.resolve(checkFetch(self, query, option)).then(() => {
+  return Promise.resolve(checkFetch(self, query, option, true)).then(() => {
     // preparedData no longer valid after fetch promise resolved
     delete option.preparedData
     return findInMemory(self, query, option)
@@ -81,8 +79,6 @@ export function findAsync(self, query = {}, option = {}) {
 }
 
 export function get(self, id, option = {}) {
-  if (checkOption(self, option)) {
-    checkFetch(self, [id], option)
-  }
+  if (checkInMapState(self, option)) checkFetch(self, [id], option)
   return self.onGet(id, option)
 }
