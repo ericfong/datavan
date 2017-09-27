@@ -2,10 +2,13 @@ import _ from 'lodash'
 
 import { createCollection } from '.'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate, allPendings } from '..'
-import onFetchEcho from '../test/onFetchEcho'
+import { invalidate, allPendings, findAsync } from '..'
+import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
 
-const timeoutResolve = (value, t = 50) => new Promise(resolve => setTimeout(() => resolve(value), t))
+test('findAsync', async () => {
+  const users = createCollection({ onFetch: onFetchEcho })
+  expect(await findAsync(users, ['a'])).toEqual([{ _id: 'a', name: 'A' }])
+})
 
 test('normalizeQuery', async () => {
   const users = createCollection({})
