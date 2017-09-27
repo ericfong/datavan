@@ -70,7 +70,8 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
     return loadAs(v, id, self, byId)
   })
   mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
-    return loadAs(v, id, self, originals)
+    // original may be null
+    return v ? loadAs(v, id, self, originals) : v
   })
   mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
 
