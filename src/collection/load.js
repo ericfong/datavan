@@ -98,5 +98,5 @@ export function init(self) {
 
   if (rawStoreState) load(self, rawStoreState)
 
-  if (self.onInit) self.onInit()
+  if (self.onInit) self.onInit(self)
 }
