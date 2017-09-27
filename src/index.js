@@ -18,7 +18,7 @@ export memorizeConnect from './util/memorizeConnect'
 // store
 export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, gcStore } from './store'
 export { forceEmitFlush } from './store/emit'
-export loadCollections from './collection-bulk/loadCollections'
+export loadCollections from './store/loadCollections'
 
 // plugins
 export plugBrowser from './plug/browser'

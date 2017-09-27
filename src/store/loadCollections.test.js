@@ -4,7 +4,6 @@ import { datavanEnhancer, defineCollection, setOverrides, loadCollections, allPe
 
 const onFetch = () => Promise.resolve([])
 
-// re-enable this in future?
 test('$relations', async () => {
   let store
   const Roles = defineCollection({ name: 'roles', idField: 'role' })
