@@ -2,18 +2,15 @@ import _ from 'lodash'
 import { DATAVAN_MUTATE } from '../redux'
 
 function takeMutation(coll) {
-  let ret
-  if (coll._pendingState) {
-    ret = { $set: coll._pendingState }
-    coll._pendingState = undefined
-  }
+  const ret = coll._pendingState
+  coll._pendingState = undefined
   return ret
 }
 
 function dispatchEmit(store) {
-  const mutation = _.pickBy(_.mapValues(store.collections, takeMutation))
-  if (!_.isEmpty(mutation)) {
-    store.dispatch({ type: DATAVAN_MUTATE, mutation })
+  const collections = _.pickBy(_.mapValues(store.collections, takeMutation))
+  if (!_.isEmpty(collections)) {
+    store.dispatch({ type: DATAVAN_MUTATE, collections })
   }
   store.vanCtx.vanEmitting = null
 }

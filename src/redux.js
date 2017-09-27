@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-export const STATE_NAMESPACE = 'datavan'
 export const GET_DATAVAN = 'DATAVAN'
 export const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
 
@@ -9,25 +8,33 @@ export function datavanReducer(state = {}) {
   return state
 }
 
+// function doMutations(state, mutations) {
+//   return _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
+// }
+
 function rootReducer(state, action) {
   if (action.type === DATAVAN_MUTATE) {
-    return mutateUtil(state, { [STATE_NAMESPACE]: action.mutation })
+    const prevState = state.datavan
+    const nextState = mutateUtil(prevState, { $merge: action.collections })
+    if (nextState !== prevState) {
+      return { ...state, datavan: nextState }
+    }
   }
   return state
 }
 
 export default function datavanEnhancer(ctx = {}) {
-  if (typeof ctx === 'function') {
+  if (process.env.NODE_ENV !== 'production' && typeof ctx === 'function') {
     console.warn(
       'Please use datavanEnhancer to create enhancer instead directly as enhancer. Use as \'createStore(reducer, state, datavanEnhancer({ overrides, context }))\' instead of \'createStore(reducer, state, datavanEnhancer)\''
     )
   }
-  if (ctx.context) {
+  if (process.env.NODE_ENV !== 'production' && ctx.context) {
     console.warn('Please use \'datavanEnhancer({ overrides, a, b })\' instead of \'datavanEnhancer({ overrides, context: { a, b } })\'')
   }
   return _createStore => (_reducer, preloadedState, enhancer) => {
     // set default preload state
-    const preload = _.defaultsDeep(preloadedState, { [STATE_NAMESPACE]: { _timestamp: Date.now() } })
+    const preload = _.defaultsDeep(preloadedState, { datavan: { _timestamp: Date.now() } })
 
     const finalReducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
     const store = _createStore(finalReducer, preload, enhancer)
@@ -43,7 +50,7 @@ export default function datavanEnhancer(ctx = {}) {
 
     store.getState = function _getState() {
       const state = getState()
-      state[STATE_NAMESPACE].get = () => store
+      state.datavan.get = () => store
       return state
     }
 

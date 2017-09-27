@@ -91,15 +91,9 @@ export function init(self) {
   // raw store state that not yet init
   const rawStoreState = getState(self)
 
-  if (process.env.NOVE_ENV !== 'production' && self._pendingState) {
-    console.warn('Please use \'collectionSpec.initState\' instead of \'collectionSpec._pendingState\'')
-  }
-  const _pendingState = self._pendingState
-
   // new pending state
   self._pendingState = _.defaults({}, { byId: {}, fetchAts: {}, originals: {} })
 
-  if (_pendingState) load(self, _pendingState)
   if (self.initState) load(self, self.initState)
 
   if (rawStoreState) load(self, rawStoreState)

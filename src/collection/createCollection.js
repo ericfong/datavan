@@ -47,12 +47,18 @@ _.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => 
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {
-    console.warn(`Please use import { ${key} } from 'datavan' instead of collection.${key}()`)
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`Please use import { ${key} } from 'datavan' instead of collection.${key}()`)
+    }
     return func(this, ...args) // eslint-disable-line
   }
 })
 
 export default function createCollection(spec) {
+  if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
+    console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
+  }
+
   const core = Object.assign({}, functions, spec)
   init(core)
   return core

@@ -3,6 +3,8 @@ import mutateUtil from 'immutability-helper'
 
 import { emit } from '../store/emit'
 
+// export const genForceMutation = () => ({ _t: { $set: () => {} } })
+
 // getState
 export function getState(self) {
   return self._pendingState || (self.store && self.store.getState().datavan[self.name])

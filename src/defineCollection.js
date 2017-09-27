@@ -1,12 +1,12 @@
 import _ from 'lodash'
 
-import { GET_DATAVAN, STATE_NAMESPACE } from './redux'
+import { GET_DATAVAN } from './redux'
 import { createCollection } from './collection'
 
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 function getVan(stateOrDispatch) {
   // stateOrDispatch = state
-  const datavanState = stateOrDispatch[STATE_NAMESPACE]
+  const datavanState = stateOrDispatch.datavan
   if (datavanState) return datavanState.get()
 
   // stateOrDispatch = dispatch
