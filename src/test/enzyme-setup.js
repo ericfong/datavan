@@ -1,10 +1,15 @@
+/* globals document */
 import { JSDOM } from 'jsdom'
+import { configure } from 'enzyme'
+import Adapter from 'enzyme-adapter-react-16'
+
+configure({ adapter: new Adapter() })
 
 const jsdom = new JSDOM('')
 
 global.window = jsdom.window
-global.window.alert = console.log.bind(console)
 global.document = jsdom.window.document
+global.window.alert = console.log.bind(console)
 
 Object.keys(jsdom.window).forEach(property => {
   if (typeof global[property] === 'undefined') {

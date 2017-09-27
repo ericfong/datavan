@@ -5,7 +5,7 @@ import { createStore, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
-import '../tool/test-setup'
+import './test/enzyme-setup'
 import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections, set } from '.'
 
 test('merge state with redux dispatch changes by another reducer', () => {

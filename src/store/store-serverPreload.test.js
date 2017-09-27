@@ -6,6 +6,7 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 
+import '../test/enzyme-setup'
 import { datavanEnhancer, defineCollection, serverPreload, findOne } from '..'
 import { getQueryIds } from '../collection/util/idUtil'
 
@@ -47,7 +48,7 @@ test('server preload', async () => {
       </Provider>
     )
   )
-  expect(wrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
+  expect(wrapper.html()).toBe('U2 is <span>U1</span> friend')
 
   // transfer data to client
   const json = JSON.stringify(store.getState())
@@ -60,5 +61,5 @@ test('server preload', async () => {
       <FriendComp />
     </Provider>
   )
-  expect(browserWrapper.html()).toBe('<span>U2 is <span>U1</span> friend</span>')
+  expect(browserWrapper.html()).toBe('U2 is <span>U1</span> friend')
 })

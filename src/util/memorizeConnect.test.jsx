@@ -4,7 +4,7 @@ import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 
-import '../test/setup-jsdom'
+import '../test/enzyme-setup'
 import memorizeConnect from './memorizeConnect'
 
 test('basic', async () => {
