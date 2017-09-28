@@ -20,6 +20,10 @@ export { setOverrides, invalidateStore, getStorePending, serverPreload, setConte
 export { forceEmitFlush } from './store/emit'
 export loadCollections from './store/loadCollections'
 
+// fetcher
+export httpFetcher from './plug/httpFetcher'
+export relayFetcher from './plug/relayFetcher'
+
 // plugins
 export plugBrowser from './plug/browser'
 export plugCookie from './plug/cookie'

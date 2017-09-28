@@ -16,20 +16,15 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
-const applyOverride = (spec, override) => (typeof plugin === 'function' ? override(spec) : Object.assign(spec, override))
-
 export function getCollection(store, spec, creation) {
-  const { name } = spec
-  const { collections } = store
+  const { name, dependencies } = spec
+  const { collections, vanCtx } = store
   let collection = collections[name]
   if (!collection && creation !== false) {
-    const override = store.vanCtx.overrides[name]
-    const _spec = override ? applyOverride(spec, override) : spec
+    // has dep.spec mean it is a defineCollection
+    _.each(dependencies, dep => getCollection(store, dep.spec || dep))
 
-    // has dep.spec mean it is a selector
-    _.each(_spec.dependencies, dep => getCollection(store, dep.spec || dep))
-
-    collection = collections[name] = createCollection({ ..._spec, store })
+    collection = collections[name] = createCollection({ ...spec, store }, vanCtx.overrides[name])
   }
   return collection
 }

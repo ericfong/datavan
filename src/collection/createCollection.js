@@ -57,7 +57,9 @@ _.each({ ...base, ...setter, ...findExtra, ...invalidate, ...submitter }, (func,
   }
 })
 
-export default function createCollection(spec) {
+const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
+
+export default function createCollection(spec, plugin) {
   if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
     console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
   }
@@ -66,6 +68,8 @@ export default function createCollection(spec) {
 
   // TODO should use httpFetcher() explicitly in store.overrides / collection-enhancers / plugins
   if (self.onFetch) self = httpFetcher(self)(self)
+
+  if (plugin) self = applyPlugin(self, plugin)
 
   init(self)
 

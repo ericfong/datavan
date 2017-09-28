@@ -7,7 +7,7 @@ import { GC_GENERATION } from '../collection/invalidate'
 import { prepareFindData } from '../collection/findInState'
 import { isPreloadSkip, wrapFetchPromise, doFetch } from './relayFetcher'
 
-function checkFetch(self, query, option, isAsync) {
+function checkFetch(self, query, option, fetcher) {
   prepareFindData(self, query, option)
   if (option.allIdsHit) return false
 
@@ -21,12 +21,7 @@ function checkFetch(self, query, option, isAsync) {
   getState(self).fetchAts[fetchKey] = GC_GENERATION
 
   // want to return fetching promise for findAsync
-  if (isAsync) {
-    // preparedData no longer valid after fetch promise resolved
-    delete option.preparedData
-    return doFetch(self, fetchQuery, option)
-  }
-  return wrapFetchPromise(self, fetchQuery, option, 'fetchKey')
+  return wrapFetchPromise(self, fetchQuery, option, 'fetchKey', fetcher)
 }
 
 const confDefaults = {
@@ -36,6 +31,7 @@ const confDefaults = {
 
 export default function httpFetcher(conf) {
   conf = _.defaults(conf, confDefaults)
+  const fetcher = conf.onFetch
 
   return base => ({
     ...base,
@@ -43,22 +39,26 @@ export default function httpFetcher(conf) {
     find(query = {}, option = {}) {
       _.defaults(option, conf)
       if (option.fetch !== false && !isPreloadSkip(this, option)) {
-        checkFetch(this, query, option)
+        checkFetch(this, query, option, fetcher)
       }
       return base.find.call(this, query, option)
-    },
-
-    findAsync(query = {}, option = {}) {
-      _.defaults(option, conf)
-      return Promise.resolve(checkFetch(this, query, option, true)).then(() => base.find.call(this, query, option))
     },
 
     get(id, option = {}) {
       _.defaults(option, conf)
       if (option.fetch !== false && !isPreloadSkip(this, option)) {
-        checkFetch(this, [id], option)
+        checkFetch(this, [id], option, fetcher)
       }
       return base.get.call(this, id, option)
+    },
+
+    findAsync(query = {}, option = {}) {
+      _.defaults(option, conf)
+      return doFetch(this, query, option, fetcher).then(() => {
+        // preparedData no longer valid after fetch promise resolved
+        delete option.preparedData
+        return base.find.call(this, query, option)
+      })
     },
   })
 }
