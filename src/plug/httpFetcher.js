@@ -1,54 +1,13 @@
 import _ from 'lodash'
 
 import { withoutTmpId } from '../collection/util/idUtil'
-import { calcFetchKey } from '../collection/util/keyUtil'
-import { getState, addMutation } from '../collection/base'
+import calcQueryKey from '../collection/util/calcQueryKey'
+import { getState } from '../collection/base'
 import { GC_GENERATION } from '../collection/invalidate'
-import { load } from '../collection/load'
 import { prepareFindData } from '../collection/findInState'
-
-// @auto-fold here
-function checkInMapState(self, { fetch, serverPreload }) {
-  if (fetch === false) return false
-  if (self.store && self.store.vanCtx.duringServerPreload && !serverPreload) return false
-  return true
-}
-
-function doFetch(self, query, option) {
-  getState(self).fetchAts[option.fetchKey] = GC_GENERATION
-
-  return Promise.resolve(self.onFetch(query, option, self)).then(res => load(self, res, option))
-}
-
-// @auto-fold here
-function wrapFetchPromise(self, fetchQuery, option) {
-  const { _fetchingPromises } = self
-  const { fetchKey } = option
-  const oldPromise = _fetchingPromises[fetchKey]
-  if (oldPromise) return oldPromise
-
-  const promise = doFetch(self, fetchQuery, option)
-    .then(ret => {
-      if (_fetchingPromises[fetchKey] === promise) {
-        delete _fetchingPromises[fetchKey]
-        addMutation(self, null) // force render to update isFetching
-      }
-      return ret
-    })
-    .catch(err => {
-      if (_fetchingPromises[fetchKey] === promise) {
-        delete _fetchingPromises[fetchKey]
-        addMutation(self, null) // force render to update isFetching
-      }
-      return Promise.reject(err)
-    })
-  _fetchingPromises[fetchKey] = promise
-  return promise
-}
+import { isPreloadSkip, wrapFetchPromise, doFetch } from './relayFetcher'
 
 function checkFetch(self, query, option, isAsync) {
-  if (!isAsync && !checkInMapState(self, option)) return false
-
   prepareFindData(self, query, option)
   if (option.allIdsHit) return false
 
@@ -59,7 +18,7 @@ function checkFetch(self, query, option, isAsync) {
   const fetchAts = getState(self).fetchAts
   // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
   if (fetchAts[fetchKey]) return false
-  // fetchAts is set in doFetch
+  getState(self).fetchAts[fetchKey] = GC_GENERATION
 
   // want to return fetching promise for findAsync
   if (isAsync) {
@@ -67,12 +26,12 @@ function checkFetch(self, query, option, isAsync) {
     delete option.preparedData
     return doFetch(self, fetchQuery, option)
   }
-  return wrapFetchPromise(self, fetchQuery, option)
+  return wrapFetchPromise(self, fetchQuery, option, 'fetchKey')
 }
 
 const confDefaults = {
   getFetchQuery: (query, option, self) => withoutTmpId(query, self.idField),
-  getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
+  getFetchKey: (fetchQuery, option) => calcQueryKey(fetchQuery, option),
 }
 
 export default function httpFetcher(conf) {
@@ -83,7 +42,9 @@ export default function httpFetcher(conf) {
 
     find(query = {}, option = {}) {
       _.defaults(option, conf)
-      checkFetch(this, query, option)
+      if (option.fetch !== false && !isPreloadSkip(this, option)) {
+        checkFetch(this, query, option)
+      }
       return base.find.call(this, query, option)
     },
 
@@ -94,7 +55,9 @@ export default function httpFetcher(conf) {
 
     get(id, option = {}) {
       _.defaults(option, conf)
-      checkFetch(this, [id], option)
+      if (option.fetch !== false && !isPreloadSkip(this, option)) {
+        checkFetch(this, [id], option)
+      }
       return base.get.call(this, id, option)
     },
   })

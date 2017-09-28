@@ -1,4 +1,4 @@
-import { calcQueryKey } from './util/keyUtil'
+import calcQueryKey from './util/calcQueryKey'
 import findInState from './findInState'
 
 export function getInMemory(self, id) {
@@ -22,6 +22,7 @@ export default function findInMemory(self, query, option = {}) {
 
   // HIT
   if (queryKey in _memory) {
+    option.queryHit = true
     return _memory[queryKey]
   }
   // console.log('findInMemory', queryKey, _memory[queryKey])
