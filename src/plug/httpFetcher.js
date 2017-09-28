@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 import { withoutTmpId } from '../collection/util/idUtil'
 import { calcFetchKey } from '../collection/util/keyUtil'
 import { getState, addMutation } from '../collection/base'
@@ -68,21 +70,32 @@ function checkFetch(self, query, option, isAsync) {
   return wrapFetchPromise(self, fetchQuery, option)
 }
 
-const getFetchQuery = (query, option, self) => withoutTmpId(query, self.idField)
-const getFetchKey = (fetchQuery, option) => calcFetchKey(fetchQuery, option)
-
-export const httpFetchFunctions = {
-  getFetchQuery,
-  getFetchKey,
-  // onFetch(),
-  // onSubmit(),
-  checkFetch,
+const confDefaults = {
+  getFetchQuery: (query, option, self) => withoutTmpId(query, self.idField),
+  getFetchKey: (fetchQuery, option) => calcFetchKey(fetchQuery, option),
 }
 
 export default function httpFetcher(conf) {
-  return self => ({
-    ...self,
-    ...httpFetchFunctions,
-    ...conf,
+  conf = _.defaults(conf, confDefaults)
+
+  return base => ({
+    ...base,
+
+    find(query = {}, option = {}) {
+      _.defaults(option, conf)
+      checkFetch(this, query, option)
+      return base.find.call(this, query, option)
+    },
+
+    findAsync(query = {}, option = {}) {
+      _.defaults(option, conf)
+      return Promise.resolve(checkFetch(this, query, option, true)).then(() => base.find.call(this, query, option))
+    },
+
+    get(id, option = {}) {
+      _.defaults(option, conf)
+      checkFetch(this, [id], option)
+      return base.get.call(this, id, option)
+    },
   })
 }

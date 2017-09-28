@@ -2,15 +2,15 @@ import _ from 'lodash'
 
 import { TMP_ID_PREFIX } from './util/idUtil'
 import { init } from './load'
-import * as state from './base'
+import * as base from './base'
 import * as setter from './setter'
 import * as invalidate from './invalidate'
 import * as submitter from './submitter'
-import * as find from './find'
 import * as findExtra from './find-extra'
-import { httpFetchFunctions } from '../plug/httpFetcher'
+import httpFetcher from '../plug/httpFetcher'
+import findInMemory from './findInMemory'
 
-const { getState } = state
+const { getState } = base
 
 const functions = {
   // __proxy__
@@ -30,8 +30,19 @@ const functions = {
   onGet(id) {
     return this.onGetAll()[id]
   },
+
+  // overridable
+  find(query = {}, option = {}) {
+    return findInMemory(this, query, option)
+  },
+  get(id, option = {}) {
+    return this.onGet(id, option)
+  },
+  // findAsync(query = {}, option = {}) {
+  //   return Promise.resolve(findInMemory(this, query, option))
+  // },
 }
-_.each({ ...state, ...find }, (func, key) => {
+_.each({ ...base }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {
@@ -54,7 +65,10 @@ export default function createCollection(spec) {
     console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
   }
 
-  const self = Object.assign({}, functions, spec.onFetch ? { ...httpFetchFunctions, ...spec } : spec)
+  let self = Object.assign({}, functions, spec)
+
+  // TODO should use httpFetcher() explicitly in store.overrides / collection-enhancers / plugins
+  if (self.onFetch) self = httpFetcher(self)(self)
 
   init(self)
 
