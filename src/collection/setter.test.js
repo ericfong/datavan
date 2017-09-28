@@ -33,7 +33,7 @@ test('insert & find', async () => {
 
   const inserted = insert(collection, [{ name: 'A' }, { name: 'B' }])
   expect(_.map(inserted, 'name')).toEqual(['A', 'B'])
-  expect(_.map(collection.onGetAll(), 'name')).toEqual(['A', 'B'])
+  expect(_.map(collection.getAll(), 'name')).toEqual(['A', 'B'])
 
   expect(collection.find(_.map(inserted, '_id'))).toEqual(inserted)
 })

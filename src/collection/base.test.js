@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { insert } from '..'
 import { createCollection } from '.'
 
-test('onMutate', async () => {
+test.skip('onMutate', async () => {
   const collection = createCollection({
     onMutate: jest.fn(),
   })

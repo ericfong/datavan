@@ -45,6 +45,6 @@ test('$relations', async () => {
   Users(store).find(query2, { fetchUrl: 'complex-query-2' })
   await Promise.all(allPendings(Users(store)))
   expect(Users(store).find(query2, { fetchUrl: 'complex-query-2' })).toEqual([{ _id: '4', age: 20, roleId: '2' }])
-  expect(Roles(store).onGetAll()).toEqual({ reader: { role: 'reader' } })
-  expect(Blogs(store).onGetAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
+  expect(Roles(store).getAll()).toEqual({ reader: { role: 'reader' } })
+  expect(Blogs(store).getAll()).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
 })

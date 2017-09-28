@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { _get, getState, addMutation } from './base'
-import findInMemory from './findInMemory'
+import { getState, addMutation } from './base'
+import findInMemory, { getInMemory } from './findInMemory'
 
 // @auto-fold here
 function toMutation(change) {
@@ -47,7 +47,7 @@ export function setAll(core, change, option) {
     const keepOriginal = k => {
       if (!(k in originals)) {
         // BUG if original === undefined, it won't be persist
-        const v = _get(core, k)
+        const v = getInMemory(core, k)
         mutOriginals[k] = { $set: v === undefined ? null : v }
       }
     }

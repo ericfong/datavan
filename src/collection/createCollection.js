@@ -24,32 +24,29 @@ const functions = {
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
   // onSetAll(change, option) {},                 // called on every set
   // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
-  onGetAll() {
+
+  // overridables
+  getAll() {
     return getState(this).byId
   },
   onGet(id) {
-    return this.onGetAll()[id]
-  },
-
-  // overridable
-  find(query = {}, option = {}) {
-    return findInMemory(this, query, option)
+    return this.getAll()[id]
   },
   get(id, option = {}) {
     return this.onGet(id, option)
   },
-  // findAsync(query = {}, option = {}) {
-  //   return Promise.resolve(findInMemory(this, query, option))
-  // },
+  find(query = {}, option = {}) {
+    return findInMemory(this, query, option)
+  },
 }
-_.each({ ...base }, (func, key) => {
-  if (key[0] === '_') return
-  // eslint-disable-next-line
-  functions[key] = function(...args) {
-    return func(this, ...args) // eslint-disable-line
-  }
-})
-_.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => {
+// _.each({  }, (func, key) => {
+//   if (key[0] === '_') return
+//   // eslint-disable-next-line
+//   functions[key] = function(...args) {
+//     return func(this, ...args) // eslint-disable-line
+//   }
+// })
+_.each({ ...base, ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => {
   if (key[0] === '_') return
   // eslint-disable-next-line
   functions[key] = function(...args) {

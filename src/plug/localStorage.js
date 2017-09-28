@@ -12,7 +12,7 @@ export default function plugLocalStorage(_storage) {
   const storage = _storage || global.localStorage
   return spec =>
     Object.assign({}, spec, {
-      onGetAll() {
+      getAll() {
         return storage
       },
       onGet(id) {

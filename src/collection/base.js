@@ -26,14 +26,6 @@ export function addMutation(self, mut, option) {
 // ===========================================================================================
 // base-methods
 
-export function getAll(table) {
-  return table.onGetAll()
-}
-
-export function _get(table, id) {
-  return table.onGet(id)
-}
-
 export function getOriginals(table) {
   return getState(table).originals
 }

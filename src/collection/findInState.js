@@ -66,7 +66,7 @@ function filterDataByIds(self, data, ids, option) {
 
 export function prepareFindData(self, query, option) {
   if (option.preparedData) return option.preparedData
-  const data = self.onGetAll()
+  const data = self.getAll()
   const ids = getQueryIds(query, self.idField)
   let prepared
   if (ids) {

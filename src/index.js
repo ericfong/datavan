@@ -1,14 +1,14 @@
 // collection
 export createCollection from './collection/createCollection'
-export { getState, getAll, addMutation, getOriginals, getSubmits, isDirty } from './collection/base'
+export { getState, addMutation, getOriginals, getSubmits, isDirty } from './collection/base'
 export { load, loadAsDefaults } from './collection/load'
 export { invalidate, reset, garbageCollect } from './collection/invalidate'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
 export { submit, getSubmitted } from './collection/submitter'
-export { find, findAsync, get } from './collection/find'
+export { getAll, get, find, findAsync } from './collection/find'
 export { getAsync, findOne, allPendings } from './collection/find-extra'
 export memoizedFind from './collection/findInMemory'
-export findInMemory from './collection/findInMemory'
+export findInMemory, { getInMemory } from './collection/findInMemory'
 
 // redux
 export { defineCollection } from './defineCollection'

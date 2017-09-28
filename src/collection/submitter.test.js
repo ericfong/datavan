@@ -83,7 +83,7 @@ test('basic', async () => {
 
   insert(Users, { name: 'Apple' })
   insert(Users, { name: 'Car' })
-  expect(_.map(Users.onGetAll(), 'name')).toEqual(['Apple', 'Car'])
+  expect(_.map(Users.getAll(), 'name')).toEqual(['Apple', 'Car'])
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
@@ -94,5 +94,5 @@ test('basic', async () => {
   // mix data from server
   Users.get('u1')
   await Promise.all(allPendings(Users))
-  expect(_.map(Users.onGetAll(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
+  expect(_.map(Users.getAll(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })

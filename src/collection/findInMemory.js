@@ -1,28 +1,16 @@
 import { calcQueryKey } from './util/keyUtil'
 import findInState from './findInState'
 
-// function findDataOrRequest(self, query, option) {
-//   // request-only (only for Fetcher case?)
-//   if (query.$request) {
-//     if (Object.keys(query).length === 1) {
-//       const { requests } = getState(self)
-//       const fetchKey = option.fetchKey
-//       if (fetchKey in requests) {
-//         return requests[fetchKey]
-//       }
-//     }
-//     query = _.omit(query, '$request')
-//   }
-//   return findInState(self, query, option)
-// }
+export function getInMemory(self, id) {
+  return self.getAll()[id]
+}
 
 export default function findInMemory(self, query, option = {}) {
   let { _memory } = self
-  // if (option.cacheOnly) return _memory[calcQueryKey(query, option)]
   const { _memoryById } = self
 
   // reset cache or not
-  const byId = self.onGetAll()
+  const byId = self.getAll()
   const shouldReset = byId !== _memoryById
   self._memoryById = byId
   if (shouldReset) _memory = self._memory = {}

@@ -144,7 +144,7 @@ test('basic', async () => {
 
   expect(calledFind).toBe(1)
   expect(calledGet).toBe(2)
-  expect(Users.onGetAll()).toEqual({
+  expect(Users.getAll()).toEqual({
     u1: { _id: 'u1', name: 'u1 name' },
     u2: { _id: 'u2', name: 'users Eric' },
   })
