@@ -11,7 +11,7 @@ export memoizedFind from './collection/findInMemory'
 export findInMemory, { getInMemory } from './collection/findInMemory'
 
 // redux
-export { defineCollection } from './defineCollection'
+export { defineCollection, getCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './redux'
 export memorizeConnect from './util/memorizeConnect'
 

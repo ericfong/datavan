@@ -66,10 +66,10 @@ export default function createCollection(spec, plugin) {
 
   let self = Object.assign({}, functions, spec)
 
+  if (plugin) self = applyPlugin(self, plugin)
+
   // TODO should use httpFetcher() explicitly in store.overrides / collection-enhancers / plugins
   if (self.onFetch) self = httpFetcher(self)(self)
-
-  if (plugin) self = applyPlugin(self, plugin)
 
   init(self)
 
