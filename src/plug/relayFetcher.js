@@ -41,35 +41,26 @@ function checkFetch(self, query, option, doFetch) {
 }
 
 let requestNum = 0
-const makeFindRequest = (self, query, option) => ({
-  _id: requestNum++,
-  name: self.name,
-  action: 'findAsync',
-  args: [query, pickOptionForSerialize(option)],
-})
-
-const makeSetAllRequest = (self, change) => ({
-  _id: requestNum++,
-  name: self.name,
-  action: 'setAll',
-  args: [change],
-})
+const makeRequest = (self, action, ...args) => ({ _id: requestNum++, name: self.name, action, args })
+const makeFindRequest = (self, query, option) => makeRequest(self, 'findAsync', query, pickOptionForSerialize(option))
 
 export default function relayFetcher(postMessage) {
   const promises = {}
 
+  function waitForReport(res, promiseId) {
+    if (!res) {
+      // if no res, means need to wait and resolve via handleResponse
+      const p = createStandalonePromise()
+      promises[promiseId] = p
+      return p
+    }
+    return res
+  }
+
   function doFetch(self, query, option) {
     const request = makeFindRequest(self, query, option)
     return Promise.resolve(postMessage(request, option, self))
-      .then(res => {
-        if (!res) {
-          // if no res, means need to wait and resolve via handleResponse
-          const p = createStandalonePromise()
-          promises[request._id] = p
-          return p
-        }
-        return res
-      })
+      .then(res => waitForReport(res, request._id))
       .then(res => load(self, res, option))
   }
 
@@ -98,7 +89,11 @@ export default function relayFetcher(postMessage) {
 
     setAll(change, option) {
       base.setAll.call(this, change, option)
-      postMessage(makeSetAllRequest(this, change), {}, this)
+
+      const request = makeRequest(this, 'setAll', change)
+      Promise.resolve(postMessage(request, {}, this))
+        .then(res => waitForReport(res, request._id))
+        .then(res => load(this, res))
     },
   })
 
@@ -118,7 +113,7 @@ export function relayWorker(onFetch, onSubmit) {
     onFetch,
     setAll(change, option) {
       base.setAll.call(this, change, option)
-      submit(this, onSubmit)
+      return submit(this, onSubmit)
     },
   })
 }

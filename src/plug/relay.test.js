@@ -3,8 +3,7 @@ import { createStore } from 'redux'
 import delay from 'delay'
 
 import { datavanEnhancer, defineCollection, relayFetcher, getCollection, set, relayWorker } from '..'
-import onFetchEcho from '../test/onFetchEcho'
-import { echoSubmit } from '../test/echo'
+import { EchoDB } from '../test/echo'
 
 class FakeChannel {
   list = []
@@ -61,15 +60,16 @@ test('basic', async () => {
   )
 
   // service-worker
-  const workerSubmit = jest.fn(echoSubmit)
+  const db = new EchoDB()
+  const workerSubmit = jest.fn(db.submit)
   const swStore = createStore(
     null,
     null,
     datavanEnhancer({
       overrides: {
-        roles: relayWorker(onFetchEcho, workerSubmit),
-        blogs: relayWorker(onFetchEcho, workerSubmit),
-        users: relayWorker(onFetchEcho, workerSubmit),
+        roles: relayWorker(db.fetch, workerSubmit),
+        blogs: relayWorker(db.fetch, workerSubmit),
+        users: relayWorker(db.fetch, workerSubmit),
       },
     })
   )
@@ -97,9 +97,8 @@ test('basic', async () => {
   set(Blogs(winStore), 'blog-1', { _id: 'blog-1', name: 'Relay Fetcher' })
   // wait for relay
   await delay(60)
-  // console.log('>>> ////')
-  // expect(await Blogs(winStore).findAsync(['blog-1'])).toEqual([{ _id: 'blog-1', name: 'Relay Fetcher' }])
+  expect(await Blogs(winStore).findAsync({ _key: 'blog-1' })).toMatchObject([{ _key: 'blog-1', name: 'Relay Fetcher' }])
 
-  // expect(workerSubmit).toHaveBeenCalledTimes(1)
-  // expect(workerSubmit).toBeCalledWith({ 'blog-1': { _id: 'blog-1', name: 'Relay Fetcher' } }, expect.anything())
+  expect(workerSubmit).toHaveBeenCalledTimes(1)
+  expect(workerSubmit).toBeCalledWith({ 'blog-1': { _id: 'blog-1', name: 'Relay Fetcher' } }, expect.anything())
 })
