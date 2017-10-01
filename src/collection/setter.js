@@ -1,21 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { getState, addMutation } from './base'
-import findInMemory, { getInMemory } from './findInMemory'
-
-// @auto-fold here
-function toMutation(change) {
-  const mutation = {}
-  _.each(change, (value, key) => {
-    if (key === '$unset') {
-      mutation.$unset = value
-      return
-    }
-    mutation[key] = { $set: value }
-  })
-  return mutation
-}
+import findInMemory from './findInMemory'
 
 function withId(core, doc) {
   const idField = core.idField
@@ -25,46 +11,8 @@ function withId(core, doc) {
   return doc
 }
 
-export function setAll(core, change, option) {
-  if (core.onSetAll) core.onSetAll(change, option)
-  const mutation = { byId: toMutation(change) }
-
-  if (core.onFetch) {
-    // let submitsChange = change
-    // // convert $unset to undefined in submits
-    // if (change.$unset) {
-    //   submitsChange = { ...change }
-    //   delete submitsChange.$unset
-    //   _.each(change.$unset, id => {
-    //     submitsChange[id] = undefined
-    //   })
-    // }
-    // mutation.submits = toMutation(submitsChange)
-
-    // keep originals
-    const mutOriginals = {}
-    const { originals } = getState(core)
-    const keepOriginal = k => {
-      if (!(k in originals)) {
-        // BUG if original === undefined, it won't be persist
-        const v = getInMemory(core, k)
-        mutOriginals[k] = { $set: v === undefined ? null : v }
-      }
-    }
-    _.each(change, (value, key) => {
-      if (key === '$unset') {
-        _.each(value, keepOriginal)
-        return
-      }
-      keepOriginal(key)
-    })
-    mutation.originals = mutOriginals
-  }
-
-  addMutation(core, mutation, option)
-
-  // NOTE require explicitly call submit
-  // if (core.onFetch && core.onSubmit) submit(core, core.onSubmit)
+export function setAll(collection, change, option) {
+  return collection.setAll(change, option)
 }
 
 export function set(core, id, value, option) {

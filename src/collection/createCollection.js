@@ -10,7 +10,20 @@ import * as findExtra from './find-extra'
 import httpFetcher from '../plug/httpFetcher'
 import findInMemory from './findInMemory'
 
-const { getState } = base
+const { getState, addMutation } = base
+
+// @auto-fold here
+function toMutation(change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  return mutation
+}
 
 const functions = {
   // __proxy__
@@ -22,7 +35,6 @@ const functions = {
   // postFind()
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
-  // onSetAll(change, option) {},                 // called on every set
   // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
 
   // overridables
@@ -38,6 +50,33 @@ const functions = {
   find(query = {}, option = {}) {
     return findInMemory(this, query, option)
   },
+
+  setAll(change, option) {
+    const mutation = { byId: toMutation(change) }
+
+    if (this.onFetch) {
+      // keep originals
+      const mutOriginals = {}
+      const { originals, byId } = getState(this)
+      const keepOriginal = k => {
+        if (!(k in originals)) {
+          // need to convert undefined original to null, for persist
+          const original = byId[k]
+          mutOriginals[k] = { $set: original === undefined ? null : original }
+        }
+      }
+      _.each(change, (value, key) => {
+        if (key === '$unset') {
+          _.each(value, keepOriginal)
+          return
+        }
+        keepOriginal(key)
+      })
+      mutation.originals = mutOriginals
+    }
+
+    addMutation(this, mutation, option)
+  },
 }
 // _.each({  }, (func, key) => {
 //   if (key[0] === '_') return
@@ -47,7 +86,7 @@ const functions = {
 //   }
 // })
 _.each({ ...base, ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => {
-  if (key[0] === '_') return
+  if (key[0] === '_' || functions[key]) return
   // eslint-disable-next-line
   functions[key] = function(...args) {
     if (process.env.NODE_ENV !== 'production') {
@@ -65,6 +104,8 @@ export default function createCollection(spec, plugin) {
   }
 
   let self = Object.assign({}, functions, spec)
+
+  if (spec.plugin) self = applyPlugin(self, spec.plugin)
 
   if (plugin) self = applyPlugin(self, plugin)
 

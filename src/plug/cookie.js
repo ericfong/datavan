@@ -2,15 +2,15 @@ import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
 export default function plugCookie(cookieConf) {
-  return spec =>
-    Object.assign({}, spec, {
-      getAll() {
-        return jsCookie.get()
-      },
+  return base =>
+    Object.assign({}, base, {
+      // getAll() {
+      //   return jsCookie.get()
+      // },
       onGet(id) {
         return jsCookie.get(id)
       },
-      onSetAll(change) {
+      setAll(change, option) {
         _.each(change, (v, k) => {
           if (k === '$unset') {
             return _.each(v, id => jsCookie.remove(id))
@@ -20,6 +20,7 @@ export default function plugCookie(cookieConf) {
           }
           return jsCookie.set(k, v, cookieConf)
         })
+        return base.setAll.call(this, change, option)
       },
     })
 }

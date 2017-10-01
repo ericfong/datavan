@@ -2,15 +2,15 @@ import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
 export default function plugKoaCookie(cookieConf, koaCtx) {
-  return spec =>
-    Object.assign({}, spec, {
-      getAll() {
-        return null
-      },
+  return base =>
+    Object.assign({}, base, {
+      // getAll() {
+      //   return null
+      // },
       onGet(id) {
         return koaCtx.cookies.get(id)
       },
-      onSetAll(change) {
+      setAll(change, option) {
         _.each(change, (v, k) => {
           if (k === '$unset') {
             return _.each(v, id => jsCookie.set(id, null))
@@ -20,6 +20,7 @@ export default function plugKoaCookie(cookieConf, koaCtx) {
           }
           return koaCtx.cookies.set(k, v, cookieConf)
         })
+        return base.setAll.call(this, change, option)
       },
     })
 }
