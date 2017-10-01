@@ -3,6 +3,7 @@
 import { addMutation } from '../collection/base'
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
+import { createStandalonePromise } from '../util/batcher'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -38,14 +39,40 @@ function checkFetch(self, query, option, doFetch) {
   return wrapFetchPromise(self, query, option, 'queryKey', doFetch)
 }
 
-const toRelay = (self, query, option) => ({ name: self.name, action: 'findAsync', query, option: pickOptionForSerialize(option) })
+let requestNum = 0
+const makeFindRequest = (self, query, option) => ({
+  _id: requestNum++,
+  name: self.name,
+  action: 'findAsync',
+  args: [query, pickOptionForSerialize(option)],
+})
+
+const makeSubmitRequest = (self, submits) => ({
+  _id: requestNum++,
+  name: self.name,
+  action: 'onSubmit',
+  args: [submits],
+})
 
 export default function relayFetcher(onFetch) {
+  const promises = {}
+
   function doFetch(self, query, option) {
-    return Promise.resolve(onFetch(toRelay(self, query, option), option, self)).then(res => load(self, res, option))
+    const request = makeFindRequest(self, query, option)
+    return Promise.resolve(onFetch(request, option, self))
+      .then(res => {
+        if (!res) {
+          // if no res, means need to wait and resolve via handleResponse
+          const p = createStandalonePromise()
+          promises[request._id] = p
+          return p
+        }
+        return res
+      })
+      .then(res => load(self, res, option))
   }
 
-  return base => ({
+  const relayPlugin = base => ({
     ...base,
 
     get(id, option = {}) {
@@ -67,5 +94,18 @@ export default function relayFetcher(onFetch) {
     findAsync(query = {}, option = {}) {
       return doFetch(this, query, option, doFetch).then(() => base.find.call(this, query, option))
     },
+
+    onSubmit(submittedDocs, self) {
+      onFetch(makeSubmitRequest(self, submittedDocs), {}, self)
+    },
   })
+
+  relayPlugin.reportRequest = request => {
+    if (request) {
+      const promise = promises[request._id]
+      if (promise) promise.resolve(request.result)
+    }
+  }
+
+  return relayPlugin
 }
