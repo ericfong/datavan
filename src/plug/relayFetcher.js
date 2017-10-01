@@ -115,5 +115,13 @@ export function relayWorker(onFetch, onSubmit) {
       base.setAll.call(this, change, option)
       return submit(this, onSubmit)
     },
+    handleRequest(request) {
+      // relay.action = 'findAsync' | 'setAll'
+      return Promise.resolve(this[request.action](...request.args)).then(ret => {
+        // console.log('handleRelay', relay.action, relay.name, relay.args[0], ret)
+        request.result = ret
+        return request
+      })
+    },
   })
 }

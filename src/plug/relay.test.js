@@ -25,14 +25,8 @@ class FakeChannel {
   }
 }
 
-function handleRelay(store, relay) {
-  const collection = getCollection(store, { name: relay.name })
-  // relay.action = 'findAsync' | 'setAll'
-  return Promise.resolve(collection[relay.action](relay.args[0], relay.args[1])).then(ret => {
-    // console.log('handleRelay', relay.action, relay.name, relay.args[0], ret)
-    relay.result = ret
-    return relay
-  })
+function handleRelay(store, request) {
+  return getCollection(store, { name: request.name }).handleRequest(request)
 }
 
 test('basic', async () => {
