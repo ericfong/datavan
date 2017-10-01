@@ -58,8 +58,8 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
     data = { byId: data }
   }
 
-  // $submitted before loadAsMerge or loadAsDefaults
-  if (data.$submitted) submitted(self, data.$submitted)
+  // move tmp id to $submittedIds before loadAsMerge or loadAsDefaults
+  if (data.$submittedIds) submitted(self, data.$submittedIds)
 
   // load byId, originals, fetchAts
   const { byId, originals } = getState(self)

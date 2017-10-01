@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { createCollection } from '.'
-import { getSubmits, submit, findOne, allPendings, insert, update, remove, getSubmitted } from '..'
+import { getSubmits, submit, findOne, allPendings, insert, update, remove } from '..'
+import { echoSubmit } from '../test/echo'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
@@ -50,20 +51,9 @@ test('onSubmit', async () => {
 
   // onSubmit with feedback
 
-  doSubmit = (changes, self) => {
-    lastSubmit = changes
-    const arr = _.reduce(
-      changes,
-      (ret, doc, oldId) => {
-        if (doc) {
-          ret.push({ ...doc, _key: oldId, _id: `stored-${Math.random()}` })
-        }
-        return ret
-      },
-      []
-    )
-    const $submitted = getSubmitted(self, changes, arr, '_key')
-    return { byId: _.keyBy(arr, '_id'), $submitted }
+  doSubmit = (docs, self) => {
+    lastSubmit = docs
+    return echoSubmit(docs, self)
   }
   update(Users, { name: 'Car 2' }, { $merge: { name: 'Car 3' } })
   await submit(Users)

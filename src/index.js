@@ -4,7 +4,7 @@ export { getState, addMutation, getOriginals, getSubmits, isDirty } from './coll
 export { load, loadAsDefaults } from './collection/load'
 export { invalidate, reset, garbageCollect } from './collection/invalidate'
 export { setAll, set, del, insert, update, remove } from './collection/setter'
-export { submit, getSubmitted } from './collection/submitter'
+export { submit, getSubmittedIds } from './collection/submitter'
 export { getAll, get, find, findAsync } from './collection/find'
 export { getAsync, findOne, allPendings } from './collection/find-extra'
 export memoizedFind from './collection/findInMemory'
@@ -22,7 +22,7 @@ export loadCollections from './store/loadCollections'
 
 // fetcher
 export httpFetcher from './plug/httpFetcher'
-export relayFetcher from './plug/relayFetcher'
+export relayFetcher, { relayWorker } from './plug/relayFetcher'
 
 // plugins
 export plugBrowser from './plug/browser'

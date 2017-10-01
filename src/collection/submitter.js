@@ -3,10 +3,11 @@ import _ from 'lodash'
 import { getSubmits } from './base'
 import { load } from './load'
 
-export function getSubmitted(self, changes, arr, oldIdKey) {
+export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
+  // tmp id to stored id table
   return {
-    ..._.mapValues(changes, () => null),
-    ..._.mapValues(_.keyBy(arr, oldIdKey), self.idField),
+    ..._.mapValues(tmps, () => null),
+    ..._.mapValues(_.keyBy(storeds, oldIdKey), self.idField),
   }
 }
 

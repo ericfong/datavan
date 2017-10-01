@@ -4,6 +4,7 @@ import { addMutation } from '../collection/base'
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
+import { submit } from '../collection/submitter'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -47,19 +48,19 @@ const makeFindRequest = (self, query, option) => ({
   args: [query, pickOptionForSerialize(option)],
 })
 
-const makeSubmitRequest = (self, submits) => ({
+const makeSetAllRequest = (self, change) => ({
   _id: requestNum++,
   name: self.name,
-  action: 'onSubmit',
-  args: [submits],
+  action: 'setAll',
+  args: [change],
 })
 
-export default function relayFetcher(onFetch) {
+export default function relayFetcher(postMessage) {
   const promises = {}
 
   function doFetch(self, query, option) {
     const request = makeFindRequest(self, query, option)
-    return Promise.resolve(onFetch(request, option, self))
+    return Promise.resolve(postMessage(request, option, self))
       .then(res => {
         if (!res) {
           // if no res, means need to wait and resolve via handleResponse
@@ -95,8 +96,9 @@ export default function relayFetcher(onFetch) {
       return doFetch(this, query, option, doFetch).then(() => base.find.call(this, query, option))
     },
 
-    onSubmit(submittedDocs, self) {
-      onFetch(makeSubmitRequest(self, submittedDocs), {}, self)
+    setAll(change, option) {
+      base.setAll.call(this, change, option)
+      postMessage(makeSetAllRequest(this, change), {}, this)
     },
   })
 
@@ -108,4 +110,15 @@ export default function relayFetcher(onFetch) {
   }
 
   return relayPlugin
+}
+
+export function relayWorker(onFetch, onSubmit) {
+  return base => ({
+    ...base,
+    onFetch,
+    setAll(change, option) {
+      base.setAll.call(this, change, option)
+      submit(this, onSubmit)
+    },
+  })
 }
