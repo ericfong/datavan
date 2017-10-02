@@ -16,21 +16,17 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
-export function getCollection(store, spec, creation) {
+export function _getCollection(store, spec, creation) {
   const { name, dependencies } = spec
   const { collections, vanCtx } = store
   let collection = collections[name]
   if (!collection && creation !== false) {
     // has dep.spec mean it is a defineCollection
-    _.each(dependencies, dep => getCollection(store, dep.spec || dep))
+    _.each(dependencies, dep => _getCollection(store, dep.spec || dep))
 
     collection = collections[name] = createCollection({ ...spec, store }, vanCtx.overrides[name])
   }
   return collection
-}
-
-function collect(stateOrDispatch, spec) {
-  return getCollection(getVan(stateOrDispatch), spec)
 }
 
 export const defineCollection = (_spec, oldSpec, dependencies) => {
@@ -38,7 +34,11 @@ export const defineCollection = (_spec, oldSpec, dependencies) => {
   if (typeof _spec === 'string') {
     spec = { name: _spec, dependencies, ...oldSpec }
   }
-  const selector = stateOrDispatch => collect(stateOrDispatch, spec)
+  const selector = stateOrDispatch => _getCollection(getVan(stateOrDispatch), spec)
   selector.spec = spec
   return selector
+}
+
+export function getCollection(store, spec, creation) {
+  return _getCollection(store, typeof spec === 'string' ? { name: spec } : spec, creation)
 }

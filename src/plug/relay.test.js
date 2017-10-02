@@ -25,10 +25,6 @@ class FakeChannel {
   }
 }
 
-function handleRelay(store, request) {
-  return getCollection(store, { name: request.name }).handleRequest(request)
-}
-
 test('basic', async () => {
   const Roles = defineCollection({ name: 'roles', idField: 'name' })
   const Blogs = defineCollection({ name: 'blogs' })
@@ -39,7 +35,7 @@ test('basic', async () => {
 
   // should use one relay for similar collections
   const relay = relayFetcher(serviceWorkerChannel.postMessage)
-  feedbackChannel.addEventListener(event => relay.reportRequest(event.data))
+  feedbackChannel.addEventListener(event => relay.handleRelayPush(event.data))
 
   const winStore = createStore(
     null,
@@ -70,7 +66,10 @@ test('basic', async () => {
   // persist swStore instead of winStore
   // post message to service-worker
   serviceWorkerChannel.addEventListener(event => {
-    handleRelay(swStore, event.data).then(feedbackChannel.postMessage)
+    const request = event.data
+    getCollection(swStore, request.name)
+      .executeRelay(request)
+      .then(feedbackChannel.postMessage)
   })
 
   expect(Roles(winStore).find(['ADMIN', 'READER'])).toEqual([])

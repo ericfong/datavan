@@ -41,7 +41,7 @@ function checkFetch(self, query, option, doFetch) {
 }
 
 let requestNum = 0
-const makeRequest = (self, action, ...args) => ({ _id: requestNum++, name: self.name, action, args })
+const makeRequest = (self, action, ...args) => ({ _id: requestNum++, tag: `${self.name}/${action}`, name: self.name, action, args })
 const makeFindRequest = (self, query, option) => makeRequest(self, 'findAsync', query, pickOptionForSerialize(option))
 
 export default function relayFetcher(postMessage) {
@@ -97,7 +97,7 @@ export default function relayFetcher(postMessage) {
     },
   })
 
-  relayPlugin.reportRequest = request => {
+  relayPlugin.handleRelayPush = request => {
     if (request) {
       const promise = promises[request._id]
       if (promise) promise.resolve(request.result)
@@ -115,7 +115,8 @@ export function relayWorker(onFetch, onSubmit) {
       base.setAll.call(this, change, option)
       return submit(this, onSubmit)
     },
-    handleRequest(request) {
+
+    executeRelay(request) {
       // relay.action = 'findAsync' | 'setAll'
       return Promise.resolve(this[request.action](...request.args)).then(ret => {
         // console.log('handleRelay', relay.action, relay.name, relay.args[0], ret)
