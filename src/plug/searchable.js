@@ -3,12 +3,12 @@ import searchObjects from '../util/searchObjects'
 export default function plugSearchable({ fields }) {
   return spec =>
     Object.assign({}, spec, {
-      preFind(docs, query) {
+      filterHook(next, collection, docs, query, option) {
         if ('$search' in query) {
-          const ret = searchObjects(docs, query.$search, fields)
+          docs = searchObjects(docs, query.$search, fields)
           delete query.$search
-          return ret
         }
+        return next(collection, docs, query, option)
       },
     })
 }

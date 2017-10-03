@@ -1,9 +1,10 @@
 // import _ from 'lodash'
 
-import { addMutation } from '../collection/base'
+import { addMutation, setAll } from '../collection/base'
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
+import { findAsync } from '../collection/find'
 import { submit } from '../collection/submitter'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
@@ -67,33 +68,32 @@ export default function relayFetcher(postMessage) {
   const relayPlugin = base => ({
     ...base,
 
-    get(id, option = {}) {
-      const ret = base.get.call(this, id, option)
-      if (this._byIdAts[id]) {
+    getHook(next, collection, id, option = {}) {
+      const ret = next(collection, id, option)
+      if (collection._byIdAts[id]) {
         option.allIdsHit = true
       }
-      checkFetch(this, [id], option, doFetch)
+      checkFetch(collection, [id], option, doFetch)
       return ret
     },
 
-    find(query = {}, option = {}) {
-      const ret = base.find.call(this, query, option)
+    findHook(next, collection, query = {}, option = {}) {
+      const ret = next(collection, query, option)
       // checkFetch depend on queryHit & allIdsHit, so need to run AFTER base.find
-      checkFetch(this, query, option, doFetch)
+      checkFetch(collection, query, option, doFetch)
       return ret
     },
 
-    findAsync(query = {}, option = {}) {
-      return doFetch(this, query, option, doFetch).then(() => base.find.call(this, query, option))
+    findAsyncHook(next, collection, query = {}, option = {}) {
+      return doFetch(collection, query, option, doFetch).then(() => next(collection, query, option))
     },
 
-    setAll(change, option) {
-      base.setAll.call(this, change, option)
-
-      const request = makeRequest(this, 'setAll', change)
-      Promise.resolve(postMessage(request, {}, this))
+    setAllHook(next, collection, change, option) {
+      next(collection, change, option)
+      const request = makeRequest(collection, 'setAll', change)
+      Promise.resolve(postMessage(request, {}, collection))
         .then(res => waitForReport(res, request._id))
-        .then(res => load(this, res))
+        .then(res => load(collection, res))
     },
   })
 
@@ -107,18 +107,25 @@ export default function relayFetcher(postMessage) {
   return relayPlugin
 }
 
+const workFuncs = {
+  findAsync,
+  setAll,
+}
+
 export function relayWorker(onFetch, onSubmit) {
   return base => ({
     ...base,
     onFetch,
-    setAll(change, option) {
-      base.setAll.call(this, change, option)
-      return submit(this, onSubmit)
+
+    setAllHook(next, collection, change, option) {
+      next(collection, change, option)
+      submit(collection, onSubmit)
     },
 
     executeRelay(request) {
       // relay.action = 'findAsync' | 'setAll'
-      return Promise.resolve(this[request.action](...request.args)).then(ret => {
+      // console.log('>>>', request.action, workFuncs[request.action], ...request.args)
+      return Promise.resolve(workFuncs[request.action](this, ...request.args)).then(ret => {
         // console.log('handleRelay', relay.action, relay.name, relay.args[0], ret)
         request.result = ret
         return request

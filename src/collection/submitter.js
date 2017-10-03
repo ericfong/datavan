@@ -1,7 +1,21 @@
 import _ from 'lodash'
 
-import { getSubmits } from './base'
+import { getState } from './base'
 import { load } from './load'
+
+export function getOriginals(table) {
+  return getState(table).originals
+}
+
+export function getSubmits(table) {
+  const { byId, originals } = getState(table)
+  return _.mapValues(originals, (v, k) => byId[k])
+}
+
+export function isDirty(table, id) {
+  if (process.env.NODE_ENV === 'development') console.warn('isDirty() is deprecated')
+  return id in getState(table).originals
+}
 
 export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
   // tmp id to stored id table

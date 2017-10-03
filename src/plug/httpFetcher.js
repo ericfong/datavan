@@ -1,4 +1,4 @@
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import { withoutTmpId } from '../collection/util/idUtil'
 import calcQueryKey from '../collection/util/calcQueryKey'
@@ -44,25 +44,25 @@ export default function httpFetcher(conf) {
   return base => ({
     ...base,
 
-    find(query = {}, option = {}) {
-      if (option.fetch !== false && !isPreloadSkip(this, option)) {
-        checkFetch(this, query, option, conf)
+    getHook(next, collection, id, option = {}) {
+      if (option.fetch !== false && !isPreloadSkip(collection, option)) {
+        checkFetch(collection, [id], option, conf)
       }
-      return base.find.call(this, query, option)
+      return next(collection, id, option)
     },
 
-    get(id, option = {}) {
-      if (option.fetch !== false && !isPreloadSkip(this, option)) {
-        checkFetch(this, [id], option, conf)
+    findHook(next, collection, query = {}, option = {}) {
+      if (option.fetch !== false && !isPreloadSkip(collection, option)) {
+        checkFetch(collection, query, option, conf)
       }
-      return base.get.call(this, id, option)
+      return next(collection, query, option)
     },
 
-    findAsync(query = {}, option = {}) {
-      return doFetch(this, query, option, conf).then(() => {
+    findAsyncHook(next, collection, query = {}, option = {}) {
+      return doFetch(collection, query, option, conf).then(() => {
         // preparedData no longer valid after fetch promise resolved
         delete option.preparedData
-        return base.find.call(this, query, option)
+        return next(collection, query, option)
       })
     },
   })

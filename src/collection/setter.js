@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
+import { setAll } from './base'
 import findInMemory from './findInMemory'
 
 function withId(core, doc) {
@@ -9,10 +10,6 @@ function withId(core, doc) {
     doc[idField] = core.genId()
   }
   return doc
-}
-
-export function setAll(collection, change, option) {
-  return collection.setAll(change, option)
 }
 
 export function set(core, id, value, option) {

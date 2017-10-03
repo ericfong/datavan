@@ -1,15 +1,8 @@
-export function getAll(self) {
-  return self.getAll()
-}
+import prePostHook from './util/prePostHook'
+import findInMemory from './findInMemory'
 
-export function get(self, id, option = {}) {
-  return self.get(id, option)
-}
+const _find = (collection, query = {}, option = {}) => findInMemory(collection, query, option)
 
-export function find(self, query, option) {
-  return self.find(query, option)
-}
+export const find = prePostHook(_find, 'findHook')
 
-export function findAsync(self, query = {}, option = {}) {
-  return self.findAsync(query, option)
-}
+export const findAsync = prePostHook(_find, 'findAsyncHook')

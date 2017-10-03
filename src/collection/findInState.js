@@ -2,6 +2,8 @@ import _ from 'lodash'
 import Mingo from 'mingo'
 
 import { getQueryIds } from './util/idUtil'
+import prePostHook from './util/prePostHook'
+import { getAll } from './base'
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -38,14 +40,14 @@ function processOption(arr, option) {
 }
 
 // @auto-fold here
-function doQuery(data, query) {
+const filter = prePostHook((collection, docs, query) => {
   if (Object.keys(query).length === 0) {
-    return _.values(data)
+    return _.values(docs)
   }
   const mingoQuery = new Mingo.Query(query)
   const filterFunc = doc => doc && mingoQuery.test(doc)
-  return _.filter(data, filterFunc)
-}
+  return _.filter(docs, filterFunc)
+}, (collection, docs, query, option) => option.filterHook || collection.filterHook)
 
 // @auto-fold here
 function filterDataByIds(self, data, ids, option) {
@@ -66,7 +68,7 @@ function filterDataByIds(self, data, ids, option) {
 
 export function prepareFindData(self, query, option) {
   if (option.preparedData) return option.preparedData
-  const data = self.getAll()
+  const data = getAll(self)
   const ids = getQueryIds(query, self.idField)
   let prepared
   if (ids) {
@@ -78,15 +80,6 @@ export function prepareFindData(self, query, option) {
   return prepared
 }
 
-// @auto-fold here
-function runHook(self, hook, firstArg, ...args) {
-  if (hook) {
-    const result = hook(firstArg, ...args, self)
-    if (result) return result
-  }
-  return firstArg
-}
-
 export default function findInState(self, query, option) {
   let docs = prepareFindData(self, query, option)
   // prevent re-use option
@@ -94,11 +87,7 @@ export default function findInState(self, query, option) {
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
-    docs = runHook(self, option.preFind || self.preFind, docs, query, option)
-
-    docs = doQuery(docs, query)
-
-    docs = runHook(self, option.postFind || self.postFind, docs, query, option)
+    docs = filter(self, docs, query, option)
   }
 
   return processOption(docs, option)

@@ -12,13 +12,13 @@ export default function plugLocalStorage(_storage) {
   const storage = _storage || global.localStorage
   return base =>
     Object.assign({}, base, {
-      getAll() {
+      getAllHook() {
         return storage
       },
-      onGet(id) {
+      getHook(next, collection, id) {
         return parseJson(storage.getItem(id))
       },
-      setAll(change, option) {
+      setAllHook(next, collection, change, option) {
         _.each(change, (value, key) => {
           if (key === '$unset') {
             _.each(value, k => storage.removeItem(k))
@@ -29,7 +29,7 @@ export default function plugLocalStorage(_storage) {
           }
           storage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
         })
-        return base.setAll.call(this, change, option)
+        return next(collection, change, option)
       },
     })
 }

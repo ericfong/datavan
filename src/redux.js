@@ -24,11 +24,6 @@ function rootReducer(state, action) {
 }
 
 export default function datavanEnhancer(ctx = {}) {
-  if (process.env.NODE_ENV !== 'production' && typeof ctx === 'function') {
-    console.warn(
-      'Please use datavanEnhancer to create enhancer instead directly as enhancer. Use as \'createStore(reducer, state, datavanEnhancer({ overrides, context }))\' instead of \'createStore(reducer, state, datavanEnhancer)\''
-    )
-  }
   if (process.env.NODE_ENV !== 'production' && ctx.context) {
     console.warn('Please use \'datavanEnhancer({ overrides, a, b })\' instead of \'datavanEnhancer({ overrides, context: { a, b } })\'')
   }

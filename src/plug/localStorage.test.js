@@ -1,5 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, defineCollection, plugLocalStorage, set } from '..'
+import { datavanEnhancer, defineCollection, plugLocalStorage, get, set } from '..'
 
 global.localStorage = {
   getItem(id) {
@@ -22,20 +22,20 @@ it('basic', async () => {
   const subscriber2 = jest.fn()
   store2.subscribe(subscriber2)
 
-  expect(LocalStorage(store1).get('u1')).toBe(null)
+  expect(get(LocalStorage(store1), 'u1')).toBe(null)
   set(LocalStorage(store1), 'u1', 'hi', { flush: true })
   expect(subscriber1).toHaveBeenCalledTimes(1)
-  expect(LocalStorage(store1).get('u1')).toBe('hi')
+  expect(get(LocalStorage(store1), 'u1')).toBe('hi')
 
   // console.log('>>> table2')
 
   // should access global localStorage
-  expect(LocalStorage(store2).get('u1')).toBe('hi')
+  expect(get(LocalStorage(store2), 'u1')).toBe('hi')
   set(LocalStorage(store2), 'u1', 'world', { flush: true })
   expect(subscriber2).toHaveBeenCalledTimes(1)
 
   // console.log('>>> table1')
 
   // table1 should get new state, which set by table2 in Sync
-  expect(LocalStorage(store1).get('u1')).toBe('world')
+  expect(get(LocalStorage(store1), 'u1')).toBe('world')
 })

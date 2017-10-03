@@ -1,9 +1,8 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
+import prePostHook from './util/prePostHook'
 import { emit } from '../store/emit'
-
-// export const genForceMutation = () => ({ _t: { $set: () => {} } })
 
 // getState
 export function getState(self) {
@@ -22,19 +21,54 @@ export function addMutation(self, mut, option) {
   }
   return nextState
 }
+// export const genForceMutation = () => ({ _t: { $set: () => {} } })
 
-// ===========================================================================================
-// base-methods
+// =============================================
+// Getter
 
-export function getOriginals(table) {
-  return getState(table).originals
+export const getAll = prePostHook(collection => getState(collection).byId, 'getAllHook')
+
+export const get = prePostHook((collection, id) => getAll(collection)[id], 'getHook')
+
+// =============================================
+// Setter
+
+// @auto-fold here
+function toMutation(change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  return mutation
 }
 
-export function getSubmits(table) {
-  const { byId, originals } = getState(table)
-  return _.mapValues(originals, (v, k) => byId[k])
-}
+export const setAll = prePostHook((collection, change, option) => {
+  const mutation = { byId: toMutation(change) }
 
-export function isDirty(table, id) {
-  return id in getState(table).originals
-}
+  if (collection.onFetch) {
+    // keep originals
+    const mutOriginals = {}
+    const { originals, byId } = getState(collection)
+    const keepOriginal = k => {
+      if (!(k in originals)) {
+        // need to convert undefined original to null, for persist
+        const original = byId[k]
+        mutOriginals[k] = { $set: original === undefined ? null : original }
+      }
+    }
+    _.each(change, (value, key) => {
+      if (key === '$unset') {
+        _.each(value, keepOriginal)
+        return
+      }
+      keepOriginal(key)
+    })
+    mutation.originals = mutOriginals
+  }
+
+  addMutation(collection, mutation, option)
+}, 'setAllHook')

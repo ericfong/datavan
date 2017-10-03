@@ -1,8 +1,9 @@
 import calcQueryKey from './util/calcQueryKey'
+import { getAll } from './base'
 import findInState from './findInState'
 
 export function getInMemory(self, id) {
-  return self.getAll()[id]
+  return getAll(self)[id]
 }
 
 export default function findInMemory(self, query, option = {}) {
@@ -10,7 +11,7 @@ export default function findInMemory(self, query, option = {}) {
   const { _memoryById } = self
 
   // reset cache or not
-  const byId = self.getAll()
+  const byId = getAll(self)
   const shouldReset = byId !== _memoryById
   self._memoryById = byId
   if (shouldReset) _memory = self._memory = {}
