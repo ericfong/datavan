@@ -42,8 +42,9 @@ function submitted(self, idTable, option) {
   addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
-export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
-  if (!data) return data
+export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) {
+  if (!input) return input
+  let data = input
 
   // normalize
   if (Array.isArray(data)) {
@@ -81,7 +82,8 @@ export function load(self, data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
 
-  return data
+  // always return input for await submit() to catch server response
+  return input
 }
 
 export function init(self) {
