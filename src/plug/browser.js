@@ -1,4 +1,4 @@
-import { setAll } from '../collection/setter'
+import { setAll } from '../collection/base'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return

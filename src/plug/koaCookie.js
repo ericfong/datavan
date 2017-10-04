@@ -4,13 +4,10 @@ import jsCookie from 'js-cookie'
 export default function plugKoaCookie(cookieConf, koaCtx) {
   return base =>
     Object.assign({}, base, {
-      // getAll() {
-      //   return null
-      // },
-      onGet(id) {
+      getHook(next, collection, id) {
         return koaCtx.cookies.get(id)
       },
-      setAll(change, option) {
+      setAllHook(next, collection, change, option) {
         _.each(change, (v, k) => {
           if (k === '$unset') {
             return _.each(v, id => jsCookie.set(id, null))
@@ -20,7 +17,7 @@ export default function plugKoaCookie(cookieConf, koaCtx) {
           }
           return koaCtx.cookies.set(k, v, cookieConf)
         })
-        return base.setAll.call(this, change, option)
+        return next(collection, change, option)
       },
     })
 }
