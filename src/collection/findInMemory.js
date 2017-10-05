@@ -18,6 +18,7 @@ export default function findInMemory(self, query, option = {}) {
 
   // return cache if exists
   const queryKey = calcQueryKey(query, option)
+  // console.log(self.store.vanCtx.side, 'findInMemory shouldReset', shouldReset, queryKey)
   // store queryKey for Fetcher
   option.queryKey = queryKey
 
@@ -26,7 +27,6 @@ export default function findInMemory(self, query, option = {}) {
     option.queryHit = true
     return _memory[queryKey]
   }
-  // console.log('findInMemory', queryKey, _memory[queryKey])
 
   // MISS
   const ret = (_memory[queryKey] = findInState(self, query, option))

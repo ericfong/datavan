@@ -77,10 +77,13 @@ export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) 
   mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
 
   addMutation(self, mutation)
+  // console.log(self.store.vanCtx.side, 'load', mutation.byId)
 
   // NOTE for server to pick-it back invalidate or reset data
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
+
+  if (self.onLoad) self.onLoad(self, input, mutation)
 
   // always return input for await submit() to catch server response
   return input

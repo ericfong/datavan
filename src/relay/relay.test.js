@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { datavanEnhancer, defineCollection, relayFetcher, getCollection, set, relayWorker } from '..'
+import { datavanEnhancer, defineCollection, relayClient, relayWorker, getCollection, set } from '..'
 import { EchoDB } from '../test/echo'
 
 class FakeChannel {
@@ -34,44 +34,47 @@ test('basic', async () => {
   const feedbackChannel = new FakeChannel()
 
   // should use one relay for similar collections
-  const relay = relayFetcher(serviceWorkerChannel.postMessage)
-  feedbackChannel.addEventListener(event => relay.handleRelayPush(event.data))
-
+  const relayC = relayClient(serviceWorkerChannel.postMessage)
   const winStore = createStore(
     null,
     null,
     datavanEnhancer({
       overrides: {
-        roles: relay,
-        blogs: relay,
-        users: relay,
+        roles: relayC,
+        blogs: relayC,
+        users: relayC,
       },
+      side: 'client',
     })
   )
+  feedbackChannel.addEventListener(event => relayC.onWorkerMessage(winStore, event.data))
 
   // service-worker
   const db = new EchoDB()
   const workerSubmit = jest.fn(db.submit)
+  const workerFetch = jest.fn(db.fetch)
+  const relayW = relayWorker({
+    onFetch: workerFetch,
+    onSubmit: workerSubmit,
+    postMessage: feedbackChannel.postMessage,
+  })
   const swStore = createStore(
     null,
     null,
     datavanEnhancer({
       overrides: {
-        roles: relayWorker(db.fetch, workerSubmit),
-        blogs: relayWorker(db.fetch, workerSubmit),
-        users: relayWorker(db.fetch, workerSubmit),
+        roles: relayW,
+        blogs: relayW,
+        users: relayW,
       },
+      side: 'worker',
     })
   )
   // persist swStore instead of winStore
   // post message to service-worker
-  serviceWorkerChannel.addEventListener(event => {
-    const request = event.data
-    getCollection(swStore, request.name)
-      .executeRelay(request)
-      .then(feedbackChannel.postMessage)
-  })
+  serviceWorkerChannel.addEventListener(event => relayW.onClientMessage(swStore, event.data))
 
+  // start test
   expect(Roles(winStore).find(['ADMIN', 'READER'])).toEqual([])
 
   expect(Blogs(winStore).get('blog-1')).toEqual(undefined)
@@ -94,4 +97,12 @@ test('basic', async () => {
 
   expect(workerSubmit).toHaveBeenCalledTimes(1)
   expect(workerSubmit).toBeCalledWith({ 'blog-1': { _id: 'blog-1', name: 'Relay Fetcher' } }, expect.anything())
+
+  // find same thing wrong trigger fetch again
+  workerFetch.mockClear()
+  Blogs(winStore).find({})
+  await delay(60)
+  Blogs(winStore).find({})
+  await delay(60)
+  expect(workerFetch).toHaveBeenCalledTimes(1)
 })

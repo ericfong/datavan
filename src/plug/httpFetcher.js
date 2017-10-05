@@ -2,11 +2,37 @@
 
 import { withoutTmpId } from '../collection/util/idUtil'
 import calcQueryKey from '../collection/util/calcQueryKey'
-import { getState } from '../collection/base'
+import { getState, addMutation } from '../collection/base'
 import { GC_GENERATION } from '../collection/invalidate'
 import { prepareFindData } from '../collection/findInState'
 import { load } from '../collection/load'
-import { isPreloadSkip, wrapFetchPromise } from './relayFetcher'
+
+export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
+
+// @auto-fold here
+export function wrapFetchPromise(self, key, promise) {
+  const { _fetchingPromises } = self
+  const oldPromise = _fetchingPromises[key]
+  if (oldPromise) return oldPromise
+
+  promise
+    .then(ret => {
+      if (_fetchingPromises[key] === promise) {
+        delete _fetchingPromises[key]
+        addMutation(self, null) // force render to update isFetching
+      }
+      return ret
+    })
+    .catch(err => {
+      if (_fetchingPromises[key] === promise) {
+        delete _fetchingPromises[key]
+        addMutation(self, null) // force render to update isFetching
+      }
+      return Promise.reject(err)
+    })
+  _fetchingPromises[key] = promise
+  return promise
+}
 
 function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }) {
   prepareFindData(self, query, option)
@@ -22,7 +48,7 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   getState(self).fetchAts[fetchKey] = GC_GENERATION
 
   // want to return fetching promise for findAsync
-  return wrapFetchPromise(self, fetchQuery, option, 'fetchKey', doFetch)
+  return wrapFetchPromise(self, option.fetchKey, doFetch(self, fetchQuery, option))
 }
 
 const confDefaults = {

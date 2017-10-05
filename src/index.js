@@ -22,7 +22,8 @@ export loadCollections from './store/loadCollections'
 
 // fetcher
 export httpFetcher from './plug/httpFetcher'
-export relayFetcher, { relayWorker } from './plug/relayFetcher'
+export relayClient from './relay/relayClient'
+export relayWorker from './relay/relayWorker'
 
 // plugins
 export plugBrowser from './plug/browser'

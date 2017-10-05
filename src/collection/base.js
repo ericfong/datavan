@@ -16,6 +16,8 @@ export function addMutation(self, mut, option) {
   const nextState = mutateUtil(prevState, mutation)
   if (nextState !== prevState) {
     self._pendingState = nextState
+    self.mutatedAt = Date.now()
+    // console.log(self.store.vanCtx.side, 'addMutation', self.mutatedAt)
     if (self.onMutate) self.onMutate(nextState.byId, prevState.byId, mutation)
     if (self.store) emit(self.store, option && option.flush)
   }
