@@ -1,7 +1,10 @@
 import _ from 'lodash'
 
-import { GET_DATAVAN } from './redux'
+import { GET_DATAVAN } from './constant'
 import { createCollection } from './collection'
+
+// global collection definitions
+export const collectionDefinitions = {}
 
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 function getVan(stateOrDispatch) {
@@ -29,11 +32,19 @@ export function _getCollection(store, spec, creation) {
   return collection
 }
 
-export const defineCollection = (_spec, oldSpec, dependencies) => {
-  let spec = _spec
-  if (typeof _spec === 'string') {
-    spec = { name: _spec, dependencies, ...oldSpec }
+export const defineCollection = (name, _spec, dependencies) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('\'defineCollection(name, spec, dependencies)\' is deprecated. Please use \'defineCollection(name, { ...spec, dependencies })\'')
   }
+
+  let spec = name
+  if (typeof name === 'string') {
+    spec = { name, dependencies, ..._spec }
+  }
+
+  // NOTE in most case, collection definitions are global for one project, which make module define collection easier
+  collectionDefinitions[name] = spec
+
   const selector = stateOrDispatch => _getCollection(getVan(stateOrDispatch), spec)
   selector.spec = spec
   return selector

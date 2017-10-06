@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { DATAVAN_MUTATE } from '../redux'
+import { DATAVAN_MUTATE } from '../constant'
 
 function takeMutation(coll) {
   const ret = coll._pendingState

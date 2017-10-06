@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-filename-extension */
-
 import React from 'react'
 import { createStore, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'

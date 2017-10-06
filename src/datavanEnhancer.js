@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-export const GET_DATAVAN = 'DATAVAN'
-export const DATAVAN_MUTATE = 'DATAVAN_MUTATE'
+import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
+import { collectionDefinitions, _getCollection } from './defineCollection'
 
 export function datavanReducer(state = {}) {
   return state
@@ -39,9 +39,14 @@ export default function datavanEnhancer(ctx = {}) {
     // create van
     Object.assign(store, {
       collections: {},
-      vanCtx: { ...ctx.context, overrides: {}, ...ctx },
-      // ctx = { overrides }
+      vanCtx: {
+        ...ctx,
+        overrides: ctx.overrides || {},
+      },
     })
+
+    // NOTE in most case, collection definitions are global for one project, which make module define collection easier
+    _.each(collectionDefinitions, (spec, name) => _getCollection(store, { ...spec, name }))
 
     store.getState = function _getState() {
       const state = getState()
