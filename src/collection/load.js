@@ -2,7 +2,6 @@ import _ from 'lodash'
 
 import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
-import runHook from './util/runHook'
 
 export const loadAsDefaults = (v, id, self, targets) => {
   const data = self.cast(v)
@@ -90,13 +89,7 @@ export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) 
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
 
-  if (self.onLoad) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`${self.name}.onLoad is deprecated. Please use loadHook()`)
-    }
-    self.onLoad(self, data, mutation)
-  }
-  runHook(self.loadHook, null, self, data, mutation)
+  if (self.onLoad) self.onLoad(self, data, mutation)
 
   // always return data for await submit() to catch server response
   return data
@@ -118,11 +111,5 @@ export function init(self) {
 
   if (rawStoreState) load(self, rawStoreState)
 
-  if (self.onInit) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`${self.name}.onInit is deprecated. Please use initHook()`)
-    }
-    self.onInit(self)
-  }
-  runHook(self.initHook, null, self)
+  if (self.onInit) self.onInit(self)
 }

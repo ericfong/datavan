@@ -14,7 +14,8 @@ const functions = {
   // __proxy__
   idField: '_id',
   // gcTime: 60 * 1000,
-  // initHook, loadHook, findHook, filterHook, getHook, getAllHook, setAllHook,
+  // onInit, onLoad
+  // findHook, filterHook, getHook, getAllHook, setAllHook
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
@@ -41,7 +42,7 @@ export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plu
 
 export default function createCollection(spec) {
   if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
-    console.warn('Collection spec onMutate() function is removed. Please use initHook() or store.subscribe()')
+    console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
   }
 
   let self = Object.assign({}, functions, spec)

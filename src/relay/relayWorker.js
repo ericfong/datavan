@@ -22,9 +22,9 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
       submit(collection, onSubmit)
     },
 
-    loadHook(next, collection, data, mutation) {
+    onLoad(collection, data, mutation) {
       onMessage({ type: 'load', collectionName: collection.name, data })
-      return runHook(base.loadHook, next, collection, data, mutation)
+      return base.onLoad && base.onLoad(collection, data, mutation)
     },
   })
 
