@@ -1,5 +1,7 @@
 import _ from 'lodash'
 
+import runHook from '../collection/util/runHook'
+
 function parseJson(val) {
   try {
     return JSON.parse(val)
@@ -29,7 +31,7 @@ export default function plugLocalStorage(_storage) {
           }
           storage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
         })
-        return next(collection, change, option)
+        return runHook(base.setAllHook, next, collection, change, option)
       },
     })
 }

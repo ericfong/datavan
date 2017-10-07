@@ -5,6 +5,7 @@ import calcQueryKey from '../collection/util/calcQueryKey'
 import { getState, addMutation } from '../collection/base'
 import { prepareFindData } from '../collection/findInState'
 import { load } from '../collection/load'
+import runHook from '../collection/util/runHook'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -74,21 +75,21 @@ export default function httpFetcher(conf) {
       if (option.fetch !== false && !isPreloadSkip(collection, option)) {
         checkFetch(collection, [id], option, conf)
       }
-      return next(collection, id, option)
+      return runHook(base.getHook, next, collection, id, option)
     },
 
     findHook(next, collection, query = {}, option = {}) {
       if (option.fetch !== false && !isPreloadSkip(collection, option)) {
         checkFetch(collection, query, option, conf)
       }
-      return next(collection, query, option)
+      return runHook(base.findHook, next, collection, query, option)
     },
 
     findAsyncHook(next, collection, query = {}, option = {}) {
       return doFetch(collection, query, option, conf).then(() => {
         // preparedData no longer valid after fetch promise resolved
         delete option.preparedData
-        return next(collection, query, option)
+        return runHook(base.findAsyncHook, next, collection, query, option)
       })
     },
   })

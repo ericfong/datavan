@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
+import runHook from '../collection/util/runHook'
+
 export default function plugKoaCookie(cookieConf, koaCtx) {
   return base =>
     Object.assign({}, base, {
@@ -17,7 +19,7 @@ export default function plugKoaCookie(cookieConf, koaCtx) {
           }
           return koaCtx.cookies.set(k, v, cookieConf)
         })
-        return next(collection, change, option)
+        return runHook(base.setAllHook, next, collection, change, option)
       },
     })
 }

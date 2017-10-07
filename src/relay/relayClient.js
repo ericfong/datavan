@@ -4,6 +4,7 @@ import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
 import { isPreloadSkip, wrapFetchPromise } from '../plug/httpFetcher'
 import { getCollection } from '../defineCollection'
+import runHook from '../collection/util/runHook'
 
 let requestNum = 0
 const makeRequest = (collection, action, ...args) => ({
@@ -49,7 +50,7 @@ export default function relayClient({ onMessage }) {
     ...base,
 
     getHook(next, collection, id, option = {}) {
-      const ret = next(collection, id, option)
+      const ret = runHook(base.getHook, next, collection, id, option)
       if (collection._byIdAts[id]) {
         option.allIdsHit = true
       }
@@ -58,18 +59,20 @@ export default function relayClient({ onMessage }) {
     },
 
     findHook(next, collection, query = {}, option = {}) {
-      const ret = next(collection, query, option)
+      const ret = runHook(base.findHook, next, collection, query, option)
       // checkFetch depend on queryHit & allIdsHit, so need to run AFTER base.find
       checkFetch(collection, makeFindRequest(collection, 'find', query, option), option)
       return ret
     },
 
     findAsyncHook(next, collection, query = {}, option = {}) {
-      return doFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() => next(collection, query, option))
+      return doFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
+        runHook(base.findAsyncHook, next, collection, query, option)
+      )
     },
 
     setAllHook(next, collection, change, option) {
-      next(collection, change, option)
+      runHook(base.setAllHook, next, collection, change, option)
       const request = makeRequest(collection, 'setAll', change)
       Promise.resolve(onMessage(request, {}, collection))
         .then(res => ensureWaitFor(res, request._id))

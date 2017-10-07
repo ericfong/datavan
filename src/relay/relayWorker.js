@@ -3,6 +3,7 @@ import { setAll, get } from '../collection/base'
 import { find, findAsync } from '../collection/find'
 import { submit } from '../collection/submitter'
 import { getCollection } from '../defineCollection'
+import runHook from '../collection/util/runHook'
 
 const workFuncs = {
   get,
@@ -17,7 +18,7 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
     onFetch,
 
     setAllHook(next, collection, change, option) {
-      next(collection, change, option)
+      runHook(base.setAllHook, next, collection, change, option)
       submit(collection, onSubmit)
     },
 
