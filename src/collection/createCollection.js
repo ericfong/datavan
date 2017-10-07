@@ -41,7 +41,7 @@ _.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => 
   }
 })
 
-const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
+export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
 
 export default function createCollection(spec, plugin) {
   if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
@@ -50,9 +50,14 @@ export default function createCollection(spec, plugin) {
 
   let self = Object.assign({}, functions, spec)
 
-  if (spec.plugin) self = applyPlugin(self, spec.plugin)
+  if (spec.plugin) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`${spec.name}.plugin is deprecated. Please use plugin({...spec})`)
+    }
+    self = applyPlugin(self, spec.plugin)
+  }
 
-  if (plugin) self = applyPlugin(self, plugin)
+  // if (plugin) self = applyPlugin(self, plugin)
 
   // TODO should use httpFetcher() explicitly in store.overrides / collection-enhancers / plugins
   if (self.onFetch) self = httpFetcher(self)(self)

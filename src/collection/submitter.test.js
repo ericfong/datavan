@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { createCollection } from '.'
+import createCollection from './createCollection'
 import { getSubmits, submit, findOne, allPendings, insert, update, remove } from '..'
 import { echoSubmit } from '../test/echo'
 

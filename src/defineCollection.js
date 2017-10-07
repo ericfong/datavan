@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { GET_DATAVAN } from './constant'
-import { createCollection } from './collection'
+import createCollection, { applyPlugin } from './collection/createCollection'
 
 // global collection definitions
 // export const collectionDefinitions = {}
@@ -19,15 +19,17 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
-export function _getCollection(store, spec, creation) {
-  const { name, dependencies } = spec
+export function _getCollection(store, _spec, creation) {
+  const { name } = _spec
   const { collections, vanCtx } = store
   let collection = collections[name]
   if (!collection && creation !== false) {
-    // has dep.spec mean it is a defineCollection
-    _.each(dependencies, dep => _getCollection(store, dep.spec || dep))
+    const spec = applyPlugin(_spec, vanCtx.overrides[name])
 
-    collection = collections[name] = createCollection({ ...spec, store }, vanCtx.overrides[name])
+    // has dep.spec mean it is a defineCollection
+    _.each(spec.dependencies, dep => _getCollection(store, dep.spec || dep))
+
+    collection = collections[name] = createCollection({ ...spec, store })
   }
   return collection
 }

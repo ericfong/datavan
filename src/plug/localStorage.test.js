@@ -13,7 +13,7 @@ global.localStorage = {
 }
 
 it('basic', async () => {
-  const LocalStorage = defineCollection({ name: 'localStorage', plugin: plugLocalStorage(localStorage) })
+  const LocalStorage = defineCollection('localStorage', plugLocalStorage(localStorage)({}))
   const store1 = createStore(null, null, datavanEnhancer())
   const store2 = createStore(null, null, datavanEnhancer())
 

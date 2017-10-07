@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { find } from '..'
-import { createCollection } from '../collection'
+import createCollection from '../collection/createCollection'
 import plugSearchable from './searchable'
 
 test('basic', async () => {

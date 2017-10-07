@@ -1,1 +1,0 @@
-export createCollection from './createCollection'

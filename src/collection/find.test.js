@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { createCollection } from '.'
+import createCollection from './createCollection'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
 import { invalidate, allPendings, findAsync } from '..'
 import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
