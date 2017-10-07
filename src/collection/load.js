@@ -2,6 +2,7 @@ import _ from 'lodash'
 
 import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
+import runHook from './util/runHook'
 
 export const loadAsDefaults = (v, id, self, targets) => {
   const data = self.cast(v)
@@ -42,11 +43,7 @@ function submitted(self, idTable, option) {
   addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
-export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) {
-  if (!input) return input
-  let data = input
-
-  // normalize
+function normalizeData(self, data) {
   if (Array.isArray(data)) {
     // array of docs
     const idField = self.idField
@@ -58,6 +55,12 @@ export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) 
     // table of docs
     data = { byId: data }
   }
+  return data
+}
+
+export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) {
+  if (!_data) return _data
+  const data = normalizeData(self, _data)
 
   // move tmp id to $submittedIds before loadAsMerge or loadAsDefaults
   if (data.$submittedIds) submitted(self, data.$submittedIds)
@@ -87,10 +90,16 @@ export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) 
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
 
-  if (self.onLoad) self.onLoad(self, input, mutation)
+  if (self.onLoad) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`${self.name}.onLoad is deprecated. Please use loadHook()`)
+    }
+    self.onLoad(self, data, mutation)
+  }
+  runHook(self.loadHook, null, self, data, mutation)
 
-  // always return input for await submit() to catch server response
-  return input
+  // always return data for await submit() to catch server response
+  return data
 }
 
 export function init(self) {

@@ -33,6 +33,7 @@ export plugLocalStorage from './plug/localStorage'
 export plugSearchable from './plug/searchable'
 
 // utils
+export runHook from './collection/util/runHook'
 export getSetters from './util/getSetters'
 export { getQueryIds, onFetchById } from './collection/util/idUtil'
 export batcher from './util/batcher'

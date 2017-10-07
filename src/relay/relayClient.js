@@ -90,7 +90,7 @@ export default function relayClient({ onMessage }) {
     // message is like a redux dispatch
     if (message.type === 'load') {
       const collection = getCollection(store, message.collectionName)
-      load(collection, message.payload)
+      load(collection, message.data)
     }
   }
 
