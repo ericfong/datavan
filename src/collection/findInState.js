@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Mingo from 'mingo'
 
 import { getQueryIds } from './util/idUtil'
-import prePostHook from './util/prePostHook'
+import runHook from './util/runHook'
 import { getAll } from './base'
 
 // @auto-fold here
@@ -40,14 +40,17 @@ function processOption(arr, option) {
 }
 
 // @auto-fold here
-const filter = prePostHook((collection, docs, query) => {
+const _filter = (collection, docs, query) => {
   if (Object.keys(query).length === 0) {
     return _.values(docs)
   }
   const mingoQuery = new Mingo.Query(query)
   const filterFunc = doc => doc && mingoQuery.test(doc)
   return _.filter(docs, filterFunc)
-}, (collection, docs, query, option) => option.filterHook || collection.filterHook)
+}
+const filter = (collection, docs, query, option) => {
+  return runHook(option.filterHook || collection.filterHook, _filter, collection, docs, query, option)
+}
 
 // @auto-fold here
 function filterDataByIds(self, data, ids, option) {

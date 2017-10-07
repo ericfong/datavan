@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import prePostHook from './util/prePostHook'
+import runHook from './util/runHook'
 import { emit } from '../store/emit'
 
 // getState
@@ -28,9 +28,11 @@ export function addMutation(self, mut, option) {
 // =============================================
 // Getter
 
-export const getAll = prePostHook(collection => getState(collection).byId, 'getAllHook')
+const _getAll = collection => getState(collection).byId
+export const getAll = collection => runHook(collection.getAllHook, _getAll, collection)
 
-export const get = prePostHook((collection, id) => getAll(collection)[id], 'getHook')
+const _get = (collection, id) => getAll(collection)[id]
+export const get = (collection, id) => runHook(collection.getHook, _get, collection, id)
 
 // =============================================
 // Setter
@@ -48,7 +50,7 @@ function toMutation(change) {
   return mutation
 }
 
-export const setAll = prePostHook((collection, change, option) => {
+const _setAll = (collection, change, option) => {
   const mutation = { byId: toMutation(change) }
 
   if (collection.onFetch) {
@@ -73,4 +75,5 @@ export const setAll = prePostHook((collection, change, option) => {
   }
 
   addMutation(collection, mutation, option)
-}, 'setAllHook')
+}
+export const setAll = (collection, change, option) => runHook(collection.setAllHook, _setAll, collection, change, option)

@@ -1,8 +1,10 @@
-import prePostHook from './util/prePostHook'
+import runHook from './util/runHook'
 import findInMemory from './findInMemory'
 
-const _find = (collection, query = {}, option = {}) => findInMemory(collection, query, option)
+export const find = (collection, query = {}, option = {}) => {
+  return runHook(collection.findHook, findInMemory, collection, query, option)
+}
 
-export const find = prePostHook(_find, 'findHook')
-
-export const findAsync = prePostHook(_find, 'findAsyncHook')
+export const findAsync = (collection, query = {}, option = {}) => {
+  return runHook(collection.findAsyncHook, findInMemory, collection, query, option)
+}

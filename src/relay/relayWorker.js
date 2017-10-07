@@ -22,7 +22,7 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
     },
 
     onLoad(collection, payload) {
-      // console.log(collection.store.vanCtx.side, 'onLoad', payload)
+      // console.log('relayWorker.onLoad', payload)
       onMessage({ type: 'load', collectionName: collection.name, payload })
     },
   })
