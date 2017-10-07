@@ -4,7 +4,7 @@ import { GET_DATAVAN } from './constant'
 import { createCollection } from './collection'
 
 // global collection definitions
-export const collectionDefinitions = {}
+// export const collectionDefinitions = {}
 
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 function getVan(stateOrDispatch) {
@@ -43,7 +43,7 @@ export const defineCollection = (name, _spec, dependencies) => {
   }
 
   // NOTE in most case, collection definitions are global for one project, which make module define collection easier
-  collectionDefinitions[name] = spec
+  // collectionDefinitions[name] = spec
 
   const selector = stateOrDispatch => _getCollection(getVan(stateOrDispatch), spec)
   selector.spec = spec
