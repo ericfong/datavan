@@ -33,7 +33,7 @@ export function _getCollection(store, spec, creation) {
 }
 
 export const defineCollection = (name, _spec, dependencies) => {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && dependencies) {
     console.warn('\'defineCollection(name, spec, dependencies)\' is deprecated. Please use \'defineCollection(name, { ...spec, dependencies })\'')
   }
 
