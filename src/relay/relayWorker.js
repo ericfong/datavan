@@ -11,7 +11,7 @@ const workFuncs = {
   setAll,
 }
 
-export default function relayWorker({ onFetch, onSubmit, postMessage }) {
+export default function relayWorker({ onFetch, onSubmit, onMessage }) {
   const workerPlugin = base => ({
     ...base,
     onFetch,
@@ -23,7 +23,7 @@ export default function relayWorker({ onFetch, onSubmit, postMessage }) {
 
     onLoad(collection, payload) {
       // console.log(collection.store.vanCtx.side, 'onLoad', payload)
-      postMessage({ type: 'load', collectionName: collection.name, payload })
+      onMessage({ type: 'load', collectionName: collection.name, payload })
     },
   })
 
@@ -33,7 +33,7 @@ export default function relayWorker({ onFetch, onSubmit, postMessage }) {
       request.result = ret
       request.workerMutatedAt = collection.mutatedAt
       // console.log(collection.store.vanCtx.side, 'onClientMessage', request)
-      postMessage(request)
+      onMessage(request)
     })
   }
 

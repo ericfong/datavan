@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { datavanEnhancer, defineCollection, relayClient, relayWorker, getCollection, set } from '..'
+import { datavanEnhancer, defineCollection, relayClient, relayWorker, set } from '..'
 import { EchoDB } from '../test/echo'
 
 class FakeChannel {
@@ -34,7 +34,7 @@ test('basic', async () => {
   const feedbackChannel = new FakeChannel()
 
   // should use one relay for similar collections
-  const relayC = relayClient(serviceWorkerChannel.postMessage)
+  const relayC = relayClient({ onMessage: serviceWorkerChannel.postMessage })
   const winStore = createStore(
     null,
     null,
@@ -56,7 +56,7 @@ test('basic', async () => {
   const relayW = relayWorker({
     onFetch: workerFetch,
     onSubmit: workerSubmit,
-    postMessage: feedbackChannel.postMessage,
+    onMessage: feedbackChannel.postMessage,
   })
   const swStore = createStore(
     null,

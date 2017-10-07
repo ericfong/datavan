@@ -9,13 +9,13 @@ let requestNum = 0
 const makeRequest = (collection, action, ...args) => ({
   _id: requestNum++,
   collectionName: collection.name,
-  tag: `${collection.name}/${action}`,
+  tag: `${collection.name}-${action}`,
   action,
   args,
 })
 const makeFindRequest = (collection, action, query, option) => makeRequest(collection, action, query, pickOptionForSerialize(option))
 
-export default function relayClient(postMessage) {
+export default function relayClient({ onMessage }) {
   const promises = {}
 
   function ensureWaitFor(res, promiseId) {
@@ -27,7 +27,7 @@ export default function relayClient(postMessage) {
   }
 
   function doFetch(self, request, option) {
-    return Promise.resolve(postMessage(request, option, self))
+    return Promise.resolve(onMessage(request, option, self))
       .then(res => ensureWaitFor(res, request._id))
       .then(res => {
         if (self.mutatedAt >= res.workerMutatedAt) {
@@ -71,7 +71,7 @@ export default function relayClient(postMessage) {
     setAllHook(next, collection, change, option) {
       next(collection, change, option)
       const request = makeRequest(collection, 'setAll', change)
-      Promise.resolve(postMessage(request, {}, collection))
+      Promise.resolve(onMessage(request, {}, collection))
         .then(res => ensureWaitFor(res, request._id))
         .then(res => load(collection, res.result))
     },
