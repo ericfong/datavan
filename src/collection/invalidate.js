@@ -2,37 +2,35 @@ import _ from 'lodash'
 
 import { getState, addMutation } from './base'
 
-export const GC_GENERATION = 3
-
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
-function _omitAts(state, atKey, ids) {
+function _omitAts(collection, atKey, ids) {
   let omitedIds
-  if (ids === EXPIRED) {
+  if (ids === EXPIRED && !isNaN(collection.gcTime)) {
+    const expired = Date.now() - collection.gcTime
     omitedIds = []
-    state[atKey] = _.reduce(
-      state[atKey],
-      (acc, at, id) => {
-        at -= 1
-        // console.log('>>>', atKey, at, id)
-        const shouldKeep = at > 0
+    collection[atKey] = _.reduce(
+      collection[atKey],
+      (newAts, at, id) => {
+        const shouldKeep = at >= expired
+        // console.log('>>>', atKey, id, shouldKeep)
         if (shouldKeep) {
-          acc[id] = at
+          newAts[id] = at
         } else {
           omitedIds.push(id)
         }
-        return acc
+        return newAts
       },
       {}
     )
   } else if (ids) {
     omitedIds = ids
-    state[atKey] = _.omit(state[atKey], ids)
+    collection[atKey] = _.omit(collection[atKey], ids)
   } else {
     // ALL
-    omitedIds = Object.keys(state[atKey])
-    state[atKey] = {}
+    omitedIds = Object.keys(collection[atKey])
+    collection[atKey] = {}
   }
   return omitedIds
 }
@@ -41,7 +39,8 @@ function _invalidate(self, ids) {
   if (self.onFetch) {
     const delByIds = _omitAts(self, '_byIdAts', ids)
     // TODO only drop related fetchs
-    const delFetchKeys = _omitAts(getState(self), 'fetchAts', delByIds.length > 0 ? ALL : ids)
+    const delFetchKeys = _omitAts(self, '_fetchAts', delByIds.length > 0 ? ALL : ids)
+    getState(self).fetchAts = _.omit(getState(self).fetchAts, delFetchKeys)
     return { delByIds, delFetchKeys }
   }
   return { delByIds: [], delFetchKeys: [] }

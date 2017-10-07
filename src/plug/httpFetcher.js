@@ -3,7 +3,6 @@
 import { withoutTmpId } from '../collection/util/idUtil'
 import calcQueryKey from '../collection/util/calcQueryKey'
 import { getState, addMutation } from '../collection/base'
-import { GC_GENERATION } from '../collection/invalidate'
 import { prepareFindData } from '../collection/findInState'
 import { load } from '../collection/load'
 
@@ -45,7 +44,8 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   const fetchAts = getState(self).fetchAts
   // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
   if (fetchAts[fetchKey]) return false
-  getState(self).fetchAts[fetchKey] = GC_GENERATION
+  fetchAts[fetchKey] = 1
+  self._fetchAts[fetchKey] = Date.now()
 
   // want to return fetching promise for findAsync
   return wrapFetchPromise(self, option.fetchKey, doFetch(self, fetchQuery, option))

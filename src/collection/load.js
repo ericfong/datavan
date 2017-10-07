@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { getState, addMutation } from './base'
-import { invalidate, reset, GC_GENERATION } from './invalidate'
+import { invalidate, reset } from './invalidate'
 
 export const loadAsDefaults = (v, id, self, targets) => {
   const data = self.cast(v)
@@ -64,17 +64,21 @@ export function load(self, input, { mutation = {}, loadAs = loadAsMerge } = {}) 
 
   // load byId, originals, fetchAts
   const { byId, originals } = getState(self)
-  const { _byIdAts } = self
+  const { _byIdAts, _fetchAts } = self
+  const now = Date.now()
   mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
     if (id in originals) return
-    _byIdAts[id] = GC_GENERATION
+    _byIdAts[id] = now
     return loadAs(v, id, self, byId)
   })
   mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
     // original may be null
     return v ? loadAs(v, id, self, originals) : v
   })
-  mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
+  mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, (v, id) => {
+    _fetchAts[id] = now
+    return v
+  })
 
   addMutation(self, mutation)
   // console.log(self.store.vanCtx.side, 'load', mutation.byId)
@@ -93,6 +97,7 @@ export function init(self) {
   self._memory = {}
   self._fetchingPromises = {}
   self._byIdAts = {}
+  self._fetchAts = {}
 
   // raw store state that not yet init
   const rawStoreState = getState(self)
