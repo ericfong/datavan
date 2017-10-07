@@ -118,5 +118,11 @@ export function init(self) {
 
   if (rawStoreState) load(self, rawStoreState)
 
-  if (self.onInit) self.onInit(self)
+  if (self.onInit) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`${self.name}.onInit is deprecated. Please use initHook()`)
+    }
+    self.onInit(self)
+  }
+  runHook(self.initHook, null, self)
 }

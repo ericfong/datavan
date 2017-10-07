@@ -14,13 +14,9 @@ const functions = {
   // __proxy__
   idField: '_id',
   // gcTime: 60 * 1000,
-  // onInit(),
-  // checkFetch(),
-  // preFind()
-  // postFind()
+  // initHook, loadHook, findHook, filterHook, getHook, getAllHook, setAllHook,
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
-  // onMutate(nextById, prevById, mutation) {},   // called ONLY on thing has mutated/changed
 }
 _.each({ ...base, ...find }, (func, key) => {
   if (key[0] === '_' || functions[key]) return
@@ -43,9 +39,9 @@ _.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => 
 
 export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
 
-export default function createCollection(spec, plugin) {
+export default function createCollection(spec) {
   if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
-    console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
+    console.warn('Collection spec onMutate() function is removed. Please use initHook() or store.subscribe()')
   }
 
   let self = Object.assign({}, functions, spec)
