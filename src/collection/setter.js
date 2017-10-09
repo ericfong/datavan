@@ -15,17 +15,18 @@ function withId(core, doc) {
 export function set(core, id, value, option) {
   if (typeof id === 'object') {
     const castedDoc = withId(core, core.cast(id))
-    setAll(core, { [castedDoc[core.idField]]: castedDoc }, value)
+    setAll(core, { [castedDoc[core.idField]]: castedDoc }, { ...value, flush: true })
   } else {
-    setAll(core, { [id]: core.cast(value) }, option)
+    setAll(core, { [id]: core.cast(value) }, { ...option, flush: true })
   }
 }
 
-export function del(core, id, option) {
+export function del(core, id, option = {}) {
+  option.flush = true
   setAll(core, { $unset: [id] }, option)
 }
 
-export function insert(core, docs, option) {
+export function insert(core, docs, option = {}) {
   const inputIsArray = Array.isArray(docs)
   const inserts = inputIsArray ? docs : [docs]
 
@@ -35,6 +36,7 @@ export function insert(core, docs, option) {
     change[castedDoc[core.idField]] = castedDoc
     return castedDoc
   })
+  option.flush = true
   setAll(core, change, option)
 
   return inputIsArray ? castedDocs : castedDocs[0]
@@ -54,12 +56,14 @@ export function update(core, query, updates, option = {}) {
       change[newDoc[idField]] = newDoc
     }
   })
+  option.flush = true
   setAll(core, change, option)
   return oldDocs
 }
 
 export function remove(core, query, option = {}) {
   const removedDocs = findInMemory(core, query, option)
+  option.flush = true
   setAll(core, { $unset: _.map(removedDocs, core.idField) }, option)
   return removedDocs
 }
