@@ -29,8 +29,8 @@ test('merge state with redux dispatch changes by another reducer', () => {
 
   set(Memory(store), 'after', 'yes')
 
-  expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en' })
   expect(getState(Memory(store)).byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+  expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
 })
 
 test('combineReducers', async () => {

@@ -20,7 +20,7 @@ test('gcStore', async () => {
   const store = createStore(null, null, datavanEnhancer())
 
   expect(getState(Users(store)).byId).toEqual({ a: 'A' })
-  await delay(gcTime)
+  await delay(gcTime * 2)
   gcStore(store)
   expect(getState(Users(store)).byId).toEqual({})
 })

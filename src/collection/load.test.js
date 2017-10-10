@@ -71,10 +71,11 @@ test('load stored data Async', async () => {
   // get, set before rehydrate
   const tasks = Tasks(store)
   set(tasks, { ...get(tasks, 't1'), num: 2 })
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
   expect(get(tasks, 't1')).toMatchObject({ name: 'customize idField', num: 2 })
   expect(get(tasks, 't1').dateAt instanceof Date).toBe(true)
   expect(get(Tasks(store), 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
-  expect(mockCubscribe).toHaveBeenCalledTimes(0)
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // Need to block all mutation before first change?
 
@@ -101,10 +102,11 @@ test('load stored data sync', async () => {
   // get, set before rehydrate
   const tasks = Tasks(store)
   set(tasks, { ...get(tasks, 't1'), num: 2 })
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
   expect(get(tasks, 't1')).toMatchObject({ name: 'customize idField', num: 2 })
   expect(get(tasks, 't1').dateAt instanceof Date).toBe(true)
   expect(get(Tasks(store), 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
-  expect(mockCubscribe).toHaveBeenCalledTimes(0)
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // rehydrate
   store.dispatch({
@@ -113,10 +115,11 @@ test('load stored data sync', async () => {
     state: { ...store.getState(), datavan: loadCollections(store, persistState.datavan) },
   })
 
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
   expect(get(Tasks(store), 't1')).toMatchObject({ name: 'new', rehydrate: 1, num: 2, done: 0 })
   expect(get(Tasks(store), 't1').dateAt instanceof Date).toBe(true)
   expect(get(Tasks(store), 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
-  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 
 test('load', async () => {
