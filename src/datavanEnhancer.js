@@ -2,7 +2,6 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
-// import { collectionDefinitions, _getCollection } from './defineCollection'
 
 export function datavanReducer(state = {}) {
   return state

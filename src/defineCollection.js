@@ -3,9 +3,6 @@ import _ from 'lodash'
 import { GET_DATAVAN } from './constant'
 import createCollection, { applyPlugin } from './collection/createCollection'
 
-// global collection definitions
-// export const collectionDefinitions = {}
-
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 function getVan(stateOrDispatch) {
   // stateOrDispatch = state
@@ -34,18 +31,11 @@ export function _getCollection(store, _spec, creation) {
   return collection
 }
 
-export const defineCollection = (name, _spec, dependencies) => {
-  if (process.env.NODE_ENV !== 'production' && dependencies) {
-    console.warn('\'defineCollection(name, spec, dependencies)\' is deprecated. Please use \'defineCollection(name, { ...spec, dependencies })\'')
-  }
-
+export const defineCollection = (name, _spec) => {
   let spec = name
   if (typeof name === 'string') {
-    spec = { name, dependencies, ..._spec }
+    spec = { name, ..._spec }
   }
-
-  // NOTE in most case, collection definitions are global for one project, which make module define collection easier
-  // collectionDefinitions[name] = spec
 
   const selector = stateOrDispatch => _getCollection(getVan(stateOrDispatch), spec)
   selector.spec = spec

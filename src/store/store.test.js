@@ -31,7 +31,7 @@ test('invalidateStore', async () => {
   const store = createStore(null, null, datavanEnhancer())
 
   expect(Users(store)._byIdAts.a).toBeTruthy()
-  await delay(gcTime)
+  await delay(gcTime * 2)
   invalidateStore(store)
   expect(getState(Users(store)).byId).toEqual({ a: 'A' })
   expect(Users(store)._byIdAts.a).toBeFalsy()
