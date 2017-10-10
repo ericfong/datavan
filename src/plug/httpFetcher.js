@@ -39,7 +39,7 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   if (option.allIdsHit) return false
 
   const fetchQuery = getFetchQuery(query, option, self)
-  const fetchKey = (option.fetchKey = getFetchKey(fetchQuery, option))
+  const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
   if (fetchKey === false) return false
 
   const fetchAts = getState(self).fetchAts
@@ -49,7 +49,7 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   self._fetchAts[fetchKey] = Date.now()
 
   // want to return fetching promise for findAsync
-  return wrapFetchPromise(self, option.fetchKey, doFetch(self, fetchQuery, option))
+  return wrapFetchPromise(self, fetchKey, doFetch(self, fetchQuery, option))
 }
 
 const confDefaults = {
@@ -87,8 +87,8 @@ export default function httpFetcher(conf) {
 
     findAsyncHook(next, collection, query = {}, option = {}) {
       return doFetch(collection, query, option, conf).then(() => {
-        // preparedData no longer valid after fetch promise resolved
-        delete option.preparedData
+        // _preparedData no longer valid after fetch promise resolved
+        delete option._preparedData
         return runHook(base.findAsyncHook, next, collection, query, option)
       })
     },

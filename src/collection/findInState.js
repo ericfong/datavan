@@ -70,7 +70,7 @@ function filterDataByIds(self, data, ids, option) {
 }
 
 export function prepareFindData(self, query, option) {
-  if (option.preparedData) return option.preparedData
+  if (option._preparedData) return option._preparedData
   const data = getAll(self)
   const ids = getQueryIds(query, self.idField)
   let prepared
@@ -79,14 +79,14 @@ export function prepareFindData(self, query, option) {
   } else {
     prepared = data
   }
-  option.preparedData = prepared
+  option._preparedData = prepared
   return prepared
 }
 
 export default function findInState(self, query, option) {
   let docs = prepareFindData(self, query, option)
   // prevent re-use option
-  delete option.preparedData
+  delete option._preparedData
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
