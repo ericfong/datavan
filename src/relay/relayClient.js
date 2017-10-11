@@ -3,7 +3,7 @@ import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
 import { isPreloadSkip, wrapFetchPromise } from '../plug/httpFetcher'
-import { getCollection } from '../defineCollection'
+import { _getCollection } from '../defineCollection'
 import runHook from '../collection/util/runHook'
 
 let requestNum = 0
@@ -89,7 +89,7 @@ export default function relayClient({ onMessage }) {
 
     // message is like a redux dispatch
     if (message.type === 'load') {
-      const collection = getCollection(store, message.collectionName)
+      const collection = _getCollection(store, message.collectionName)
       load(collection, message.data)
     }
   }

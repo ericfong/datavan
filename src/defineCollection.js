@@ -16,12 +16,22 @@ function getVan(stateOrDispatch) {
   return stateOrDispatch
 }
 
+// only for internal use
 export function _getCollection(store, _spec, creation) {
-  const { name } = _spec
+  let name
+  let spec
+  if (typeof _spec === 'string') {
+    name = _spec
+    spec = { name }
+  } else {
+    name = _spec.name
+    spec = _spec
+  }
+
   const { collections, vanCtx } = store
   let collection = collections[name]
   if (!collection && creation !== false) {
-    const spec = applyPlugin(_spec, vanCtx.overrides[name])
+    spec = applyPlugin(spec, vanCtx.overrides[name])
 
     // has dep.spec mean it is a defineCollection
     _.each(spec.dependencies, dep => _getCollection(store, dep.spec || dep))
@@ -31,17 +41,12 @@ export function _getCollection(store, _spec, creation) {
   return collection
 }
 
-export const defineCollection = (name, _spec) => {
-  let spec = name
-  if (typeof name === 'string') {
-    spec = { name, ..._spec }
-  }
+// only for extrenal use
+export const getCollection = (any, spec, creation) => _getCollection(getVan(any), spec, creation)
 
-  const selector = stateOrDispatch => _getCollection(getVan(stateOrDispatch), spec)
+export const defineCollection = (name, _spec) => {
+  const spec = typeof name === 'string' ? { name, ..._spec } : name
+  const selector = stateOrDispatch => getCollection(stateOrDispatch, spec)
   selector.spec = spec
   return selector
-}
-
-export function getCollection(store, spec, creation) {
-  return _getCollection(store, typeof spec === 'string' ? { name: spec } : spec, creation)
 }

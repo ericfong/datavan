@@ -2,7 +2,7 @@
 import { setAll, get } from '../collection/base'
 import { find, findAsync } from '../collection/find'
 import { submit } from '../collection/submitter'
-import { getCollection } from '../defineCollection'
+import { _getCollection } from '../defineCollection'
 import runHook from '../collection/util/runHook'
 
 const workFuncs = {
@@ -29,7 +29,7 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
   })
 
   workerPlugin.onClientMessage = (store, request) => {
-    const collection = getCollection(store, request.collectionName)
+    const collection = _getCollection(store, request.collectionName)
     return Promise.resolve(workFuncs[request.action](collection, ...request.args)).then(ret => {
       request.result = ret
       request.workerMutatedAt = collection.mutatedAt
