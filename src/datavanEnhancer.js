@@ -4,13 +4,9 @@ import mutateUtil from 'immutability-helper'
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 import { _getCollection } from './defineCollection'
 
-export function datavanReducer(state = {}) {
-  return state
-}
+export const datavanReducer = (state = {}) => state
 
-// function doMutations(state, mutations) {
-//   return _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
-// }
+// export const doMutations = (state, mutations) => _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
 
 function rootReducer(state, action) {
   if (action.type === DATAVAN_MUTATE) {

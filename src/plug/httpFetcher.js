@@ -42,7 +42,7 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
   if (fetchKey === false) return false
 
-  const fetchAts = getState(self).fetchAts
+  const { fetchAts } = getState(self)
   // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
   if (fetchAts[fetchKey]) return false
   fetchAts[fetchKey] = 1

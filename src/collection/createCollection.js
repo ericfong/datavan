@@ -27,7 +27,9 @@ _.each({ ...base, ...find }, (func, key) => {
   }
 })
 
-_.each({ ...setter, ...findExtra, ...invalidate, ...submitter }, (func, key) => {
+_.each({
+  ...setter, ...findExtra, ...invalidate, ...submitter,
+}, (func, key) => {
   if (key[0] === '_' || functions[key]) return
   // eslint-disable-next-line
   functions[key] = function(...args) {

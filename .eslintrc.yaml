@@ -26,7 +26,10 @@ rules:
       imports: always-multiline
       objects: always-multiline
   consistent-return: off
-  dependencies/no-cycles: [1, {"skip": ["table"]}]
+  dependencies/no-cycles:
+    - 1
+    - skip:
+        - table
   import/default: 2
   import/export: 2
   import/named: error
@@ -63,6 +66,7 @@ rules:
   no-unused-labels: 1
   no-unused-vars: 1
   prefer-const: 1
+  prefer-destructuring: off
   quotes:
     - 1
     - single

@@ -72,7 +72,7 @@ __Other Docs__
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { defineCollection, datavanEnhancer } from 'datavan'
+import { defineCollection, datavanEnhancer, findOne } from 'datavan'
 
 // defined collection called 'users'
 const Users = defineCollection('users', {
@@ -87,7 +87,7 @@ const PureComponent = ({ user }) => <div>{(user && user.name) || 'No Name'}</div
 const MyApp = connect(
 	(state, { name }) => {
 	  return {
-	    user: Users(state).findOne({ name }),
+	    user: findOne(Users(state), { name }),
 	    // first call result will be undefined
 	    // after HTTP response and cached, connect will be re-run
 	    // so, second result will get user object
@@ -97,7 +97,7 @@ const MyApp = connect(
 	  return {
 			// query by [mingo](https://www.npmjs.com/package/mingo)
 	    // update by [immutability-helper](https://www.npmjs.com/package/immutability-helper)
-			modifyUser: () => Users(dispatch).update({ name }, { $merge: { name: 'smith' } }),
+			modifyUser: () => update(Users(dispatch), { name }, { $merge: { name: 'smith' } }),
 	  }
 	},
 )(PureComponent)
@@ -369,24 +369,26 @@ cast(doc) {
 ### genId()
 generate a new tmp id string
 
-### onGetAll()
+### getAllHook()
 sync get all documents function. Return: map of documents (keyed by idField)
 ```js
-onGetAll() {
+getAllHook(next, collection) {
 	return { ...table_of_docs }
 }
 ```
 
-### onGet(id, option)
+### getHook(id, option)
 sync get one document function. Return: document
 ```js
-onGet: id => storage.getItem(id)
+getHook(next, collection, id) {
+  return storage.getItem(id)
+}
 ```
 
 ### onSetAll(newDocs, option)
 called only when collection setAll or other updates.
 ```js
-onSetAll(change, option) {
+setAllHook(next, collection, change, option) {
 	_.each(change, (value, key) => {
 		if (key === '$unset') {
 			_.each(value, k => storage.removeItem(k))

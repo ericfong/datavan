@@ -5,7 +5,7 @@ import { setAll } from './base'
 import findInMemory from './findInMemory'
 
 function withId(core, doc) {
-  const idField = core.idField
+  const { idField } = core
   if (!doc[idField]) {
     doc[idField] = core.genId()
   }
@@ -45,7 +45,7 @@ export function insert(core, docs, option = {}) {
 export function update(core, query, updates, option = {}) {
   const oldDocs = findInMemory(core, query, option)
   const change = {}
-  const idField = core.idField
+  const { idField } = core
   _.each(oldDocs, doc => {
     // TODO use mongo operators like $set, $push...
     const newDoc = mutateUtil(doc, updates)
