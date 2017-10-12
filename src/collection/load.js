@@ -5,11 +5,11 @@ import { invalidate, reset } from './invalidate'
 
 export const loadAsDefaults = (v, id, self, targets) => {
   const data = self.cast(v)
-  return typeof data === 'object' ? { ...data, ...targets[id] } : data
+  return data && typeof data === 'object' ? { ...data, ...targets[id] } : data
 }
 export const loadAsMerge = (v, id, self, targets) => {
   const data = self.cast(v)
-  return typeof data === 'object' ? { ...targets[id], ...data } : data
+  return data && typeof data === 'object' ? { ...targets[id], ...data } : data
 }
 
 // @auto-fold here
