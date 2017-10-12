@@ -1,4 +1,4 @@
-import { setAll } from '../collection/base'
+import { load } from '../collection/load'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return
@@ -8,21 +8,23 @@ function ensureListener(self, listenerKey, addListenerFunc) {
 
 function addOnResize(self) {
   if (global.window) {
-    window.addEventListener('resize', () => {
-      setAll(self, {
-        width: window.innerWidth,
-        height: window.innerHeight,
+    const onResize = () => {
+      load(self, {
+        byId: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
       })
-    })
-    setAll(self, {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    })
+    }
+    window.addEventListener('resize', onResize)
+    onResize()
   } else {
     // default value for node
-    setAll(self, {
-      width: 360,
-      height: 640,
+    load(self, {
+      byId: {
+        width: 360,
+        height: 640,
+      },
     })
   }
 }

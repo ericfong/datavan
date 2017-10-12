@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import runHook from '../collection/util/runHook'
+import { wrapHook } from '../collection/util/runHook'
 
 function parseJson(val) {
   try {
@@ -20,7 +20,7 @@ export default function plugLocalStorage(_storage) {
       getHook(next, collection, id) {
         return parseJson(storage.getItem(id))
       },
-      setAllHook(next, collection, change, option) {
+      setAllHook: wrapHook(base.setAllHook, (next, collection, change, option) => {
         _.each(change, (value, key) => {
           if (key === '$unset') {
             _.each(value, k => storage.removeItem(k))
@@ -31,7 +31,7 @@ export default function plugLocalStorage(_storage) {
           }
           storage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value))
         })
-        return runHook(base.setAllHook, next, collection, change, option)
-      },
+        return next(collection, change, option)
+      }),
     })
 }

@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { Component } from 'react'
+import React from 'react'
 import setDisplayName from 'recompose/setDisplayName'
 import wrapDisplayName from 'recompose/wrapDisplayName'
-import createEagerFactory from 'recompose/createEagerFactory'
 import { defaultMemoize } from 'reselect'
 
 function _genOnChange(self, pathStr, pathArr, getError, preChange) {
@@ -49,9 +48,7 @@ const initState = {
 }
 
 const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
-  const factory = createEagerFactory(BaseComponent)
-
-  class WithStateHandlers extends Component {
+  class WithStateHandlers extends React.Component {
     state = { ...initState }
 
     onChanges = {}
@@ -123,7 +120,7 @@ const withBindForm = (formOriginal = 'formOriginal') => BaseComponent => {
     }
 
     render() {
-      return factory({
+      return React.createElement(BaseComponent, {
         ...this.props,
         bindForm: this.bindForm,
         form: this.form,
