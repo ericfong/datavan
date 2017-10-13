@@ -4,8 +4,6 @@ import mutateUtil from 'immutability-helper'
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 import { _getCollection } from './defineCollection'
 
-export const datavanReducer = (state = {}) => state
-
 // export const doMutations = (state, mutations) => _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
 
 function rootReducer(state, action) {
@@ -20,43 +18,35 @@ function rootReducer(state, action) {
 }
 
 export default function datavanEnhancer(ctx = {}) {
-  if (process.env.NODE_ENV !== 'production' && ctx.context) {
-    console.warn('Please use \'datavanEnhancer({ overrides, a, b })\' instead of \'datavanEnhancer({ overrides, context: { a, b } })\'')
-  }
   return _createStore => (_reducer, preloadedState, enhancer) => {
-    // set default preload state
     const preload = _.defaultsDeep(preloadedState, { datavan: { _timestamp: Date.now() } })
-
-    const finalReducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
-    const store = _createStore(finalReducer, preload, enhancer)
-
+    const reducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
+    const store = _createStore(reducer, preload, enhancer)
     const { getState, dispatch } = store
+    const _getStore = () => store
 
-    // create van
+    // injects
     Object.assign(store, {
       collections: {},
       vanCtx: {
         ...ctx,
         overrides: ctx.overrides || {},
       },
+      getState() {
+        const state = getState()
+        state.datavan.get = _getStore
+        return state
+      },
+      dispatch(action) {
+        if (action.type === GET_DATAVAN) return store
+        return dispatch(action)
+      },
     })
 
+    // init collections
     _.each(ctx.collections, (spec, name) => _getCollection(store, { ...spec, name }))
-
-    store.getState = function _getState() {
-      const state = getState()
-      state.datavan.get = () => store
-      return state
-    }
-
-    // inject dispatch
-    store.dispatch = function _dispatch(action) {
-      if (action.type === GET_DATAVAN) {
-        return store
-      }
-      return dispatch(action)
-    }
-
     return store
   }
 }
+
+export const datavanReducer = (state = {}) => state

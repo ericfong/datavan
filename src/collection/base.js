@@ -9,7 +9,8 @@ export function getState(self) {
   return self._pendingState || (self.store && self.store.getState().datavan[self.name])
 }
 
-// mutate
+// mutate (flush: setAll, invalidate) (debounce: load, http-fetcher-mutate-null)
+// call diff emit. dispatch(MUTATE), dispatch(LOAD), move load into reducer?
 export function addMutation(self, mut, option) {
   const prevState = getState(self)
   const mutation = mut || { $set: { ...prevState } }
