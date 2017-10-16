@@ -7,23 +7,25 @@ export const EXPIRED = 'EXPIRED'
 
 function _omitAts(collection, atKey, ids) {
   let omitedIds
-  if (ids === EXPIRED && !isNaN(collection.gcTime)) {
-    const expired = Date.now() - collection.gcTime
+  if (ids === EXPIRED) {
     omitedIds = []
-    collection[atKey] = _.reduce(
-      collection[atKey],
-      (newAts, at, id) => {
-        const shouldKeep = at >= expired
-        // console.log('>>>', atKey, id, shouldKeep)
-        if (shouldKeep) {
-          newAts[id] = at
-        } else {
-          omitedIds.push(id)
-        }
-        return newAts
-      },
-      {}
-    )
+    if (!isNaN(collection.gcTime)) {
+      const expired = Date.now() - collection.gcTime
+      collection[atKey] = _.reduce(
+        collection[atKey],
+        (newAts, at, id) => {
+          const shouldKeep = at >= expired
+          // console.log('>>>', atKey, id, shouldKeep)
+          if (shouldKeep) {
+            newAts[id] = at
+          } else {
+            omitedIds.push(id)
+          }
+          return newAts
+        },
+        {}
+      )
+    }
   } else if (ids) {
     omitedIds = ids
     collection[atKey] = _.omit(collection[atKey], ids)
