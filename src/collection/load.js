@@ -91,7 +91,8 @@ export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) 
 
   if (self.onLoad) self.onLoad(self, data, mutation)
 
-  // always return data for await submit() to catch server response
+  // return normalized data, which can be easier to get object
+  // for submit(), it should set $submittedIds with byId
   return data
 }
 
