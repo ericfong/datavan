@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { getState } from './base'
-import { load } from './load'
+import { load, normalizeLoadData } from './load'
 
 export function getOriginals(table) {
   return getState(table).originals
@@ -29,7 +29,16 @@ export function submit(self, _submit) {
   const submittedDocs = getSubmits(self)
   const p = _submit ? _submit(submittedDocs, self) : self.onSubmit(submittedDocs, self)
   return Promise.resolve(p).then(
-    docs => load(self, docs),
+    rawRes => {
+      if (rawRes) {
+        // !rawRes means DON'T consider as submitted
+        const data = normalizeLoadData(self, rawRes)
+        // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
+        data.$submittedIds = { ..._.mapValues(submittedDocs, () => null), ...data.$submittedIds }
+        load(self, data)
+      }
+      return rawRes
+    },
     err => {
       // ECONNREFUSED = Cannot reach server
       // Not Found = api is too old

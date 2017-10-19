@@ -42,24 +42,21 @@ function submitted(self, idTable, option) {
   addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
-function normalizeData(self, data) {
+export function normalizeLoadData(self, data) {
+  if (!data || data.byId) return data
   if (Array.isArray(data)) {
     // array of docs
     const idField = self.idField
     const byId = _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
-    data = { byId }
-  } else if ('byId' in data) {
-    // directly use data (data may have $ops)
-  } else {
-    // table of docs
-    data = { byId: data }
+    return { byId }
   }
-  return data
+  // table of docs
+  return { byId: data }
 }
 
 export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) {
   if (!_data) return _data
-  const data = normalizeData(self, _data)
+  const data = normalizeLoadData(self, _data)
 
   // move tmp id to $submittedIds before loadAsMerge or loadAsDefaults
   if (data.$submittedIds) submitted(self, data.$submittedIds)
@@ -91,9 +88,8 @@ export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) 
 
   if (self.onLoad) self.onLoad(self, data, mutation)
 
-  // return normalized data, which can be easier to get object
-  // for submit(), it should set $submittedIds with byId
-  return data
+  // always return original _data, so that can access raw result
+  return _data
 }
 
 export function init(self) {

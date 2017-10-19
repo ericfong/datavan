@@ -85,11 +85,13 @@ export default function httpFetcher(conf) {
       return runHook(base.findHook, next, collection, query, option)
     },
 
+    // NOTE option.force, returnRaw
     findAsyncHook(next, collection, query = {}, option = {}) {
       const promise = option.force
         ? doFetch(collection, conf.getFetchQuery(query, option, collection), option)
         : Promise.resolve(checkFetch(collection, query, option, conf))
       return promise.then(() => {
+        // if (option.force && option.returnRaw) return raw
         // _preparedData no longer valid after fetch promise resolved
         delete option._preparedData
         return runHook(base.findAsyncHook, next, collection, query, option)
