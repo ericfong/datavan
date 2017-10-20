@@ -1,9 +1,18 @@
 import _ from 'lodash'
 
-import createCollection from './createCollection'
+import createCollection from '../test/createCollection'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate, allPendings, findAsync } from '..'
+import { invalidate, allPendings, findAsync, insert, update, getAll, find } from '..'
 import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
+
+test('find in original', async () => {
+  const users = createCollection({ onFetch: onFetchEcho })
+  await findAsync(users, ['a', 'b'])
+  update(users, { name: 'A' }, { $merge: { newField: 1 } })
+  insert(users, { _id: 'c', name: 'C' })
+  expect(find(users, {}, { inOriginal: true })).toEqual([{ _id: 'a', name: 'A' }, { _id: 'b', name: 'B' }])
+  expect(_.map(getAll(users), 'name')).toEqual(['A', 'B', 'C'])
+})
 
 test('findAsync', async () => {
   const users = createCollection({ onFetch: onFetchEcho })
@@ -103,14 +112,10 @@ test('basic', async () => {
         if (ids) {
           ++calledGet
           // console.log('onFetch get', ids, calledGet)
-          return Promise.resolve(
-            _.compact(
-              _.map(ids, id => {
-                if (id === 'not_exists') return null
-                return { _id: id, name: `${id} name` }
-              })
-            )
-          )
+          return Promise.resolve(_.compact(_.map(ids, id => {
+            if (id === 'not_exists') return null
+            return { _id: id, name: `${id} name` }
+          })))
         }
       }
       ++calledFind

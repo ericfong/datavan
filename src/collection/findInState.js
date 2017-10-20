@@ -3,7 +3,7 @@ import Mingo from 'mingo'
 
 import { getQueryIds } from './util/idUtil'
 import runHook from './util/runHook'
-import { getAll } from './base'
+import { getState, getAll } from './base'
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -71,7 +71,12 @@ function filterDataByIds(self, data, ids, option) {
 
 export function prepareFindData(self, query, option) {
   if (option._preparedData) return option._preparedData
-  const data = getAll(self)
+  let data = getAll(self)
+
+  if (option.inOriginal) {
+    data = _.omitBy({ ...data, ...getState(self).originals }, v => v === null)
+  }
+
   const ids = getQueryIds(query, self.idField)
   let prepared
   if (ids) {
