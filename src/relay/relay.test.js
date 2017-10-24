@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { datavanEnhancer, defineCollection, relayClient, relayWorker, set } from '..'
+import { datavanEnhancer, defineCollection, relayClient, relayWorker, set, insert, findOne, allPendings } from '..'
 import { EchoDB } from '../test/echo'
 
 class FakeChannel {
@@ -24,6 +24,36 @@ class FakeChannel {
     this.listener = listener
   }
 }
+
+test('can wait for submit', async () => {
+  const Blogs = defineCollection({ name: 'blogs' })
+  const serviceWorkerChannel = new FakeChannel()
+  const feedbackChannel = new FakeChannel()
+
+  // client
+  const relayC = relayClient({ onMessage: serviceWorkerChannel.postMessage })
+  const winStore = createStore(null, null, datavanEnhancer({ overrides: { blogs: relayC }, side: 'client' }))
+  feedbackChannel.addEventListener(event => relayC.onWorkerMessage(winStore, event.data))
+
+  // service-worker
+  const db = new EchoDB()
+  const workerSubmit = jest.fn(db.submit)
+  const workerFetch = jest.fn(db.fetch)
+  const relayW = relayWorker({
+    onFetch: workerFetch,
+    onSubmit: workerSubmit,
+    onMessage: feedbackChannel.postMessage,
+  })
+  const swStore = createStore(null, null, datavanEnhancer({ overrides: { blogs: relayW }, side: 'worker' }))
+  serviceWorkerChannel.addEventListener(event => relayW.onClientMessage(swStore, event.data))
+
+  // start test
+  insert(Blogs(winStore), { text: 'ABC' })
+
+  await Promise.all(allPendings(Blogs(winStore)))
+
+  expect(findOne(Blogs(winStore))._id).toEqual(expect.stringMatching(/^stored-/))
+})
 
 test('basic', async () => {
   const Roles = defineCollection({ name: 'roles', idField: 'name' })

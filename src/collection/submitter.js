@@ -17,10 +17,12 @@ export function isDirty(table, id) {
   return id in getState(table).originals
 }
 
+const cleanSubmitted = tmps => _.mapValues(tmps, () => null)
+
 export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
   // tmp id to stored id table
   return {
-    ..._.mapValues(tmps, () => null),
+    ...cleanSubmitted(tmps),
     ..._.mapValues(_.keyBy(storeds, oldIdKey), self.idField),
   }
 }
@@ -34,7 +36,7 @@ export function submit(self, _submit) {
         // !rawRes means DON'T consider as submitted
         const data = normalizeLoadData(self, rawRes)
         // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
-        data.$submittedIds = { ..._.mapValues(submittedDocs, () => null), ...data.$submittedIds }
+        data.$submittedIds = { ...cleanSubmitted(submittedDocs), ...data.$submittedIds }
         load(self, data)
       }
       return rawRes

@@ -19,7 +19,9 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
 
     setAllHook(next, collection, change, option) {
       runHook(base.setAllHook, next, collection, change, option)
-      submit(collection, onSubmit)
+      // NOTE submit -> load -> onLoad -> onMessage; no need to set request.result
+      // but relayClient may want to know this submit have been DONE
+      return submit(collection, onSubmit)
     },
 
     onLoad(collection, data, mutation) {

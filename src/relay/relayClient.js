@@ -8,7 +8,7 @@ import runHook from '../collection/util/runHook'
 
 let requestNum = 0
 const makeRequest = (collection, action, ...args) => ({
-  _id: requestNum++,
+  _id: `relay-${requestNum++}`,
   collectionName: collection.name,
   tag: `${collection.name}-${action}`,
   action,
@@ -43,7 +43,7 @@ export default function relayClient({ onMessage }) {
   function checkFetch(self, request, option) {
     if (isPreloadSkip(self, option) || option.queryHit || option.allIdsHit) return false
 
-    return wrapFetchPromise(self, option.queryKey, doFetch(self, request, option))
+    return wrapFetchPromise(self, request._id, doFetch(self, request, option))
   }
 
   const relayPlugin = base => ({
@@ -51,6 +51,7 @@ export default function relayClient({ onMessage }) {
 
     getHook(next, collection, id, option = {}) {
       const ret = runHook(base.getHook, next, collection, id, option)
+      // if fetch once. always consider as allIdsHit and no re-fetch from relayWorker
       if (collection._byIdAts[id]) {
         option.allIdsHit = true
       }
@@ -67,16 +68,18 @@ export default function relayClient({ onMessage }) {
 
     findAsyncHook(next, collection, query = {}, option = {}) {
       return doFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
-        runHook(base.findAsyncHook, next, collection, query, option)
-      )
+        runHook(base.findAsyncHook, next, collection, query, option))
     },
 
     setAllHook(next, collection, change, option) {
       runHook(base.setAllHook, next, collection, change, option)
       const request = makeRequest(collection, 'setAll', change)
-      Promise.resolve(onMessage(request, {}, collection))
-        .then(res => ensureWaitFor(res, request._id))
-        .then(res => load(collection, res.result))
+      const p = Promise.resolve(onMessage(request, {}, collection)).then(res => ensureWaitFor(res, request._id))
+      // NOTE worker: submit -> load -> onLoad -> onMessage; no need to load request.result in here
+      //   .then(res => load(collection, res.result))
+
+      // need to register promise to collection._fetchingPromises
+      return wrapFetchPromise(collection, request._id, p)
     },
   })
 
@@ -85,11 +88,14 @@ export default function relayClient({ onMessage }) {
 
     // message is a request response
     const promise = promises[message._id]
-    if (promise) promise.resolve(message)
+    if (promise) {
+      promise.resolve(message)
+    }
 
     // message is like a redux dispatch
     if (message.type === 'load') {
       const collection = _getCollection(store, message.collectionName)
+      if (!collection) throw new Error('Cannot get collection in onWorkerMessage function', message)
       load(collection, message.data)
     }
   }
