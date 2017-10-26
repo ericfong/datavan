@@ -60,6 +60,7 @@ rules:
     - self
     - find
     - this
+    - postMessage
   no-trailing-spaces: 1
   no-underscore-dangle: off
   no-unused-expressions: 1

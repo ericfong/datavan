@@ -7,14 +7,14 @@ import { _getCollection } from '../defineCollection'
 import runHook from '../collection/util/runHook'
 
 let requestNum = 0
-const makeRequest = (collection, action, ...args) => ({
+const makeRequest = (collection, type, ...args) => ({
   _id: `relay-${requestNum++}`,
   collectionName: collection.name,
-  tag: `${collection.name}-${action}`,
-  action,
+  tag: `${collection.name}-${type}`,
+  type,
   args,
 })
-const makeFindRequest = (collection, action, query, option) => makeRequest(collection, action, query, pickOptionForSerialize(option))
+const makeFindRequest = (collection, type, query, option) => makeRequest(collection, type, query, pickOptionForSerialize(option))
 
 export default function relayClient({ onMessage }) {
   const promises = {}
@@ -27,17 +27,17 @@ export default function relayClient({ onMessage }) {
     return p
   }
 
+  const postToWorker = (request, option, self) => Promise.resolve(onMessage(request, option, self)).then(res => ensureWaitFor(res, request._id))
+
   function doFetch(self, request, option) {
-    return Promise.resolve(onMessage(request, option, self))
-      .then(res => ensureWaitFor(res, request._id))
-      .then(res => {
-        if (self.mutatedAt >= res.workerMutatedAt) {
-          // ignore result, and no load, no mutation
-          return res.result
-        }
-        // console.log(self.store.vanCtx.side, 'doFetch', res)
-        return load(self, res.result, option)
-      })
+    return postToWorker(request, option, self).then(res => {
+      if (self.mutatedAt >= res.workerMutatedAt) {
+        // ignore result, and no load, no mutation
+        return res.result
+      }
+      // console.log(self.store.vanCtx.side, 'doFetch', res)
+      return load(self, res.result, option)
+    })
   }
 
   function checkFetch(self, request, option) {
@@ -74,7 +74,7 @@ export default function relayClient({ onMessage }) {
     setAllHook(next, collection, change, option) {
       runHook(base.setAllHook, next, collection, change, option)
       const request = makeRequest(collection, 'setAll', change)
-      const p = Promise.resolve(onMessage(request, {}, collection)).then(res => ensureWaitFor(res, request._id))
+      const p = postToWorker(request, {}, collection)
       // NOTE worker: submit -> load -> onLoad -> onMessage; no need to load request.result in here
       //   .then(res => load(collection, res.result))
 
@@ -99,6 +99,8 @@ export default function relayClient({ onMessage }) {
       load(collection, message.data)
     }
   }
+
+  relayPlugin.ready = () => postToWorker({ _id: `relay-${requestNum++}`, type: 'ready' })
 
   return relayPlugin
 }

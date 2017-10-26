@@ -10,6 +10,7 @@ const workFuncs = {
   find,
   findAsync,
   setAll,
+  ready: () => true,
 }
 
 export default function relayWorker({ onFetch, onSubmit, onMessage }) {
@@ -31,10 +32,11 @@ export default function relayWorker({ onFetch, onSubmit, onMessage }) {
   })
 
   workerPlugin.onClientMessage = (store, request) => {
-    const collection = _getCollection(store, request.collectionName)
-    return Promise.resolve(workFuncs[request.action](collection, ...request.args)).then(ret => {
+    const { collectionName, args } = request
+    const self = collectionName ? _getCollection(store, collectionName) : store
+    return Promise.resolve(workFuncs[request.type](self, ...(args || []))).then(ret => {
       request.result = ret
-      request.workerMutatedAt = collection.mutatedAt
+      request.workerMutatedAt = collectionName && self.mutatedAt
       // console.log(collection.store.vanCtx.side, 'onClientMessage', request)
       onMessage(request)
     })
