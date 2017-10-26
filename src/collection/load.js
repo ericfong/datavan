@@ -42,14 +42,16 @@ function submitted(self, idTable, option) {
   addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
+const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
+
 export function normalizeLoadData(self, data) {
-  if (!data || data.byId) return data
-  if (Array.isArray(data)) {
-    // array of docs
-    const idField = self.idField
-    const byId = _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
-    return { byId }
+  if (!data) return data
+  if (data.byId) {
+    if (Array.isArray(data.byId)) data.byId = toById(data, self.idField)
+    return data
   }
+  // array of docs
+  if (Array.isArray(data)) return { byId: toById(data, self.idField) }
   // table of docs
   return { byId: data }
 }
