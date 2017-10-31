@@ -47,7 +47,7 @@ const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idFiel
 export function normalizeLoadData(self, data) {
   if (!data) return data
   if (data.byId) {
-    if (Array.isArray(data.byId)) data.byId = toById(data, self.idField)
+    if (Array.isArray(data.byId)) data.byId = toById(data.byId, self.idField)
     return data
   }
   // array of docs
