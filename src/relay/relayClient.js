@@ -2,7 +2,7 @@
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
-import { isPreloadSkip, wrapFetchPromise } from '../plug/httpFetcher'
+import { isPreloadSkip, markPromise } from '../plug/httpFetcher'
 import { _getCollection } from '../defineCollection'
 import runHook from '../collection/util/runHook'
 
@@ -35,15 +35,14 @@ export default function relayClient({ onMessage }) {
         // ignore result, and no load, no mutation
         return res.result
       }
-      // console.log(self.store.vanCtx.side, 'doFetch', res)
       return load(self, res.result, option)
     })
   }
 
   function checkFetch(self, request, option) {
-    if (isPreloadSkip(self, option) || option.queryHit || option.allIdsHit) return false
+    if (isPreloadSkip(self, option) || option.queryHit || option.allIdsHit) return Promise.resolve(false)
 
-    return wrapFetchPromise(self, request._id, doFetch(self, request, option))
+    return markPromise(self, request._id, doFetch(self, request, option))
   }
 
   const relayPlugin = base => ({
@@ -67,7 +66,7 @@ export default function relayClient({ onMessage }) {
     },
 
     findAsyncHook(next, collection, query = {}, option = {}) {
-      return doFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
+      return checkFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
         runHook(base.findAsyncHook, next, collection, query, option))
     },
 
@@ -78,8 +77,8 @@ export default function relayClient({ onMessage }) {
       // NOTE worker: submit -> load -> onLoad -> onMessage; no need to load request.result in here
       //   .then(res => load(collection, res.result))
 
-      // need to register promise to collection._fetchingPromises
-      return wrapFetchPromise(collection, request._id, p)
+      // need to register promise to collection._fetchingPromises, so that can wait for submit
+      return markPromise(collection, request._id, p)
     },
   })
 

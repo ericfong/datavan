@@ -21,7 +21,7 @@ export { forceEmitFlush } from './store/emit'
 export loadCollections from './store/loadCollections'
 
 // fetcher
-export httpFetcher from './plug/httpFetcher'
+export httpFetcher, { markPromise } from './plug/httpFetcher'
 export relayClient from './relay/relayClient'
 export relayWorker from './relay/relayWorker'
 

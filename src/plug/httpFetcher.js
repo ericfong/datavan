@@ -10,10 +10,12 @@ import runHook from '../collection/util/runHook'
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
 // @auto-fold here
-export function wrapFetchPromise(self, key, promise) {
+export function markPromise(self, key, promise, overwrite) {
   const { _fetchingPromises } = self
-  const oldPromise = _fetchingPromises[key]
-  if (oldPromise) return oldPromise
+  if (!overwrite) {
+    const oldPromise = _fetchingPromises[key]
+    if (oldPromise) return oldPromise
+  }
 
   promise
     .then(ret => {
@@ -35,21 +37,23 @@ export function wrapFetchPromise(self, key, promise) {
 }
 
 function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }) {
+  const notForce = !option.force
+
   prepareFindData(self, query, option)
-  if (option.allIdsHit) return false
+  if (option.allIdsHit && notForce) return Promise.resolve(false)
 
   const fetchQuery = getFetchQuery(query, option, self)
   const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
-  if (fetchKey === false) return false
+  if (fetchKey === false && notForce) return Promise.resolve(false)
 
   const { fetchAts } = getState(self)
   // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
-  if (fetchAts[fetchKey]) return false
+  if (fetchAts[fetchKey] && notForce) return Promise.resolve(false)
   fetchAts[fetchKey] = 1
   self._fetchAts[fetchKey] = Date.now()
 
   // want to return fetching promise for findAsync
-  return wrapFetchPromise(self, fetchKey, doFetch(self, fetchQuery, option))
+  return markPromise(self, fetchKey, doFetch(self, fetchQuery, option))
 }
 
 const confDefaults = {
@@ -87,10 +91,7 @@ export default function httpFetcher(conf) {
 
     // NOTE option.force, returnRaw
     findAsyncHook(next, collection, query = {}, option = {}) {
-      const promise = option.force
-        ? doFetch(collection, conf.getFetchQuery(query, option, collection), option)
-        : Promise.resolve(checkFetch(collection, query, option, conf))
-      return promise.then(() => {
+      return checkFetch(collection, query, option, conf).then(() => {
         // if (option.force && option.returnRaw) return raw
         // _preparedData no longer valid after fetch promise resolved
         delete option._preparedData
