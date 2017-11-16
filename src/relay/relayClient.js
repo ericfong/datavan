@@ -30,20 +30,19 @@ export default function relayClient({ onMessage }) {
   const postToWorker = (request, option, self) => Promise.resolve(onMessage(request, option, self)).then(res => ensureWaitFor(res, request._id))
 
   function doFetch(self, request, option) {
-    return postToWorker(request, option, self).then(res => {
+    const p = postToWorker(request, option, self).then(res => {
+      const result = request.type === 'get' ? [res.result] : res.result
       if (self.mutatedAt >= res.workerMutatedAt) {
         // ignore result, and no load, no mutation
-        return res.result
+        return result
       }
-      return load(self, res.result, option)
+      return load(self, result, option)
     })
+    markPromise(self, request._id, p)
+    return p
   }
 
-  function checkFetch(self, request, option) {
-    if (isPreloadSkip(self, option) || option.queryHit || option.allIdsHit) return Promise.resolve(false)
-
-    return markPromise(self, request._id, doFetch(self, request, option))
-  }
+  const isFetch = (self, option) => !(isPreloadSkip(self, option) || option.queryHit || option.allIdsHit)
 
   const relayPlugin = base => ({
     ...base,
@@ -54,19 +53,19 @@ export default function relayClient({ onMessage }) {
       if (collection._byIdAts[id]) {
         option.allIdsHit = true
       }
-      checkFetch(collection, makeFindRequest(collection, 'get', id, option), option)
+      if (isFetch(collection, option)) doFetch(collection, makeFindRequest(collection, 'get', id, option), option)
       return ret
     },
 
     findHook(next, collection, query = {}, option = {}) {
       const ret = runHook(base.findHook, next, collection, query, option)
-      // checkFetch depend on queryHit & allIdsHit, so need to run AFTER base.find
-      checkFetch(collection, makeFindRequest(collection, 'find', query, option), option)
+      // depend on queryHit & allIdsHit, so need to run AFTER base.find
+      if (isFetch(collection, option)) doFetch(collection, makeFindRequest(collection, 'find', query, option), option)
       return ret
     },
 
     findAsyncHook(next, collection, query = {}, option = {}) {
-      return checkFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
+      return doFetch(collection, makeFindRequest(collection, 'findAsync', query, option), option).then(() =>
         runHook(base.findAsyncHook, next, collection, query, option))
     },
 
