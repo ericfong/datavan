@@ -17,7 +17,7 @@ function mongoToLodash(sort) {
 }
 
 // @auto-fold here
-function processOption(arr, option) {
+export function processOption(arr, option) {
   if (option) {
     if (option.sort) {
       const [fields, orders] = mongoToLodash(option.sort)
@@ -29,6 +29,7 @@ function processOption(arr, option) {
     // convert to other object
     if (option.keyBy) {
       arr = _.keyBy(arr, option.keyBy)
+      if (option.keyByValue) arr = _.mapValues(arr, obj => _.get(obj, option.keyByValue))
     } else if (option.groupBy) {
       arr = _.groupBy(arr, option.groupBy)
     } else if (option.map) {
