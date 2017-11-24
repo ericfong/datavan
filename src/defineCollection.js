@@ -4,7 +4,7 @@ import { GET_DATAVAN } from './constant'
 import createCollection, { applyPlugin } from './collection/createCollection'
 
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
-function getVan(stateOrDispatch) {
+export function getVan(stateOrDispatch) {
   // stateOrDispatch = state
   const datavanState = stateOrDispatch.datavan
   if (datavanState) return datavanState.get()
