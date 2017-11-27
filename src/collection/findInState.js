@@ -17,7 +17,7 @@ function mongoToLodash(sort) {
 }
 
 // @auto-fold here
-export function processOption(arr, option) {
+function processOption(arr, option) {
   if (option) {
     if (option.sort) {
       const [fields, orders] = mongoToLodash(option.sort)
@@ -34,6 +34,8 @@ export function processOption(arr, option) {
       arr = _.groupBy(arr, option.groupBy)
     } else if (option.map) {
       arr = _.map(arr, option.map)
+    } else if (option.distinct) {
+      arr = _.uniq(_.map(arr, option.distinct))
     }
     // NOTE no need to support fields in memory
   }
@@ -41,16 +43,13 @@ export function processOption(arr, option) {
 }
 
 // @auto-fold here
-const _filter = (collection, docs, query) => {
+const filter = (collection, docs, query) => {
   if (Object.keys(query).length === 0) {
     return _.values(docs)
   }
   const mingoQuery = new Mingo.Query(query)
   const filterFunc = doc => doc && mingoQuery.test(doc)
   return _.filter(docs, filterFunc)
-}
-const filter = (collection, docs, query, option) => {
-  return runHook(option.filterHook || collection.filterHook, _filter, collection, docs, query, option)
 }
 
 // @auto-fold here
@@ -89,15 +88,15 @@ export function prepareFindData(self, query, option) {
   return prepared
 }
 
-export default function findInState(self, query, option) {
-  let docs = prepareFindData(self, query, option)
+export default function findInState(collection, query, option) {
+  let docs = prepareFindData(collection, query, option)
   // prevent re-use option
   delete option._preparedData
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
-    docs = filter(self, docs, query, option)
+    docs = runHook(option.filterHook || collection.filterHook, filter, collection, docs, query, option)
   }
 
-  return processOption(docs, option)
+  return runHook(option.processOptionHook || collection.processOptionHook, processOption, docs, option)
 }

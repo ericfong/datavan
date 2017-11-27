@@ -5,7 +5,7 @@ import stringify from 'fast-stable-stringify'
 // fields for backend DB select columns
 // fetchName for backend fetch api name
 // fetch object for backend fetch parameters
-const serializingFields = ['sort', 'skip', 'limit', 'keyBy', 'groupBy', 'map', 'fields', 'fetch', 'fetchName', 'inOriginal']
+const serializingFields = ['sort', 'skip', 'limit', 'keyBy', 'keyByValue', 'groupBy', 'map', 'fields', 'fetch', 'fetchName', 'inOriginal', 'distinct']
 
 export const pickOptionForSerialize = option => _.pick(option, serializingFields)
 
