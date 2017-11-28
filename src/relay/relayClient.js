@@ -19,15 +19,18 @@ const makeFindRequest = (collection, type, query, option) => makeRequest(collect
 export default function relayClient({ onMessage }) {
   const promises = {}
 
-  function ensureWaitFor(res, promiseId) {
-    if (res) return res
-    // if no res, means need to wait and resolve via handleResponse
+  const postToWorker = (request, option, self) => {
+    // always mark local promise and return
     const p = createStandalonePromise()
-    promises[promiseId] = p
+    promises[request._id] = p
+
+    Promise.resolve(onMessage(request, option, self)).then(result => {
+      // if has result, means can resolve now, no need wait for onWorkerMessage
+      if (result) return p.resolve(result)
+    })
+
     return p
   }
-
-  const postToWorker = (request, option, self) => Promise.resolve(onMessage(request, option, self)).then(res => ensureWaitFor(res, request._id))
 
   function doFetch(self, request, option) {
     const p = postToWorker(request, option, self).then(res => {
