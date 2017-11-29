@@ -5,7 +5,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './test/enzyme-setup'
-import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections, set, getState } from '.'
+import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections, set, getState, getAll, get } from '.'
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const Memory = defineCollection('memory')
@@ -39,7 +39,6 @@ test('combineReducers', async () => {
       memory: { byId: { theme: 'light' } },
     },
   }
-  const Memory = defineCollection('memory')
   const store = createStore(
     // combineReducers will remove all state that without keys
     combineReducers({
@@ -47,59 +46,55 @@ test('combineReducers', async () => {
       datavan: datavanReducer,
     }),
     preloadState,
-    datavanEnhancer()
+    datavanEnhancer({ collections: { memory: {} } })
   )
 
   expect(store.getState()).toMatchObject(preloadState)
-  expect(Memory(store).getAll()).toEqual({ theme: 'light' })
+  expect(getAll(store, 'memory')).toEqual({ theme: 'light' })
 
-  set(Memory(store), 'theme', 'dark')
+  set(store, 'memory', 'theme', 'dark')
   await getStorePending(store)
   expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
-  expect(Memory(store).getAll()).toEqual({ theme: 'dark' })
+  expect(getAll(store, 'memory')).toEqual({ theme: 'dark' })
 })
 
 test('same state', () => {
-  const Users = defineCollection('users')
-  const store = createStore(null, null, datavanEnhancer())
-  set(Users(store), 'u1', 'user 1 name!!')
+  const store = createStore(null, null, datavanEnhancer({ collections: { users: {} } }))
+  set(store, 'users', 'u1', 'user 1 name!!')
 
   let runTime = 0
   const UserComp = connect(state => {
     runTime++
     return {
-      user1: Users(state).get('u1'),
+      user1: get(state, 'users', 'u1'),
     }
   })(props => <span>{props.user1}</span>)
-  const wrapper = mount(
-    <Provider store={store}>
-      <UserComp />
-    </Provider>
-  )
+  const wrapper = mount(<Provider store={store}>
+    <UserComp />
+                        </Provider>)
   expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
   expect(runTime).toBe(1)
 
   // same value
-  set(Users(store), 'u1', 'user 1 name!!')
+  set(store, 'users', 'u1', 'user 1 name!!')
   expect(runTime).toBe(1)
 
   // diff value
-  set(Users(store), 'u1', 'Changed', { flush: true })
+  set(store, 'users', 'u1', 'Changed', { flush: true })
   expect(runTime).toBe(2)
 })
 
 test('basic', () => {
-  const Users = defineCollection('users')
-  const store = createStore(null, null, datavanEnhancer())
+  const store = createStore(null, null, datavanEnhancer({ collections: { users: {} } }))
 
   let lastClickValue
   const UserComp = connect(
     state => ({
-      user1: Users(state).get('u1'),
+      user1: get(state, 'users', 'u1'),
     }),
     dispatch => ({
       onClick() {
-        lastClickValue = Users(dispatch).get('u1')
+        lastClickValue = get(dispatch, 'users', 'u1')
       },
     })
   )(props => {
@@ -107,13 +102,11 @@ test('basic', () => {
     return <span>{props.user1}</span>
   })
 
-  set(Users(store), 'u1', 'user 1 name!!')
+  set(store, 'users', 'u1', 'user 1 name!!')
 
-  const wrapper = mount(
-    <Provider store={store}>
-      <UserComp />
-    </Provider>
-  )
+  const wrapper = mount(<Provider store={store}>
+    <UserComp />
+                        </Provider>)
 
   expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
   expect(lastClickValue).toBe('user 1 name!!')

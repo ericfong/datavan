@@ -2,7 +2,7 @@
 import delay from 'delay'
 import { createStore } from 'redux'
 
-import { datavanEnhancer, defineCollection, setOverrides, plugBrowser, set, gcStore, invalidateStore, getState } from '..'
+import { datavanEnhancer, defineCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll } from '..'
 
 test('gcStore all&now', async () => {
   const gcTime = 1
@@ -38,12 +38,8 @@ test('invalidateStore', async () => {
 })
 
 test('defineCollection', async () => {
-  const Browser = defineCollection({ name: 'browser' })
-  const store = createStore(null, null, datavanEnhancer())
-  setOverrides(store, {
-    browser: plugBrowser,
-  })
-  expect(Browser(store).getAll()).toEqual({})
+  const store = createStore(null, null, datavanEnhancer({ collections: { browser: plugBrowser({}) } }))
+  expect(getAll(store, 'browser')).toEqual({})
 })
 
 test('merge collections states again will not trigger new dispatch', async () => {

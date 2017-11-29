@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
-import { createCollection, insert, set, setAll, getState } from '..'
+import { insert, set, setAll, getState, getAll, find } from '..'
+import createCollection from './createCollection'
 
 test('insert/create/set, originals will be persist', async () => {
   const users = createCollection({ onFetch: _.noop })
@@ -33,7 +34,7 @@ test('insert & find', async () => {
 
   const inserted = insert(collection, [{ name: 'A' }, { name: 'B' }])
   expect(_.map(inserted, 'name')).toEqual(['A', 'B'])
-  expect(_.map(collection.getAll(), 'name')).toEqual(['A', 'B'])
+  expect(_.map(getAll(collection), 'name')).toEqual(['A', 'B'])
 
-  expect(collection.find(_.map(inserted, '_id'))).toEqual(inserted)
+  expect(find(collection, _.map(inserted, '_id'))).toEqual(inserted)
 })

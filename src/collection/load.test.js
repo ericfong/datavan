@@ -2,7 +2,8 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { createCollection, defineCollection, datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings } from '..'
+import { defineCollection, datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings } from '..'
+import createCollection from './createCollection'
 import { load, loadAsDefaults } from './load'
 import onFetchEcho from '../test/onFetchEcho'
 

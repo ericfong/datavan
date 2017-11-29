@@ -54,9 +54,6 @@ export const allPendings = (...args) => wrapCollectionArgs(args, _allPendings)
 export const findInMemory = (...args) => wrapCollectionArgs(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollectionArgs(args, _getInMemory)
 
-// Deprecated:
-export createCollection from './collection/createCollection'
-
 // redux
 export { defineCollection, getCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'

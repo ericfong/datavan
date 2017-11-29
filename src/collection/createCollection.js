@@ -19,16 +19,10 @@ const functions = {
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }
-_.each({ ...base, ...find }, (func, key) => {
-  if (key[0] === '_' || functions[key]) return
-  // eslint-disable-next-line
-  functions[key] = function(...args) {
-    return func(this, ...args) // eslint-disable-line
-  }
-})
-
 _.each(
   {
+    ...base,
+    ...find,
     ...setter,
     ...findExtra,
     ...invalidate,

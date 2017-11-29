@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import createCollection from './createCollection'
-import { getSubmits, submit, findOne, allPendings, insert, update, remove } from '..'
+import { getSubmits, submit, findOne, allPendings, insert, update, remove, get, getAll } from '..'
 import { echoSubmit } from '../test/echo'
 
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
@@ -41,13 +41,13 @@ test('onSubmit', async () => {
 
   const removeDoc = insert(Users, { name: 'Remove' })
   await submit(Users)
-  expect(Users.get(removeDoc._id)).toBe(removeDoc)
+  expect(get(Users, removeDoc._id)).toBe(removeDoc)
   // remove
   remove(Users, { name: 'Remove' })
   await submit(Users)
   // have a id set to undefined
   expect(_.size(getSubmits(Users))).toBe(3)
-  expect(Users.get(removeDoc._id)).toBe(undefined)
+  expect(get(Users, removeDoc._id)).toBe(undefined)
 
   // onSubmit with feedback
 
@@ -60,7 +60,7 @@ test('onSubmit', async () => {
   // all changes submitted
   expect(_.map(lastSubmit, 'name')).toEqual(['Apple', 'Car 3', undefined])
   expect(_.size(lastSubmit)).toBe(3)
-  expect(_.map(Users.getAll(), 'name').sort()).toEqual(['Apple', 'Car 3'])
+  expect(_.map(getAll(Users), 'name').sort()).toEqual(['Apple', 'Car 3'])
   expect(_.isEmpty(getSubmits(Users))).toBe(true)
 })
 
@@ -73,7 +73,7 @@ test('basic', async () => {
 
   insert(Users, { name: 'Apple' })
   insert(Users, { name: 'Car' })
-  expect(_.map(Users.getAll(), 'name')).toEqual(['Apple', 'Car'])
+  expect(_.map(getAll(Users), 'name')).toEqual(['Apple', 'Car'])
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car'])
 
   // find and update
@@ -82,7 +82,7 @@ test('basic', async () => {
   expect(_.map(getSubmits(Users), 'name')).toEqual(['Apple', 'Car 2'])
 
   // mix data from server
-  Users.get('u1')
+  get(Users, 'u1')
   await Promise.all(allPendings(Users))
-  expect(_.map(Users.getAll(), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
+  expect(_.map(getAll(Users), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })
