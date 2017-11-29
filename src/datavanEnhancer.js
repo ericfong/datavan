@@ -44,8 +44,9 @@ export default function datavanEnhancer(ctx = {}) {
       },
     })
 
-    if (process.env.NODE_ENV !== 'production' && ctx.overrides) {
-      console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
+    if (process.env.NODE_ENV !== 'production') {
+      if (ctx.overrides) console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
+      if (!ctx.collections) console.warn('Please register all collections during createStore')
     }
 
     // init collections
