@@ -1,4 +1,5 @@
 import { load } from '../collection/load'
+import { get } from '../collection/base'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return
@@ -33,10 +34,10 @@ export default spec =>
   Object.assign({}, spec, {
     getWidth() {
       ensureListener(this, 'resize', addOnResize)
-      return this.get('width')
+      return get(this, 'width')
     },
     getHeight() {
       ensureListener(this, 'resize', addOnResize)
-      return this.get('width')
+      return get(this, 'width')
     },
   })

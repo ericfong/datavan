@@ -18,6 +18,8 @@ import {
 } from './store'
 import _loadCollections from './store/loadCollections'
 
+import { getCollection as _getCollection } from './defineCollection'
+
 import { wrapCollectionArgs, wrapStoreArgs } from './getArgs'
 
 // collection
@@ -55,7 +57,7 @@ export const findInMemory = (...args) => wrapCollectionArgs(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollectionArgs(args, _getInMemory)
 
 // redux
-export { defineCollection, getCollection } from './defineCollection'
+export { defineCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 
@@ -63,6 +65,8 @@ const deprecated = (funcName, ret) => {
   if (process.env.NODE_ENV !== 'production') console.error(`${funcName} is deprecated!`)
   return ret
 }
+
+export const getCollection = (...args) => deprecated('getCollection', _getCollection(...args))
 
 // store
 export const setOverrides = (...args) => deprecated('setOverrides', wrapStoreArgs(args, _setOverrides))
