@@ -6,8 +6,21 @@ import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _su
 import { find as _find, findAsync as _findAsync } from './collection/find'
 import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings } from './collection/find-extra'
 import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
-import { wrapCollectionArgs } from './getArgs'
 
+import {
+  setOverrides as _setOverrides,
+  invalidateStore as _invalidateStore,
+  getStorePending as _getStorePending,
+  serverPreload as _serverPreload,
+  setContext as _setContext,
+  getContext as _getContext,
+  gcStore as _gcStore,
+} from './store'
+import _loadCollections from './store/loadCollections'
+
+import { wrapCollectionArgs, wrapStoreArgs } from './getArgs'
+
+// collection
 export const getState = (...args) => wrapCollectionArgs(args, _getState)
 export const addMutation = (...args) => wrapCollectionArgs(args, _addMutation)
 export const getAll = (...args) => wrapCollectionArgs(args, _getAll)
@@ -45,14 +58,21 @@ export const getInMemory = (...args) => wrapCollectionArgs(args, _getInMemory)
 export createCollection from './collection/createCollection'
 
 // redux
-export { defineCollection, getCollection, getStore } from './defineCollection'
+export { defineCollection, getCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 
 // store
-export { setOverrides, invalidateStore, getStorePending, serverPreload, setContext, getContext, gcStore } from './store'
+export const setOverrides = (...args) => wrapStoreArgs(args, _setOverrides)
+export const invalidateStore = (...args) => wrapStoreArgs(args, _invalidateStore)
+export const getStorePending = (...args) => wrapStoreArgs(args, _getStorePending)
+export const serverPreload = (...args) => wrapStoreArgs(args, _serverPreload)
+export const setContext = (...args) => wrapStoreArgs(args, _setContext)
+export const getContext = (...args) => wrapStoreArgs(args, _getContext)
+export const gcStore = (...args) => wrapStoreArgs(args, _gcStore)
+export const loadCollections = (...args) => wrapStoreArgs(args, _loadCollections)
+
 export { forceEmitFlush } from './store/emit'
-export loadCollections from './store/loadCollections'
 
 // fetcher
 export httpFetcher, { markPromise } from './plug/httpFetcher'

@@ -30,3 +30,9 @@ function getCollectionArgs(args) {
 export function wrapCollectionArgs(args, func) {
   return func(...getCollectionArgs(args))
 }
+
+export function wrapStoreArgs(args, func) {
+  const [_store, ...rest] = args
+  const store = _store && _store.dispatch ? _store : getStore(_store)
+  return func(store, ...rest)
+}

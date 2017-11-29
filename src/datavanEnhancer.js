@@ -2,7 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
-import { _getCollection } from './defineCollection'
+import createCollection from './collection/createCollection'
 
 // export const doMutations = (state, mutations) => _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
 
@@ -26,8 +26,9 @@ export default function datavanEnhancer(ctx = {}) {
     const _getStore = () => store
 
     // injects
+    const collections = {}
     Object.assign(store, {
-      collections: {},
+      collections,
       vanCtx: {
         ...ctx,
         overrides: ctx.overrides || {},
@@ -43,8 +44,14 @@ export default function datavanEnhancer(ctx = {}) {
       },
     })
 
+    if (process.env.NODE_ENV !== 'production' && ctx.overrides) {
+      console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
+    }
+
     // init collections
-    _.each(ctx.collections, (spec, name) => _getCollection(store, { ...spec, name }))
+    _.each(ctx.collections, (spec, name) => {
+      collections[name] = createCollection({ ...spec, store })
+    })
     return store
   }
 }
