@@ -50,7 +50,7 @@ export default function datavanEnhancer(ctx = {}) {
 
     // init collections
     _.each(ctx.collections, (spec, name) => {
-      collections[name] = createCollection({ ...spec, store })
+      collections[name] = createCollection({ ...spec, name, store })
     })
     return store
   }
