@@ -27,18 +27,24 @@ _.each({ ...base, ...find }, (func, key) => {
   }
 })
 
-_.each({
-  ...setter, ...findExtra, ...invalidate, ...submitter,
-}, (func, key) => {
-  if (key[0] === '_' || functions[key]) return
-  // eslint-disable-next-line
-  functions[key] = function(...args) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`Please use import { ${key} } from 'datavan' instead of collection.${key}()`)
+_.each(
+  {
+    ...setter,
+    ...findExtra,
+    ...invalidate,
+    ...submitter,
+  },
+  (func, key) => {
+    if (key[0] === '_' || functions[key]) return
+    // eslint-disable-next-line
+    functions[key] = function(...args) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Please use import { ${key} } from 'datavan' instead of collection.${key}()`)
+      }
+      return func(this, ...args) // eslint-disable-line
     }
-    return func(this, ...args) // eslint-disable-line
   }
-})
+)
 
 export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
 

@@ -1,17 +1,51 @@
-// collection
+import { getState as _getState, addMutation as _addMutation, getAll as _getAll, get as _get, setAll as _setAll } from './collection/base'
+import { load as _load } from './collection/load'
+import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
+import { set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
+import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
+import { find as _find, findAsync as _findAsync } from './collection/find'
+import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings } from './collection/find-extra'
+import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
+import { wrapCollectionArgs } from './getArgs'
+
+export const getState = (...args) => wrapCollectionArgs(args, _getState)
+export const addMutation = (...args) => wrapCollectionArgs(args, _addMutation)
+export const getAll = (...args) => wrapCollectionArgs(args, _getAll)
+export const get = (...args) => wrapCollectionArgs(args, _get)
+export const setAll = (...args) => wrapCollectionArgs(args, _setAll)
+
+export const load = (...args) => wrapCollectionArgs(args, _load)
+
+export const invalidate = (...args) => wrapCollectionArgs(args, _invalidate)
+export const reset = (...args) => wrapCollectionArgs(args, _reset)
+export const garbageCollect = (...args) => wrapCollectionArgs(args, _garbageCollect)
+
+export const set = (...args) => wrapCollectionArgs(args, _set)
+export const del = (...args) => wrapCollectionArgs(args, _del)
+export const insert = (...args) => wrapCollectionArgs(args, _insert)
+export const update = (...args) => wrapCollectionArgs(args, _update)
+export const remove = (...args) => wrapCollectionArgs(args, _remove)
+
+export const getOriginals = (...args) => wrapCollectionArgs(args, _getOriginals)
+export const getSubmits = (...args) => wrapCollectionArgs(args, _getSubmits)
+export const submit = (...args) => wrapCollectionArgs(args, _submit)
+export const getSubmittedIds = (...args) => wrapCollectionArgs(args, _getSubmittedIds)
+
+export const find = (...args) => wrapCollectionArgs(args, _find)
+export const findAsync = (...args) => wrapCollectionArgs(args, _findAsync)
+
+export const getAsync = (...args) => wrapCollectionArgs(args, _getAsync)
+export const findOne = (...args) => wrapCollectionArgs(args, _findOne)
+export const allPendings = (...args) => wrapCollectionArgs(args, _allPendings)
+
+export const findInMemory = (...args) => wrapCollectionArgs(args, _findInMemory)
+export const getInMemory = (...args) => wrapCollectionArgs(args, _getInMemory)
+
+// Deprecated:
 export createCollection from './collection/createCollection'
-export { getState, addMutation, getAll, get, setAll } from './collection/base'
-export { load, loadAsDefaults } from './collection/load'
-export { invalidate, reset, garbageCollect } from './collection/invalidate'
-export { set, del, insert, update, remove } from './collection/setter'
-export { getOriginals, getSubmits, isDirty, submit, getSubmittedIds } from './collection/submitter'
-export { find, findAsync } from './collection/find'
-export { getAsync, findOne, allPendings } from './collection/find-extra'
-export memoizedFind from './collection/findInMemory'
-export findInMemory, { getInMemory } from './collection/findInMemory'
 
 // redux
-export { defineCollection, getCollection, getVan } from './defineCollection'
+export { defineCollection, getCollection, getStore } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 

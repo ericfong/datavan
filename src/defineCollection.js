@@ -1,20 +1,7 @@
 import _ from 'lodash'
 
-import { GET_DATAVAN } from './constant'
 import createCollection, { applyPlugin } from './collection/createCollection'
-
-const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
-export function getVan(stateOrDispatch) {
-  // stateOrDispatch = state
-  const datavanState = stateOrDispatch.datavan
-  if (datavanState) return datavanState.get()
-
-  // stateOrDispatch = dispatch
-  if (typeof stateOrDispatch === 'function') return stateOrDispatch(GET_DATAVAN_ACTION)
-
-  // stateOrDispatch = store
-  return stateOrDispatch
-}
+import { getStore } from './getArgs'
 
 // only for internal use
 export function _getCollection(store, _spec, creation) {
@@ -42,7 +29,7 @@ export function _getCollection(store, _spec, creation) {
 }
 
 // only for extrenal use
-export const getCollection = (any, spec, creation) => _getCollection(getVan(any), spec, creation)
+export const getCollection = (any, spec, creation) => _getCollection(getStore(any), spec, creation)
 
 export const defineCollection = (name, _spec) => {
   const spec = typeof name === 'string' ? { name, ..._spec } : name

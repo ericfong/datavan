@@ -1,6 +1,10 @@
 import _ from 'lodash'
 
+// Deprecated: getSetters() will be deprecated soon
 export default function getSetters(...ids) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('getSetters() will be deprecated soon')
+  }
   const obj = {}
   _.each(ids, id => {
     obj[_.camelCase(`get-${id}`)] = function fieldGetter(option) {

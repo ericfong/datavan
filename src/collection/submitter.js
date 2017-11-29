@@ -12,11 +12,6 @@ export function getSubmits(table) {
   return _.mapValues(originals, (v, k) => byId[k])
 }
 
-export function isDirty(table, id) {
-  if (process.env.NODE_ENV === 'development') console.warn('isDirty() is deprecated')
-  return id in getState(table).originals
-}
-
 const cleanSubmitted = tmps => _.mapValues(tmps, () => null)
 
 export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
