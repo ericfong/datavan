@@ -59,8 +59,13 @@ export { defineCollection, getCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 
+const deprecated = (funcName, ret) => {
+  if (process.env.NODE_ENV !== 'production') console.error(`${funcName} is deprecated!`)
+  return ret
+}
+
 // store
-export const setOverrides = (...args) => wrapStoreArgs(args, _setOverrides)
+export const setOverrides = (...args) => deprecated('setOverrides', wrapStoreArgs(args, _setOverrides))
 export const invalidateStore = (...args) => wrapStoreArgs(args, _invalidateStore)
 export const getStorePending = (...args) => wrapStoreArgs(args, _getStorePending)
 export const serverPreload = (...args) => wrapStoreArgs(args, _serverPreload)
@@ -72,7 +77,7 @@ export const loadCollections = (...args) => wrapStoreArgs(args, _loadCollections
 export { forceEmitFlush } from './store/emit'
 
 // fetcher
-export httpFetcher, { markPromise } from './plug/httpFetcher'
+export httpFetcher from './plug/httpFetcher'
 export relayClient from './relay/relayClient'
 export relayWorker from './relay/relayWorker'
 
@@ -86,6 +91,6 @@ export plugSearchable from './plug/searchable'
 // utils
 export runHook from './collection/util/runHook'
 export getSetters from './util/getSetters'
-export { getQueryIds, onFetchById } from './collection/util/idUtil'
-export batcher from './util/batcher'
+// export { getQueryIds, onFetchById } from './collection/util/idUtil'
+// export batcher from './util/batcher'
 export searchObjects, { tokenizeKeywords } from './util/searchObjects'

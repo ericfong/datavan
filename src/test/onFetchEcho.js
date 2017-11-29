@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getQueryIds } from '..'
+import { getQueryIds } from '../collection/util/idUtil'
 
 export const timeoutResolve = (value, t = 10) => new Promise(resolve => setTimeout(() => resolve(value), t))
 

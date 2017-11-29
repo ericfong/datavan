@@ -1,5 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, setOverrides, loadCollections, allPendings, find, getAll } from '..'
+import { datavanEnhancer, loadCollections, allPendings, find, getAll } from '..'
 
 const onFetch = () => Promise.resolve([])
 
@@ -9,7 +9,7 @@ test('$relations', async () => {
     null,
     datavanEnhancer({
       collections: {
-        roles: { idField: 'role' },
+        roles: { idField: 'role', onFetch },
         blogs: { onFetch },
         users: {
           onFetch: jest.fn((query, { fetchUrl }) => {
@@ -35,7 +35,6 @@ test('$relations', async () => {
       },
     })
   )
-  setOverrides(store, { roles: { onFetch } })
 
   // complex query 1
   const query1 = { $or: [{ age: 10 }, { gender: 'M' }] }

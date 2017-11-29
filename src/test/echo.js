@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
-import { getQueryIds, getSubmittedIds } from '..'
+import { getSubmittedIds } from '..'
+import { getQueryIds } from '../collection/util/idUtil'
 
 const echoSubmitArr = docs =>
   _.reduce(
