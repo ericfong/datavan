@@ -1,29 +1,26 @@
 # Server Rendering
+
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { defineCollection, datavanEnhancer, serverPreload } from '.'
+import { datavanEnhancer, serverPreload } from '.'
 
 // define collection
-const Users = defineCollection('users', {
-  onFetch(query, option) { /* browser side implementation */ },
-})
+const collections = {
+  users: {
+    onFetch(query, option) { /* browser side implementation */ },
+  },
+}
 
 // connect react component
 const MyApp = connect((state, { username }) => {
   return {
-    user: Users(state).findOne({ username }, { serverPreload: true }),
+    user: findOne(state, 'users', { username }, { serverPreload: true }),
   }
 })(PureComponent)
 
 // create store
-const serverStore = createStore(null, null, datavanEnhancer(
-  overrides: {
-    users: {
-      onFetch(query, option) { /* server side override */ },
-    },
-  },
-))
+const serverStore = createStore(null, null, datavanEnhancer({ collections }))
 
 // renderToString
 const html = await serverPreload(serverStore, () =>
@@ -37,7 +34,7 @@ const json = JSON.stringify(store.getState())
 
 // browser side
 const preloadedState = JSON.parse(json)
-const browserStore = createStore(null, preloadedState, datavanEnhancer())
+const browserStore = createStore(null, preloadedState, datavanEnhancer({ collections }))
 
 ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
 ```
