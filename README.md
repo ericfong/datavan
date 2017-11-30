@@ -115,6 +115,20 @@ render(
 )
 ```
 
+# Upgrade from (2.7.3)
+
+* use `datavanEnhancer({ collections })` instead of `defineCollection()`. Or temp migrate using
+
+```js
+const Users = defineCollection(...)
+const collections = {
+  users: Users.spec,
+}
+createStore(reducer, preloadedState, datavanEnhancer({ collections }))
+```
+
+* use `find(state, 'users')` instead of `find(Users(state))`
+
 # Define Collections and Enhancer for redux
 
 ### datavanEnhancer({ collections })
