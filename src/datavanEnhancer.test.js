@@ -5,14 +5,14 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './test/enzyme-setup'
-import { datavanReducer, datavanEnhancer, defineCollection, getStorePending, loadCollections, set, getState, getAll, get } from '.'
+import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get } from '.'
 
 test('merge state with redux dispatch changes by another reducer', () => {
-  const Memory = defineCollection('memory')
-  const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer())
+  const collections = { memory: {} }
+  const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer({ collections }))
 
   // init and set
-  set(Memory(store), 'theme', 'dark')
+  set(store, 'memory', 'theme', 'dark')
 
   // dispatch and change before flush
   const datavan = loadCollections(store, {
@@ -27,9 +27,9 @@ test('merge state with redux dispatch changes by another reducer', () => {
     },
   })
 
-  set(Memory(store), 'after', 'yes')
+  set(store, 'memory', 'after', 'yes')
 
-  expect(getState(Memory(store)).byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+  expect(getState(store, 'memory').byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
 })
 
@@ -69,9 +69,7 @@ test('same state', () => {
       user1: get(state, 'users', 'u1'),
     }
   })(props => <span>{props.user1}</span>)
-  const wrapper = mount(<Provider store={store}>
-    <UserComp />
-                        </Provider>)
+  const wrapper = mount(React.createElement(Provider, { store }, <UserComp />))
   expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
   expect(runTime).toBe(1)
 
@@ -104,9 +102,7 @@ test('basic', () => {
 
   set(store, 'users', 'u1', 'user 1 name!!')
 
-  const wrapper = mount(<Provider store={store}>
-    <UserComp />
-                        </Provider>)
+  const wrapper = mount(React.createElement(Provider, { store }, <UserComp />))
 
   expect(wrapper.html()).toBe('<span>user 1 name!!</span>')
   expect(lastClickValue).toBe('user 1 name!!')

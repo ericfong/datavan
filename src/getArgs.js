@@ -14,8 +14,12 @@ export function getStore(stateOrDispatch) {
   return stateOrDispatch
 }
 
-const getCollection = (any, name) => {
-  return getStore(any).collections[name]
+export const getCollection = (any, name) => {
+  const { collections } = getStore(any)
+  if (process.env.NODE_ENV !== 'production' && !collections[name]) {
+    console.error(`collection "${name}" not found`)
+  }
+  return collections[name]
 }
 
 function getCollectionArgs(args) {

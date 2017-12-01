@@ -5,9 +5,6 @@ import { init } from './load'
 import * as base from './base'
 import * as find from './find'
 import * as setter from './setter'
-import * as invalidate from './invalidate'
-import * as submitter from './submitter'
-import * as findExtra from './find-extra'
 import httpFetcher from '../plug/httpFetcher'
 
 const functions = {
@@ -24,9 +21,6 @@ _.each(
     ...base,
     ...find,
     ...setter,
-    ...findExtra,
-    ...invalidate,
-    ...submitter,
   },
   (func, key) => {
     if (key[0] === '_' || functions[key]) return
@@ -43,18 +37,14 @@ _.each(
 export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plugin(self) : Object.assign(self, plugin))
 
 export default function createCollection(spec) {
-  if (process.env.NODE_ENV !== 'production' && spec.onMutate) {
-    console.warn('Collection spec onMutate() function is removed. Please use onInit() or store.subscribe()')
-  }
-
   let self = Object.assign({}, functions, spec)
 
-  if (spec.plugin) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`${spec.name}.plugin is deprecated. Please use plugin({...spec})`)
-    }
-    self = applyPlugin(self, spec.plugin)
-  }
+  // if (spec.plugin) {
+  //   if (process.env.NODE_ENV !== 'production') {
+  //     console.warn(`${spec.name}.plugin is deprecated. Please use plugin({...spec})`)
+  //   }
+  //   self = applyPlugin(self, spec.plugin)
+  // }
 
   // if (plugin) self = applyPlugin(self, plugin)
 

@@ -2,39 +2,39 @@
 import delay from 'delay'
 import { createStore } from 'redux'
 
-import { datavanEnhancer, defineCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll } from '..'
+import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll } from '..'
 
 test('gcStore all&now', async () => {
   const gcTime = 1
-  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
-  const store = createStore(null, null, datavanEnhancer())
+  const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
+  const store = createStore(null, null, datavanEnhancer({ collections }))
 
-  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
+  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
   gcStore(store, { all: true, now: true })
-  expect(getState(Users(store)).byId).toEqual({})
+  expect(getState(store, 'users').byId).toEqual({})
 })
 
 test('gcStore', async () => {
   const gcTime = 100
-  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
-  const store = createStore(null, null, datavanEnhancer())
+  const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
+  const store = createStore(null, null, datavanEnhancer({ collections }))
 
-  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
+  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
   await delay(gcTime * 2)
   gcStore(store)
-  expect(getState(Users(store)).byId).toEqual({})
+  expect(getState(store, 'users').byId).toEqual({})
 })
 
 test('invalidateStore', async () => {
   const gcTime = 100
-  const Users = defineCollection('users', { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime })
-  const store = createStore(null, null, datavanEnhancer())
+  const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
+  const store = createStore(null, null, datavanEnhancer({ collections }))
 
-  expect(Users(store)._byIdAts.a).toBeTruthy()
+  expect(getCollection(store, 'users')._byIdAts.a).toBeTruthy()
   await delay(gcTime * 2)
   invalidateStore(store)
-  expect(getState(Users(store)).byId).toEqual({ a: 'A' })
-  expect(Users(store)._byIdAts.a).toBeFalsy()
+  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
+  expect(getCollection(store, 'users')._byIdAts.a).toBeFalsy()
 })
 
 test('defineCollection', async () => {
@@ -43,15 +43,15 @@ test('defineCollection', async () => {
 })
 
 test('merge collections states again will not trigger new dispatch', async () => {
-  const Users = defineCollection({ name: 'users' })
-  const store = createStore(null, null, datavanEnhancer())
+  const collections = { users: {} }
+  const store = createStore(null, null, datavanEnhancer({ collections }))
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  set(Users(store), 'u1', 'user 1 name!!', { flush: true })
+  set(store, 'users', 'u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  set(Users(store), 'u1', 'user 1 name!!', { flush: true })
+  set(store, 'users', 'u1', 'user 1 name!!', { flush: true })
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 })

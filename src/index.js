@@ -18,8 +18,6 @@ import {
 } from './store'
 import _loadCollections from './store/loadCollections'
 
-import { getCollection as _getCollection } from './defineCollection'
-
 import { wrapCollectionArgs, wrapStoreArgs } from './getArgs'
 
 // collection
@@ -66,7 +64,7 @@ const deprecated = (funcName, ret) => {
   return ret
 }
 
-export const getCollection = (...args) => deprecated('getCollection', _getCollection(...args))
+export { getCollection } from './getArgs'
 
 // store
 export const setOverrides = (...args) => deprecated('setOverrides', wrapStoreArgs(args, _setOverrides))
