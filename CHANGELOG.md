@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.1"></a>
+## [2.9.1](https://github.com/ericfong/datavan/compare/v2.9.0...v2.9.1) (2017-12-03)
+
+
+### Features
+
+* relay ready retry and ready message from worker will resolve all waiting ready ([9860295](https://github.com/ericfong/datavan/commit/9860295))
+
+
+
 <a name="2.9.0"></a>
 # [2.9.0](https://github.com/ericfong/datavan/compare/v2.8.0...v2.9.0) (2017-12-02)
 
