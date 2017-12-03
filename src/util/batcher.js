@@ -7,6 +7,7 @@ export function createStandalonePromise() {
     resolve = _resolve
     reject = _reject
   })
+  // TODO test resolve actually assigned
   p.resolve = resolve
   p.reject = reject
   return p

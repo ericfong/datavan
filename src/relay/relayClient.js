@@ -1,4 +1,4 @@
-// import _ from 'lodash'
+import _ from 'lodash'
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
@@ -7,22 +7,40 @@ import { _getCollection } from '../defineCollection'
 import runHook from '../collection/util/runHook'
 
 let requestNum = 0
+const makeStoreRequest = type => ({ _id: `relay-${requestNum++}`, type })
 const makeRequest = (collection, type, ...args) => ({
-  _id: `relay-${requestNum++}`,
+  ...makeStoreRequest(type),
   collectionName: collection.name,
   tag: `${collection.name}-${type}`,
-  type,
   args,
 })
 const makeFindRequest = (collection, type, query, option) => makeRequest(collection, type, query, pickOptionForSerialize(option))
+
+function createPromiseInTable(promiseTable, id, props) {
+  const p = createStandalonePromise()
+  _.defaults(p, props)
+
+  // mark promise
+  p
+    .then(ret => {
+      if (promiseTable[id] === p) delete promiseTable[id]
+      return ret
+    })
+    .catch(err => {
+      if (promiseTable[id] === p) delete promiseTable[id]
+      return Promise.reject(err)
+    })
+  promiseTable[id] = p
+
+  return p
+}
 
 export default function relayClient({ onMessage }) {
   const promises = {}
 
   const postToWorker = (request, option, self) => {
     // always mark local promise and return
-    const p = createStandalonePromise()
-    promises[request._id] = p
+    const p = createPromiseInTable(promises, request._id, request)
 
     Promise.resolve(onMessage(request, option, self)).then(result => {
       // if has result, means can resolve now, no need wait for onWorkerMessage
@@ -93,6 +111,12 @@ export default function relayClient({ onMessage }) {
       promise.resolve(message)
     }
 
+    if (message.type === 'ready') {
+      _.each(promises, p => {
+        if (p.type === 'ready') p.resolve(message)
+      })
+    }
+
     // message is like a redux dispatch
     if (message.type === 'load') {
       const collection = _getCollection(store, message.collectionName)
@@ -101,7 +125,18 @@ export default function relayClient({ onMessage }) {
     }
   }
 
-  relayPlugin.ready = () => postToWorker({ _id: `relay-${requestNum++}`, type: 'ready' })
+  relayPlugin.ready = () => {
+    const firstPromise = postToWorker(makeStoreRequest('ready'))
+
+    let polling = setInterval(() => {
+      if (polling) postToWorker(makeStoreRequest('ready'))
+    }, 5000)
+
+    return firstPromise.then(() => {
+      clearInterval(polling)
+      polling = false
+    })
+  }
 
   return relayPlugin
 }
