@@ -105,16 +105,18 @@ export default function relayClient({ onMessage }) {
   relayPlugin.onWorkerMessage = (store, message) => {
     if (!message) return
 
+    // any message also means ready
+    _.each(promises, p => {
+      if (p.type === 'ready') {
+        // console.log('>>> relayClient resolve all ready', p._id)
+        p.resolve(message)
+      }
+    })
+
     // message is a request response
     const promise = promises[message._id]
     if (promise) {
       promise.resolve(message)
-    }
-
-    if (message.type === 'ready') {
-      _.each(promises, p => {
-        if (p.type === 'ready') p.resolve(message)
-      })
     }
 
     // message is like a redux dispatch
@@ -129,7 +131,10 @@ export default function relayClient({ onMessage }) {
     const firstPromise = postToWorker(makeStoreRequest('ready'))
 
     let polling = setInterval(() => {
-      if (polling) postToWorker(makeStoreRequest('ready'))
+      if (polling) {
+        // console.log('>>> relayClient polling')
+        postToWorker(makeStoreRequest('ready'))
+      }
     }, 5000)
 
     return firstPromise.then(() => {
