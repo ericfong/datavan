@@ -76,8 +76,6 @@ export const getContext = (...args) => wrapStoreArgs(args, _getContext)
 export const gcStore = (...args) => wrapStoreArgs(args, _gcStore)
 export const loadCollections = (...args) => wrapStoreArgs(args, _loadCollections)
 
-export { forceEmitFlush } from './store/emit'
-
 // fetcher
 export httpFetcher from './plug/httpFetcher'
 export relayClient from './relay/relayClient'

@@ -16,9 +16,8 @@ export function gcStore(store, option = {}) {
 }
 
 export function getStorePending(store) {
-  const { vanCtx: { vanEmitting }, collections } = store
+  const { collections } = store
   const promises = _.compact(_.flatMap(collections, allPendings))
-  if (vanEmitting) promises.push(vanEmitting)
   if (promises.length <= 0) return null
   // TODO timeout or have a limit for recursive wait for promise
   return Promise.all(promises).then(() => getStorePending(store))
