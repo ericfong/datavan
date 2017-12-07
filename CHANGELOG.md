@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.0"></a>
+# [2.10.0](https://github.com/ericfong/datavan/compare/v2.9.1...v2.10.0) (2017-12-07)
+
+
+### Bug Fixes
+
+* memoryFields need to be diff from fetchKey ([40e5e10](https://github.com/ericfong/datavan/commit/40e5e10))
+* more likely to solve all ready promises ([d54f083](https://github.com/ericfong/datavan/commit/d54f083))
+
+
+
 <a name="2.9.1"></a>
 ## [2.9.1](https://github.com/ericfong/datavan/compare/v2.9.0...v2.9.1) (2017-12-03)
 
