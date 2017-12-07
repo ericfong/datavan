@@ -8,19 +8,28 @@ import createCollection from './collection/createCollection'
 
 function rootReducer(state, action) {
   if (action.type === DATAVAN_MUTATE) {
-    const prevState = state.datavan
-    const nextState = mutateUtil(prevState, { $merge: action.collections })
-    if (nextState !== prevState) {
-      return { ...state, datavan: nextState }
+    return {
+      ...state,
+      datavan: mutateUtil(state.datavan, action.mutation),
     }
   }
   return state
 }
 
+const defaultsPreload = (preloadedState, collections) => {
+  const defaults = { datavan: { _timestamp: Date.now() } }
+  _.each(collections, (c, name) => {
+    defaults.datavan[name] = { byId: {}, fetchAts: {}, originals: {} }
+  })
+  return _.defaultsDeep(preloadedState, defaults)
+}
+
 export default function datavanEnhancer(ctx = {}) {
   return _createStore => (_reducer, preloadedState, enhancer) => {
-    const preload = _.defaultsDeep(preloadedState, { datavan: { _timestamp: Date.now() } })
+    const preload = defaultsPreload(preloadedState, ctx.collections)
+
     const reducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
+
     const store = _createStore(reducer, preload, enhancer)
     const { getState, dispatch } = store
     const _getStore = () => store

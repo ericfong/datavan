@@ -1,4 +1,4 @@
-import createCollection from './createCollection'
+import createCollection from '../test/createCollection'
 import { garbageCollect, invalidate } from './invalidate'
 import { getState } from './base'
 import { get, getAsync } from '..'

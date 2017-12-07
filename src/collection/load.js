@@ -101,14 +101,11 @@ export function init(self) {
   self._fetchAts = {}
 
   // raw store state that not yet init
-  const rawStoreState = getState(self)
-
-  // new pending state
-  self._pendingState = _.defaults({}, { byId: {}, fetchAts: {}, originals: {} })
+  // const rawStoreState = getState(self)
 
   if (self.initState) load(self, self.initState)
 
-  if (rawStoreState) load(self, rawStoreState)
+  // if (rawStoreState) load(self, rawStoreState)
 
   if (self.onInit) self.onInit(self)
 }

@@ -48,29 +48,29 @@ function _invalidate(self, ids) {
   return { delByIds: [], delFetchKeys: [] }
 }
 
-export function invalidate(self, ids = EXPIRED, option) {
+export function invalidate(self, ids = EXPIRED) {
   _invalidate(self, ids)
-  addMutation(self, null, option)
+  addMutation(self, null)
 }
 
-export function reset(self, ids = ALL, option) {
+export function reset(self, ids = ALL) {
   const { delByIds, delFetchKeys } = _invalidate(self, ids)
 
   const byId = ids ? { $unset: delByIds } : { $set: {} }
   const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
   const originals = byId
-  addMutation(self, { byId, fetchAts, originals }, option)
+  addMutation(self, { byId, fetchAts, originals })
 }
 
 // reset will reset both dirty and tidy docs, garbageCollect only reset tidy docs
-export function garbageCollect(self, ids = EXPIRED, option) {
+export function garbageCollect(self, ids = EXPIRED) {
   const { delByIds, delFetchKeys } = _invalidate(self, ids)
   const { byId: oldById, originals } = getState(self)
   const isTidy = id => !(id in originals)
 
   const byId = { $unset: _.filter(ids ? delByIds : Object.keys(oldById), isTidy) }
   const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
-  addMutation(self, { byId, fetchAts }, option)
+  addMutation(self, { byId, fetchAts })
 }
 
 export function throttle(self, func, ids, option) {

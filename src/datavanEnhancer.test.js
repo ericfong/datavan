@@ -75,11 +75,11 @@ test('same state', () => {
 
   // same value
   set(store, 'users', 'u1', 'user 1 name!!')
-  expect(runTime).toBe(1)
+  expect(runTime).toBe(2)
 
   // diff value
   set(store, 'users', 'u1', 'Changed', { flush: true })
-  expect(runTime).toBe(2)
+  expect(runTime).toBe(3)
 })
 
 test('basic', () => {

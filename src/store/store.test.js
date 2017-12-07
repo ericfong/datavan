@@ -42,16 +42,16 @@ test('defineCollection', async () => {
   expect(getAll(store, 'browser')).toEqual({})
 })
 
-test('merge collections states again will not trigger new dispatch', async () => {
+test('merge collections states again will trigger new dispatch', async () => {
   const collections = { users: {} }
   const store = createStore(null, null, datavanEnhancer({ collections }))
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  set(store, 'users', 'u1', 'user 1 name!!', { flush: true })
+  set(store, 'users', 'u1', 'user 1 name!!')
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  set(store, 'users', 'u1', 'user 1 name!!', { flush: true })
-  expect(mySubscribe).toHaveBeenCalledTimes(1)
+  set(store, 'users', 'u1', 'user 1 name!!')
+  expect(mySubscribe).toHaveBeenCalledTimes(2)
 })

@@ -1,30 +1,18 @@
 import _ from 'lodash'
-import mutateUtil from 'immutability-helper'
 
 import runHook from './util/runHook'
-import { emit } from '../store/emit'
+import { DATAVAN_MUTATE } from '../constant'
 
 // getState
 export function getState(self) {
-  return self._pendingState || (self.store && self.store.getState().datavan[self.name])
+  return self.store && self.store.getState().datavan[self.name]
 }
 
-// mutate (flush: setAll, invalidate) (debounce: load, http-fetcher-mutate-null)
-// call diff emit. dispatch(MUTATE), dispatch(LOAD), move load into reducer?
-export function addMutation(self, mut, option) {
-  const prevState = getState(self)
-  const mutation = mut || { $set: { ...prevState } }
-  const nextState = mutateUtil(prevState, mutation)
-  if (nextState !== prevState) {
-    self._pendingState = nextState
-    self.mutatedAt = Date.now()
-    // console.log(self.store.vanCtx.side, 'addMutation', self.mutatedAt)
-    // if (self.onMutate) self.onMutate(nextState.byId, prevState.byId, mutation)
-    if (self.store) emit(self.store, option && option.flush)
-  }
-  return nextState
+export function addMutation(self, mut) {
+  self.mutatedAt = Date.now()
+  const mutation = { [self.name]: mut || { _t: { $set: () => {} } } }
+  if (self.store) self.store.dispatch({ type: DATAVAN_MUTATE, mutation })
 }
-// export const genForceMutation = () => ({ _t: { $set: () => {} } })
 
 // =============================================
 // Getter
@@ -51,7 +39,7 @@ function toMutation(change) {
   return mutation
 }
 
-const _setAll = (collection, change, option) => {
+const _setAll = (collection, change) => {
   const mutation = { byId: toMutation(change) }
 
   if (collection.onFetch) {
@@ -75,6 +63,6 @@ const _setAll = (collection, change, option) => {
     mutation.originals = mutOriginals
   }
 
-  addMutation(collection, mutation, option)
+  addMutation(collection, mutation)
 }
 export const setAll = (collection, change, option) => runHook(collection.setAllHook, _setAll, collection, change, option)
