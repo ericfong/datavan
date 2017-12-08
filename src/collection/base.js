@@ -8,6 +8,7 @@ export function getState(self) {
   return self.store && self.store.getState().datavan[self.name]
 }
 
+// also used for background load, invalidate
 export function addMutation(self, mut) {
   self.mutatedAt = Date.now()
   const mutation = { [self.name]: mut || { _t: { $set: () => {} } } }
@@ -26,21 +27,8 @@ export const get = (collection, id) => runHook(collection.getHook, _get, collect
 // =============================================
 // Setter
 
-// @auto-fold here
-function toMutation(change) {
-  const mutation = {}
-  _.each(change, (value, key) => {
-    if (key === '$unset') {
-      mutation.$unset = value
-      return
-    }
-    mutation[key] = { $set: value }
-  })
-  return mutation
-}
-
-const _setAll = (collection, change) => {
-  const mutation = { byId: toMutation(change) }
+const _mutateAll = (collection, mutations) => {
+  const mutation = { byId: mutations }
 
   if (collection.onFetch) {
     // keep originals
@@ -53,8 +41,8 @@ const _setAll = (collection, change) => {
         mutOriginals[k] = { $set: original === undefined ? null : original }
       }
     }
-    _.each(change, (value, key) => {
-      if (key === '$unset') {
+    _.each(mutations, (value, key) => {
+      if (key === '$unset' || key === '$merge') {
         _.each(value, keepOriginal)
         return
       }
@@ -64,5 +52,22 @@ const _setAll = (collection, change) => {
   }
 
   addMutation(collection, mutation)
+}
+export const mutateAll = (collection, mutations) => runHook(collection.mutateAllHook, _mutateAll, collection, mutations)
+
+// @auto-fold here
+function toMutation(change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  return mutation
+}
+const _setAll = (collection, change) => {
+  mutateAll(collection, toMutation(change))
 }
 export const setAll = (collection, change, option) => runHook(collection.setAllHook, _setAll, collection, change, option)

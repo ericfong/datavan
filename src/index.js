@@ -1,7 +1,14 @@
-import { getState as _getState, addMutation as _addMutation, getAll as _getAll, get as _get, setAll as _setAll } from './collection/base'
+import {
+  getState as _getState,
+  addMutation as _addMutation,
+  getAll as _getAll,
+  get as _get,
+  mutateAll as _mutateAll,
+  setAll as _setAll,
+} from './collection/base'
 import { load as _load } from './collection/load'
 import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
-import { set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
+import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import { find as _find, findAsync as _findAsync } from './collection/find'
 import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings } from './collection/find-extra'
@@ -25,6 +32,7 @@ export const getState = (...args) => wrapCollectionArgs(args, _getState)
 export const addMutation = (...args) => wrapCollectionArgs(args, _addMutation)
 export const getAll = (...args) => wrapCollectionArgs(args, _getAll)
 export const get = (...args) => wrapCollectionArgs(args, _get)
+export const mutateAll = (...args) => wrapCollectionArgs(args, _mutateAll)
 export const setAll = (...args) => wrapCollectionArgs(args, _setAll)
 
 export const load = (...args) => wrapCollectionArgs(args, _load)
@@ -34,6 +42,7 @@ export const reset = (...args) => wrapCollectionArgs(args, _reset)
 export const garbageCollect = (...args) => wrapCollectionArgs(args, _garbageCollect)
 
 export const set = (...args) => wrapCollectionArgs(args, _set)
+export const mutate = (...args) => wrapCollectionArgs(args, _mutate)
 export const del = (...args) => wrapCollectionArgs(args, _del)
 export const insert = (...args) => wrapCollectionArgs(args, _insert)
 export const update = (...args) => wrapCollectionArgs(args, _update)
