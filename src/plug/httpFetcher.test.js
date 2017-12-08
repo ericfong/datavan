@@ -5,7 +5,7 @@ import onFetchEcho from '../test/onFetchEcho'
 test('findAsync', async () => {
   const onFetch = jest.fn(onFetchEcho)
   const collections = { users: { onFetch } }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(onFetch).toHaveBeenCalledTimes(0)
   expect(await findAsync(store, 'users', ['a'])).toEqual([{ _id: 'a', name: 'A' }])

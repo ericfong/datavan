@@ -31,7 +31,7 @@ test('can wait for submit', async () => {
 
   // client
   const relayC = relayClient({ onMessage: serviceWorkerChannel.postMessage })
-  const winStore = createStore(null, null, datavanEnhancer({ collections: { blogs: relayC({}) }, side: 'client' }))
+  const winStore = createStore(s => s || {}, null, datavanEnhancer({ collections: { blogs: relayC({}) }, side: 'client' }))
   feedbackChannel.addEventListener(event => relayC.onWorkerMessage(winStore, event.data))
 
   // service-worker
@@ -43,7 +43,7 @@ test('can wait for submit', async () => {
     onSubmit: workerSubmit,
     onMessage: feedbackChannel.postMessage,
   })
-  const swStore = createStore(null, null, datavanEnhancer({ collections: { blogs: relayW({}) }, side: 'worker' }))
+  const swStore = createStore(s => s || {}, null, datavanEnhancer({ collections: { blogs: relayW({}) }, side: 'worker' }))
   serviceWorkerChannel.addEventListener(event => relayW.onClientMessage(swStore, event.data))
 
   // start test
@@ -65,7 +65,7 @@ test('basic', async () => {
   // should use one relay for similar collections
   const relayC = relayClient({ onMessage: serviceWorkerChannel.postMessage })
   const winStore = createStore(
-    null,
+    s => s || {},
     null,
     datavanEnhancer({
       collections: {
@@ -88,7 +88,7 @@ test('basic', async () => {
     onMessage: feedbackChannel.postMessage,
   })
   const swStore = createStore(
-    null,
+    s => s || {},
     null,
     datavanEnhancer({
       collections: {

@@ -20,11 +20,11 @@ const ctx = {
 }
 
 test('keyByValue', async () => {
-  const store = createStore(null, null, datavanEnhancer(ctx))
+  const store = createStore(s => s || {}, null, datavanEnhancer(ctx))
   expect(findInMemory(store, 'data', {}, { keyBy: 'key', keyByValue: 'value' })).toEqual({ 'x-key': 'x-val', 'y-key': 'y-val' })
 })
 
 test('distinct', async () => {
-  const store = createStore(null, null, datavanEnhancer(ctx))
+  const store = createStore(s => s || {}, null, datavanEnhancer(ctx))
   expect(findInMemory(store, 'data', {}, { distinct: 'value' })).toEqual(['x-val', 'y-val'])
 })

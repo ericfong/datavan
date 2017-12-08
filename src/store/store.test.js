@@ -7,7 +7,7 @@ import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateSt
 test('gcStore all&now', async () => {
   const gcTime = 1
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getState(store, 'users').byId).toEqual({ a: 'A' })
   gcStore(store, { all: true, now: true })
@@ -17,7 +17,7 @@ test('gcStore all&now', async () => {
 test('gcStore', async () => {
   const gcTime = 100
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getState(store, 'users').byId).toEqual({ a: 'A' })
   await delay(gcTime * 2)
@@ -28,7 +28,7 @@ test('gcStore', async () => {
 test('invalidateStore', async () => {
   const gcTime = 100
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getCollection(store, 'users')._byIdAts.a).toBeTruthy()
   await delay(gcTime * 2)
@@ -38,13 +38,13 @@ test('invalidateStore', async () => {
 })
 
 test('defineCollection', async () => {
-  const store = createStore(null, null, datavanEnhancer({ collections: { browser: plugBrowser({}) } }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections: { browser: plugBrowser({}) } }))
   expect(getAll(store, 'browser')).toEqual({})
 })
 
 test('merge collections states again will not trigger new dispatch', async () => {
   const collections = { users: {} }
-  const store = createStore(null, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections })))
+  const store = createStore(s => s || {}, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections })))
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)

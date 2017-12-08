@@ -4,18 +4,6 @@ import mutateUtil from 'immutability-helper'
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 import createCollection from './collection/createCollection'
 
-// export const doMutations = (state, mutations) => _.reduce(mutations, (cur, mutation) => mutateUtil(cur, mutation), state)
-
-function rootReducer(state, action) {
-  if (action.type === DATAVAN_MUTATE) {
-    return {
-      ...state,
-      datavan: mutateUtil(state.datavan, action.mutation),
-    }
-  }
-  return state
-}
-
 const defaultsPreload = (preloadedState, collections) => {
   const defaults = { datavan: { _timestamp: Date.now() } }
   _.each(collections, (c, name) => {
@@ -25,18 +13,39 @@ const defaultsPreload = (preloadedState, collections) => {
 }
 
 export default function datavanEnhancer(ctx = {}) {
-  return _createStore => (_reducer, preloadedState, enhancer) => {
+  return _createStore => (reducer, preloadedState, enhancer) => {
+    const collections = {}
+
+    const mutateReducer = (state, action) => {
+      let newState = reducer(state, action)
+      if (action.type === DATAVAN_MUTATE) {
+        newState = {
+          ...newState,
+          datavan: mutateUtil(newState.datavan, action.mutation),
+        }
+      }
+      // castCollection(newState.datavan, collections)
+      return newState
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      if (ctx.overrides) console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
+      if (!ctx.collections) console.warn('Please register all collections during createStore')
+    }
+
     const preload = defaultsPreload(preloadedState, ctx.collections)
 
-    const reducer = _reducer ? (s, a) => rootReducer(_reducer(s, a), a) : rootReducer
+    const store = _createStore(mutateReducer, preload, enhancer)
 
-    const store = _createStore(reducer, preload, enhancer)
-    const { getState, dispatch } = store
-    const _getStore = () => store
+    // init collections
+    _.each(ctx.collections, (spec, name) => {
+      collections[name] = createCollection({ ...spec, name, store })
+    })
 
     // injects
-    const collections = {}
-    Object.assign(store, {
+    const { getState, dispatch } = store
+    const _getStore = () => store
+    return Object.assign(store, {
       collections,
       vanCtx: {
         ...ctx,
@@ -52,17 +61,6 @@ export default function datavanEnhancer(ctx = {}) {
         return dispatch(action)
       },
     })
-
-    if (process.env.NODE_ENV !== 'production') {
-      if (ctx.overrides) console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
-      if (!ctx.collections) console.warn('Please register all collections during createStore')
-    }
-
-    // init collections
-    _.each(ctx.collections, (spec, name) => {
-      collections[name] = createCollection({ ...spec, name, store })
-    })
-    return store
   }
 }
 

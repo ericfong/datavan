@@ -59,7 +59,7 @@ test('combineReducers', async () => {
 })
 
 test('same state', async () => {
-  const store = createStore(null, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections: { users: {} } })))
+  const store = createStore(s => s || {}, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections: { users: {} } })))
   set(store, 'users', 'u1', 'user 1 name!!')
 
   let runTime = 0
@@ -84,7 +84,7 @@ test('same state', async () => {
 })
 
 test('basic', () => {
-  const store = createStore(null, null, datavanEnhancer({ collections: { users: {} } }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections: { users: {} } }))
 
   let lastClickValue
   const UserComp = connect(

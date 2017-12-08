@@ -14,8 +14,8 @@ global.localStorage = {
 
 it('basic', async () => {
   const collections = { localStorage: plugLocalStorage(localStorage)({}) }
-  const store1 = createStore(null, null, datavanEnhancer({ collections }))
-  const store2 = createStore(null, null, datavanEnhancer({ collections }))
+  const store1 = createStore(s => s || {}, null, datavanEnhancer({ collections }))
+  const store2 = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   const subscriber1 = jest.fn()
   store1.subscribe(subscriber1)

@@ -21,7 +21,7 @@ test('server preload', async () => {
       },
     },
   }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   const UserComp = connect((state, props) => ({
     user: findOne(state, 'users', { _id: props.userId }, { serverPreload: true }),
@@ -50,7 +50,7 @@ test('server preload', async () => {
   const isoData = JSON.parse(json)
 
   // client side
-  const browserDb = createStore(null, isoData, datavanEnhancer({ collections }))
+  const browserDb = createStore(s => s || {}, isoData, datavanEnhancer({ collections }))
   const browserWrapper = render(React.createElement(Provider, { store: browserDb }, <FriendComp />))
   expect(browserWrapper.html()).toBe('U2 is <span>U1</span> friend')
 })

@@ -5,7 +5,7 @@ const onFetch = () => Promise.resolve([])
 
 test('$relations', async () => {
   const store = createStore(
-    null,
+    s => s || {},
     null,
     datavanEnhancer({
       collections: {
