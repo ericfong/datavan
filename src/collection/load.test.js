@@ -7,6 +7,10 @@ import createCollection from '../test/createCollection'
 import { load, loadAsDefaults } from './load'
 import onFetchEcho from '../test/onFetchEcho'
 
+// import { printTimes } from '../datavanEnhancer'
+//
+// afterAll(printTimes)
+
 test('save&load will not re-fetch by ids', async () => {
   // get serverUsers state
   const onFetch = jest.fn(onFetchEcho)
@@ -47,6 +51,7 @@ const collections = {
     idField: 'id',
     cast(doc) {
       doc.dateAt = new Date(doc.dateAt)
+      // console.log('>>cast>', doc)
       return doc
     },
   },
@@ -104,21 +109,17 @@ test('load stored data Async', async () => {
   // Async rehydrate
   await delay(60)
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
-  store.dispatch({
-    type: 'rehydrate',
-    // NOTE need to loadCollections and merge into datavan namespace
-    state: { ...store.getState(), datavan: loadCollections(store, persistState.datavan) },
-  })
+  loadCollections(store, persistState.datavan)
 
   expect(get(store, 'tasks', 't1')).toMatchObject({
     name: 'new',
     rehydrate: 1,
-    // num: 2,
-    // done: 0,
+    num: 2,
+    done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
   expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
-  expect(mockCubscribe).toHaveBeenCalledTimes(3)
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 
 test('load stored data sync', async () => {
@@ -135,17 +136,13 @@ test('load stored data sync', async () => {
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // rehydrate
-  store.dispatch({
-    type: 'rehydrate',
-    // NOTE need to loadCollections and merge into datavan namespace
-    state: { ...store.getState(), datavan: loadCollections(store, persistState.datavan) },
-  })
+  loadCollections(store, persistState.datavan)
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
   expect(get(store, 'tasks', 't1')).toMatchObject({
     name: 'new',
     rehydrate: 1,
-    // num: 2,
-    // done: 0,
+    num: 2,
+    done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
   expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')

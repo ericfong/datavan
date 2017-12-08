@@ -5,6 +5,10 @@ import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
 import { invalidate, allPendings, findAsync, insert, update, getAll, find, get } from '..'
 import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
 
+// import { printTimes } from '../datavanEnhancer'
+//
+// afterAll(printTimes)
+
 test('find in original', async () => {
   const users = createCollection({ onFetch: onFetchEcho })
   await findAsync(users, ['a', 'b'])

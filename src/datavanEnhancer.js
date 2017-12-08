@@ -12,14 +12,27 @@ const defaultsPreload = (preloadedState, collections) => {
   return _.defaultsDeep(preloadedState, defaults)
 }
 
+// let mutateTime = 0
+// let castTime = 0
+// let castDefPropTime = 0
+// const NS_PER_SEC = 1e9
+// const calcNano = diff => diff[0] * NS_PER_SEC + diff[1]
+// export const printTimes = () => {
+//   console.log(`ratio=${_.round(mutateTime / castTime, 1)} ${_.round(
+//     castDefPropTime / castTime,
+//     2
+//   )} mutateTime=${mutateTime} castTime=${castTime} castDefPropTime=${castDefPropTime}`)
+// }
+
 const castedKey = '__c'
 const castedValue = () => {}
 const ensureCasted = (obj, func) => {
   if (!obj || typeof obj !== 'object' || obj[castedKey]) return obj
   const newObj = func(obj) || obj
-  // TODO check performance of using Object.defineProperty
   // FIXME test it
+  // const start1 = process.hrtime()
   Object.defineProperty(newObj, castedKey, { value: castedValue, enumerable: false })
+  // castDefPropTime += calcNano(process.hrtime(start1))
   return newObj
 }
 const castById = (byId, collection) => _.mapValues(byId, doc => ensureCasted(doc, collection.cast))
@@ -42,13 +55,18 @@ export default function datavanEnhancer(ctx = {}) {
 
     const mutateReducer = (state, action) => {
       let newState = reducer(state, action)
+      // console.log('>>mutateReducer>', action.type, action.mutation)
       if (action.type === DATAVAN_MUTATE) {
+        // const start1 = process.hrtime()
         newState = {
           ...newState,
           datavan: mutateUtil(newState.datavan, action.mutation),
         }
+        // mutateTime += calcNano(process.hrtime(start1))
+        // const start2 = process.hrtime()
+        castCollections(newState.datavan, collections)
+        // castTime += calcNano(process.hrtime(start2))
       }
-      castCollections(newState.datavan, collections)
       return newState
     }
 

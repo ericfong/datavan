@@ -4,6 +4,10 @@ import { getState } from './base'
 import { get, getAsync } from '..'
 import { echoValue } from '../test/onFetchEcho'
 
+// import { printTimes } from '../datavanEnhancer'
+//
+// afterAll(printTimes)
+
 test('only gc old docs but keep new docs', async () => {
   const onFetch = jest.fn(echoValue)
   const gcTime = 10000

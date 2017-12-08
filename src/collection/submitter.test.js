@@ -3,6 +3,10 @@ import createCollection from '../test/createCollection'
 import { getSubmits, submit, findOne, allPendings, insert, update, remove, get, getAll } from '..'
 import { echoSubmit } from '../test/echo'
 
+// import { printTimes } from '../datavanEnhancer'
+//
+// afterAll(printTimes)
+
 const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
 
 function onFetch(query, option, collection) {

@@ -4,6 +4,9 @@ import { createStore, compose } from 'redux'
 
 import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll, reduxDebounceSubscriber } from '..'
 
+// import { printTimes } from '../datavanEnhancer'
+// afterAll(printTimes)
+
 test('gcStore all&now', async () => {
   const gcTime = 1
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
