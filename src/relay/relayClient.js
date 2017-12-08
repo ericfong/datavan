@@ -3,7 +3,7 @@ import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
 import { isPreloadSkip, markPromise } from '../plug/httpFetcher'
-import { _getCollection } from '../defineCollection'
+import { getCollection } from '../getArgs'
 import runHook from '../collection/util/runHook'
 
 let requestNum = 0
@@ -121,7 +121,7 @@ export default function relayClient({ onMessage }) {
 
     // message is like a redux dispatch
     if (message.type === 'load') {
-      const collection = _getCollection(store, message.collectionName)
+      const collection = getCollection(store, message.collectionName)
       if (!collection) throw new Error('Cannot get collection in onWorkerMessage function', message)
       load(collection, message.data)
     }

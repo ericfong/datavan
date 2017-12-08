@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { _getCollection } from '../defineCollection'
+import { getCollection } from '../getArgs'
 import { load, loadAsDefaults } from '../collection/load'
 
 export default function loadCollections(store, inData, option = {}) {
@@ -12,7 +12,7 @@ export default function loadCollections(store, inData, option = {}) {
   return _.mapValues(inData, (data, name) => {
     if (name[0] === '_') return data
 
-    const collection = _getCollection(store, { name }, false)
+    const collection = getCollection(store, name)
     if (collection) {
       load(collection, data, option)
       return data
