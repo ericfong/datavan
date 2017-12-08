@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { createStore } from 'redux'
+import { createStore, compose } from 'redux'
 import delay from 'delay'
 
-import { datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings } from '..'
+import { datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings, reduxDebounceSubscriber } from '..'
 import createCollection from '../test/createCollection'
 import { load, loadAsDefaults } from './load'
 import onFetchEcho from '../test/onFetchEcho'
@@ -122,12 +122,12 @@ test('load stored data Async', async () => {
 })
 
 test('load stored data sync', async () => {
-  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
+  const store = createStore(rehydrateReducer, preloadState, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections })))
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
 
   // get, set before rehydrate
-  set(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
+  await store.flush(() => set(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 }))
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
   expect(get(store, 'tasks', 't1')).toMatchObject({ name: 'customize idField', num: 2 })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
@@ -140,8 +140,7 @@ test('load stored data sync', async () => {
     // NOTE need to loadCollections and merge into datavan namespace
     state: { ...store.getState(), datavan: loadCollections(store, persistState.datavan) },
   })
-
-  expect(mockCubscribe).toHaveBeenCalledTimes(3)
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
   expect(get(store, 'tasks', 't1')).toMatchObject({
     name: 'new',
     rehydrate: 1,
@@ -150,7 +149,8 @@ test('load stored data sync', async () => {
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
   expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
-  expect(mockCubscribe).toHaveBeenCalledTimes(3)
+  await store.flush()
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 
 test('load', async () => {

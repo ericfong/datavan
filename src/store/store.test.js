@@ -1,8 +1,8 @@
 // import _ from 'lodash'
 import delay from 'delay'
-import { createStore } from 'redux'
+import { createStore, compose } from 'redux'
 
-import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll } from '..'
+import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll, reduxDebounceSubscriber } from '..'
 
 test('gcStore all&now', async () => {
   const gcTime = 1
@@ -42,16 +42,16 @@ test('defineCollection', async () => {
   expect(getAll(store, 'browser')).toEqual({})
 })
 
-test('merge collections states again will trigger new dispatch', async () => {
+test('merge collections states again will not trigger new dispatch', async () => {
   const collections = { users: {} }
-  const store = createStore(null, null, datavanEnhancer({ collections }))
+  const store = createStore(null, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections })))
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)
 
-  set(store, 'users', 'u1', 'user 1 name!!')
+  await store.flush(() => set(store, 'users', 'u1', 'user 1 name!!'))
   expect(mySubscribe).toHaveBeenCalledTimes(1)
 
-  set(store, 'users', 'u1', 'user 1 name!!')
+  await store.flush(() => set(store, 'users', 'u1', 'user 1 name!!'))
   expect(mySubscribe).toHaveBeenCalledTimes(2)
 })

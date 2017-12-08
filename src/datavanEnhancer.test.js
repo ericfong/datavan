@@ -1,11 +1,11 @@
 /* eslint-disable react/jsx-filename-extension */
 import React from 'react'
-import { createStore, combineReducers } from 'redux'
+import { createStore, combineReducers, compose } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './test/enzyme-setup'
-import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get } from '.'
+import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get, reduxDebounceSubscriber } from '.'
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const collections = { memory: {} }
@@ -58,8 +58,8 @@ test('combineReducers', async () => {
   expect(getAll(store, 'memory')).toEqual({ theme: 'dark' })
 })
 
-test('same state', () => {
-  const store = createStore(null, null, datavanEnhancer({ collections: { users: {} } }))
+test('same state', async () => {
+  const store = createStore(null, null, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections: { users: {} } })))
   set(store, 'users', 'u1', 'user 1 name!!')
 
   let runTime = 0
@@ -75,11 +75,12 @@ test('same state', () => {
 
   // same value
   set(store, 'users', 'u1', 'user 1 name!!')
-  expect(runTime).toBe(2)
+  expect(runTime).toBe(1)
 
   // diff value
-  set(store, 'users', 'u1', 'Changed', { flush: true })
-  expect(runTime).toBe(3)
+  set(store, 'users', 'u1', 'Changed')
+  await store.flush()
+  expect(runTime).toBe(2)
 })
 
 test('basic', () => {

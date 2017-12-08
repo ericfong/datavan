@@ -89,6 +89,7 @@ export plugLocalStorage from './plug/localStorage'
 export plugSearchable from './plug/searchable'
 
 // utils
+export reduxDebounceSubscriber from './util/reduxDebounceSubscriber'
 export runHook from './collection/util/runHook'
 export getSetters from './util/getSetters'
 // export { getQueryIds, onFetchById } from './collection/util/idUtil'
