@@ -3,12 +3,12 @@ import _ from 'lodash'
 import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
 
-export const loadAsDefaults = (v, id, self, targets) => {
-  const data = self.cast(v)
+export const loadAsDefaults = (data, id, self, targets) => {
+  // const data = self.cast(v)
   return data && typeof data === 'object' ? { ...data, ...targets[id] } : data
 }
-export const loadAsMerge = (v, id, self, targets) => {
-  const data = self.cast(v)
+export const loadAsMerge = (data, id, self, targets) => {
+  // const data = self.cast(v)
   return data && typeof data === 'object' ? { ...targets[id], ...data } : data
 }
 

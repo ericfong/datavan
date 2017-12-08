@@ -12,6 +12,30 @@ const defaultsPreload = (preloadedState, collections) => {
   return _.defaultsDeep(preloadedState, defaults)
 }
 
+const castedKey = '__c'
+const castedValue = () => {}
+const ensureCasted = (obj, func) => {
+  if (!obj || typeof obj !== 'object' || obj[castedKey]) return obj
+  const newObj = func(obj) || obj
+  // TODO check performance of using Object.defineProperty
+  // FIXME test it
+  Object.defineProperty(newObj, castedKey, { value: castedValue, enumerable: false })
+  return newObj
+}
+const castById = (byId, collection) => _.mapValues(byId, doc => ensureCasted(doc, collection.cast))
+const castCollections = (dvState, collections) => {
+  ensureCasted(dvState, () => {
+    _.each(dvState, (collState, name) => {
+      const collection = collections[name]
+      if (!collection) return
+      ensureCasted(collState, () => {
+        collState.byId = castById(collState.byId, collection)
+        collState.originals = castById(collState.originals, collection)
+      })
+    })
+  })
+}
+
 export default function datavanEnhancer(ctx = {}) {
   return _createStore => (reducer, preloadedState, enhancer) => {
     const collections = {}
@@ -24,7 +48,7 @@ export default function datavanEnhancer(ctx = {}) {
           datavan: mutateUtil(newState.datavan, action.mutation),
         }
       }
-      // castCollection(newState.datavan, collections)
+      castCollections(newState.datavan, collections)
       return newState
     }
 

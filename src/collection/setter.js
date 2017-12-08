@@ -18,10 +18,12 @@ export function mutate(collection, id, mutation) {
 
 export function set(core, id, value) {
   if (typeof id === 'object') {
-    const castedDoc = withId(core, core.cast(id))
+    // const castedDoc = withId(core, core.cast(id))
+    const castedDoc = withId(core, id)
     setAll(core, { [castedDoc[core.idField]]: castedDoc })
   } else {
-    setAll(core, { [id]: core.cast(value) })
+    // setAll(core, { [id]: core.cast(value) })
+    setAll(core, { [id]: value })
   }
 }
 
@@ -35,7 +37,8 @@ export function insert(core, docs) {
 
   const change = {}
   const castedDocs = _.map(inserts, d => {
-    const castedDoc = withId(core, core.cast(d))
+    // const castedDoc = withId(core, core.cast(d))
+    const castedDoc = withId(core, d)
     change[castedDoc[core.idField]] = castedDoc
     return castedDoc
   })
