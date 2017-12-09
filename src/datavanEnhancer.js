@@ -53,16 +53,17 @@ export default function datavanEnhancer(ctx = {}) {
   return _createStore => (reducer, preloadedState, enhancer) => {
     const collections = {}
 
-    const mutateReducer = (state, action) => {
-      let newState = reducer(state, action)
+    const mutateReducer = (_state, action) => {
+      let newState = reducer(_state, action)
       // console.log('>>mutateReducer>', action.type, action.mutation)
       if (action.type === DATAVAN_MUTATE) {
         // const start1 = process.hrtime()
-        newState = {
-          ...newState,
-          datavan: mutateUtil(newState.datavan, action.mutation),
-        }
+        const { mutations } = action
+        const oldDvState = newState.datavan
+        const datavan = mutations ? _.reduce(mutations, mutateUtil, oldDvState) : mutateUtil(oldDvState, action.mutation)
+        newState = { ...newState, datavan }
         // mutateTime += calcNano(process.hrtime(start1))
+
         // const start2 = process.hrtime()
         castCollections(newState.datavan, collections)
         // castTime += calcNano(process.hrtime(start2))
