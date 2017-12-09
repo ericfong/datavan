@@ -49,8 +49,7 @@ function checkFetch(self, query, option, { getFetchQuery, getFetchKey, doFetch }
   const { fetchAts } = getState(self)
   // console.log('checkFetch', fetchKey, fetchAts[fetchKey], fetchAts)
   if (fetchAts[fetchKey] && notForce) return Promise.resolve(false)
-  fetchAts[fetchKey] = 1
-  self._fetchAts[fetchKey] = Date.now()
+  fetchAts[fetchKey] = Date.now()
 
   // want to return fetching promise for findAsync
   return markPromise(self, fetchKey, doFetch(self, fetchQuery, option))

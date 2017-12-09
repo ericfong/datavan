@@ -1,7 +1,7 @@
 import createCollection from '../test/createCollection'
 import { garbageCollect, invalidate } from './invalidate'
 import { getState } from './base'
-import { get, getAsync } from '..'
+import { get, getAsync, EXPIRED } from '..'
 import { echoValue } from '../test/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -18,7 +18,7 @@ test('only gc old docs but keep new docs', async () => {
   const oldByIdAtA = users._byIdAts.a
   expect(oldByIdAtA).toBeTruthy()
 
-  garbageCollect(users)
+  garbageCollect(users, EXPIRED)
   // gc keep 'a'
   expect(getState(users).byId).toEqual({ a: 'A' })
   // _byIdAts.a reduced
@@ -31,7 +31,7 @@ test('only gc old docs but keep new docs', async () => {
   await getAsync(users, 'b')
 
   // loop gc until drop 'a' but keep 'b'
-  garbageCollect(users)
+  garbageCollect(users, EXPIRED)
   expect(getState(users).byId).toEqual({ b: 'B' })
 
   // will not re-fetch 'b'

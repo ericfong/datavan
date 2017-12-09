@@ -7,7 +7,7 @@ import {
   setAll as _setAll,
 } from './collection/base'
 import { load as _load } from './collection/load'
-import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
+import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect, EXPIRED, ALL } from './collection/invalidate'
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import { find as _find, findAsync as _findAsync } from './collection/find'
@@ -26,6 +26,8 @@ import {
 import _loadCollections from './store/loadCollections'
 
 import { wrapCollectionArgs, wrapStoreArgs } from './getArgs'
+
+export { EXPIRED, ALL }
 
 // collection
 export const getState = (...args) => wrapCollectionArgs(args, _getState)

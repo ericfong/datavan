@@ -5,84 +5,69 @@ import { getState, addMutation } from './base'
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
-function _omitAts(collection, atKey, ids) {
-  let omitedIds
+function calcUnset(collection, timestamps, ids) {
   if (ids === EXPIRED) {
-    omitedIds = []
+    const unset = []
     if (!isNaN(collection.gcTime)) {
       const expired = Date.now() - collection.gcTime
-      collection[atKey] = _.reduce(
-        collection[atKey],
-        (newAts, at, id) => {
-          const shouldKeep = at >= expired
-          // console.log('>>>', atKey, id, shouldKeep)
-          if (shouldKeep) {
-            newAts[id] = at
-          } else {
-            omitedIds.push(id)
-          }
-          return newAts
-        },
-        {}
-      )
+      _.each(timestamps, (timestamp, id) => {
+        if (timestamp < expired) unset.push(id)
+      })
     }
-  } else if (ids) {
-    omitedIds = ids
-    collection[atKey] = _.omit(collection[atKey], ids)
-  } else {
-    // ALL
-    omitedIds = Object.keys(collection[atKey])
-    collection[atKey] = {}
+    return unset
   }
-  return omitedIds
+  return ids || Object.keys(timestamps)
 }
 
-function _invalidate(self, ids) {
-  if (self.onFetch) {
-    const delByIds = _omitAts(self, '_byIdAts', ids)
-    // TODO only drop related fetchs
-    const delFetchKeys = _omitAts(self, '_fetchAts', delByIds.length > 0 ? ALL : ids)
-    getState(self).fetchAts = _.omit(getState(self).fetchAts, delFetchKeys)
-    return { delByIds, delFetchKeys }
+function _invalidate(collection, ids) {
+  if (collection.onFetch) {
+    // const delByIds = _omitAts(collection, '_byIdAts', ids)
+    const delByIds = calcUnset(collection, collection._byIdAts, ids)
+    collection._byIdAts = _.omit(collection._byIdAts, delByIds)
+    return {
+      delByIds,
+      // calc all dropping ids when del any byIds
+      fetchAts: ids ? { $unset: calcUnset(collection, getState(collection).fetchAts, delByIds.length > 0 ? ALL : ids) } : { $set: {} },
+    }
   }
-  return { delByIds: [], delFetchKeys: [] }
+  return { delByIds: [] }
 }
 
-export function invalidate(self, ids = EXPIRED) {
-  _invalidate(self, ids)
-  addMutation(self, null)
+export function invalidate(collection, ids = ALL) {
+  const mutation = _invalidate(collection, ids)
+  delete mutation.delByIds
+  addMutation(collection, mutation)
 }
 
-export function reset(self, ids = ALL) {
-  const { delByIds, delFetchKeys } = _invalidate(self, ids)
+// garbageCollect only reset tidy docs
+export function garbageCollect(collection, ids = EXPIRED) {
+  const { delByIds, fetchAts } = _invalidate(collection, ids)
+
+  const { byId: oldById, originals } = getState(collection)
+  const isTidy = id => !(id in originals)
+  const byId = { $unset: _.filter(ids ? delByIds : Object.keys(oldById), isTidy) }
+  addMutation(collection, { fetchAts, byId })
+}
+
+// reset both dirty and tidy docs
+export function reset(collection, ids = ALL) {
+  const { delByIds, fetchAts } = _invalidate(collection, ids)
 
   const byId = ids ? { $unset: delByIds } : { $set: {} }
-  const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
   const originals = byId
-  addMutation(self, { byId, fetchAts, originals })
+  addMutation(collection, { fetchAts, byId, originals })
 }
 
-// reset will reset both dirty and tidy docs, garbageCollect only reset tidy docs
-export function garbageCollect(self, ids = EXPIRED) {
-  const { delByIds, delFetchKeys } = _invalidate(self, ids)
-  const { byId: oldById, originals } = getState(self)
-  const isTidy = id => !(id in originals)
-
-  const byId = { $unset: _.filter(ids ? delByIds : Object.keys(oldById), isTidy) }
-  const fetchAts = ids ? { $unset: delFetchKeys } : { $set: {} }
-  addMutation(self, { byId, fetchAts })
-}
-
-export function throttle(self, func, ids, option) {
+export function throttle(collection, func, ids, option) {
   if (option && option.now) {
-    func(self, ids, option)
+    func(collection, ids, option)
   }
-  if (self.gcTime >= 0) {
+  if (collection.gcTime >= 0) {
     const now = Date.now()
-    const expire = now - self.gcTime
-    if (!self._gcAt || self._gcAt <= expire) {
-      self._gcAt = now
-      func(self, ids, option)
+    const expire = now - collection.gcTime
+    if (!collection._gcAt || collection._gcAt <= expire) {
+      collection._gcAt = now
+      func(collection, ids, option)
     }
   }
 }
