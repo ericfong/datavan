@@ -54,13 +54,13 @@ const filter = (collection, docs, query) => {
 
 // @auto-fold here
 function filterDataByIds(self, data, ids, option) {
+  const { fetchMaxAge } = self
   let allIdsHit = true
   const ret = ids.reduce((result, id) => {
-    // console.log('<<<', id, self._byIdAts[id])
     if (id in data) {
       result.push(data[id])
     }
-    if (!self._byIdAts[id]) {
+    if (!(fetchMaxAge > 0 ? self._byIdAts[id] > Date.now() - fetchMaxAge : self._byIdAts[id])) {
       allIdsHit = false
     }
     return result

@@ -87,11 +87,6 @@ export const getContext = (...args) => wrapStoreArgs(args, _getContext)
 export const gcStore = (...args) => wrapStoreArgs(args, _gcStore)
 export const loadCollections = (...args) => wrapStoreArgs(args, _loadCollections)
 
-// fetcher
-export httpFetcher from './plug/httpFetcher'
-export relayClient from './relay/relayClient'
-export relayWorker from './relay/relayWorker'
-
 // plugins
 export plugBrowser from './plug/browser'
 export plugCookie from './plug/cookie'

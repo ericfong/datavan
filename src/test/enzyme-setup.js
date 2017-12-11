@@ -1,4 +1,5 @@
 /* globals document */
+/* eslint-disable import/no-extraneous-dependencies, no-console */
 import { JSDOM } from 'jsdom'
 import { configure } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'

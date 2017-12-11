@@ -5,7 +5,7 @@ import { init } from './load'
 import * as base from './base'
 import * as find from './find'
 import * as setter from './setter'
-import httpFetcher from '../plug/httpFetcher'
+import httpFetcher from './fetcher'
 
 const functions = {
   // __proxy__
@@ -39,8 +39,7 @@ export const applyPlugin = (self, plugin) => (typeof plugin === 'function' ? plu
 export default function createCollection(spec) {
   let self = Object.assign({}, functions, spec)
 
-  // TODO should use httpFetcher() explicitly in store.overrides / collection-enhancers / plugins
-  if (self.onFetch) self = httpFetcher(self)(self)
+  if (self.onFetch) self = httpFetcher(self)
 
   init(self)
 

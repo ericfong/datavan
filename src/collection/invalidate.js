@@ -5,18 +5,17 @@ import { getState, addMutation } from './base'
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
-function calcUnset(collection, timestamps, ids) {
-  if (ids === EXPIRED) {
+function calcUnset({ gcTime }, timestamps, ids) {
+  if (ids === EXPIRED && gcTime > 0) {
     const unset = []
-    if (!isNaN(collection.gcTime)) {
-      const expired = Date.now() - collection.gcTime
-      _.each(timestamps, (timestamp, id) => {
-        if (timestamp < expired) unset.push(id)
-      })
-    }
+    const expired = Date.now() - gcTime
+    _.each(timestamps, (timestamp, id) => {
+      // console.log('>>>', timestamp - expired)
+      if (timestamp <= expired) unset.push(id)
+    })
     return unset
   }
-  return ids || Object.keys(timestamps)
+  return Array.isArray(ids) ? ids : Object.keys(timestamps)
 }
 
 function _invalidate(collection, ids) {

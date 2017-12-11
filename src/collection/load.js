@@ -76,7 +76,14 @@ export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) 
     // original may be null
     return v ? loadAs(v, id, self, originals) : v
   })
-  mutation.fetchAts = _loop(mutation.fetchAts, data.fetchAts, v => v)
+
+  if (data.fetchAts) {
+    mutation.fetchAts = { $merge: data.fetchAts }
+    if (data.fetchAts.$unset) {
+      mutation.fetchAts.$unset = data.fetchAts.$unset
+      delete mutation.fetchAts.$merge.$unset
+    }
+  }
 
   addMutation(self, mutation)
   // console.log(self.store.vanCtx.side, 'load', mutation.byId)

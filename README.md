@@ -24,6 +24,7 @@ During find(), datavan will query your local-data first. If local-data is missin
 <!-- TOC START min:1 max:3 link:true update:true -->
 
 * [Getting Started](#getting-started)
+* [Upgrade from (2.7.3)](#upgrade-from-273)
 * [Define Collections and Enhancer for redux](#define-collections-and-enhancer-for-redux)
   * [datavanEnhancer({ collections })](#datavanenhancer-collections-)
 * [Collection Functions](#collection-functions)
@@ -319,7 +320,7 @@ load(users, {
   originals: {
     'user-1': { _id: 'user-1', name: 'Old Name' },
   },
-  // fetchAts is server fetched queries marker table (to prevent re-fetch after server rendering)
+  // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
   fetchAts: {},
 })
 
@@ -452,7 +453,7 @@ const collectionSpec = {
     originals: {
       'user-1': { _id: 'user-1', name: 'Old Name' },
     },
-    // fetchAts is server fetched queries marker table (to prevent re-fetch after server rendering)
+    // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
     fetchAts: {},
   },
 }

@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { load } from '../collection/load'
 import { pickOptionForSerialize } from '../collection/util/calcQueryKey'
 import { createStandalonePromise } from '../util/batcher'
-import { isPreloadSkip, markPromise } from '../plug/httpFetcher'
+import { isPreloadSkip, markPromise } from '../collection/fetcher'
 import { getCollection } from '../getArgs'
 import runHook from '../collection/util/runHook'
 
