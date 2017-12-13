@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.4"></a>
+## [2.10.4](https://github.com/ericfong/datavan/compare/v2.10.3...v2.10.4) (2017-12-13)
+
+
+### Bug Fixes
+
+* tmp store mutations array and use wrapper to flush/dispatch mutations ([286c82d](https://github.com/ericfong/datavan/commit/286c82d))
+
+
+
 <a name="2.10.3"></a>
 ## [2.10.3](https://github.com/ericfong/datavan/compare/v2.10.2...v2.10.3) (2017-12-12)
 
