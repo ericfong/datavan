@@ -103,12 +103,7 @@ export function init(self) {
   self._fetchingPromises = {}
   self._byIdAts = {}
 
-  // raw store state that not yet init
-  // const rawStoreState = getState(self)
-
   if (self.initState) load(self, self.initState)
-
-  // if (rawStoreState) load(self, rawStoreState)
 
   if (self.onInit) self.onInit(self)
 }

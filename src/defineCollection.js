@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import createCollection, { applyPlugin } from './collection/createCollection'
-import { getStore } from './getArgs'
+import { getStore } from './store-base'
 
 // only for internal use
 export function _getCollection(store, _spec, creation) {

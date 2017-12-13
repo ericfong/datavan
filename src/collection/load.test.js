@@ -2,9 +2,8 @@ import _ from 'lodash'
 import { createStore, compose } from 'redux'
 import delay from 'delay'
 
-import { datavanEnhancer, getState, getAll, get, find, set, loadCollections, allPendings, reduxDebounceSubscriber } from '..'
+import { load, loadAsDefaults, datavanEnhancer, getState, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
 import createCollection from '../test/createCollection'
-import { load, loadAsDefaults } from './load'
 import onFetchEcho from '../test/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -17,7 +16,7 @@ test('save&load will not re-fetch by ids', async () => {
   const serverUsers = createCollection({ onFetch })
   find(serverUsers, ['a', 'b', 'c'])
   find(serverUsers, { name: 'A' })
-  await Promise.all(allPendings(serverUsers))
+  await getPending(serverUsers)
   const serverState = getState(serverUsers)
 
   // new browser collection

@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
 import runHook from './util/runHook'
-import { DATAVAN_MUTATE } from '../constant'
 
 // getState
 export function getState(self) {
@@ -9,10 +8,9 @@ export function getState(self) {
 }
 
 // also used for background load, invalidate
-export function addMutation(self, mut) {
+export function addMutation(self, mutation) {
   self.mutatedAt = Date.now()
-  const mutation = { [self.name]: mut || { _t: { $set: () => {} } } }
-  if (self.store) self.store.dispatch({ type: DATAVAN_MUTATE, mutation })
+  self.store.vanCtx.mutates.push({ collection: self.name, mutation })
 }
 
 // =============================================

@@ -1,7 +1,5 @@
 import createCollection from '../test/createCollection'
-import { garbageCollect, invalidate } from './invalidate'
-import { getState } from './base'
-import { get, getAsync, EXPIRED } from '..'
+import { getState, garbageCollect, invalidate, get, getAsync, EXPIRED } from '..'
 import { echoValue } from '../test/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'

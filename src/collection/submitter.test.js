@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import createCollection from '../test/createCollection'
-import { getSubmits, submit, findOne, allPendings, insert, update, remove, get, getAll } from '..'
+import { getSubmits, submit, findOne, getPending, insert, update, remove, get, getAll } from '..'
 import { echoSubmit } from '../test/echo'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -87,6 +87,6 @@ test('basic', async () => {
 
   // mix data from server
   get(Users, 'u1')
-  await Promise.all(allPendings(Users))
+  await getPending(Users)
   expect(_.map(getAll(Users), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
 })

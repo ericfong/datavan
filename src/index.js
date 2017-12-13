@@ -7,12 +7,13 @@ import {
   setAll as _setAll,
 } from './collection/base'
 import { load as _load } from './collection/load'
-import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect, EXPIRED, ALL } from './collection/invalidate'
+import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import { find as _find, findAsync as _findAsync } from './collection/find'
-import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings } from './collection/find-extra'
+import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings, getPending as _getPending } from './collection/find-extra'
 import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
+import { getCollection, dispatchMutations, getStore } from './store-base'
 
 import {
   setOverrides as _setOverrides,
@@ -25,67 +26,85 @@ import {
 } from './store'
 import _loadCollections from './store/loadCollections'
 
-import { wrapCollectionArgs, wrapStoreArgs } from './getArgs'
+const deprecated = (ret, funcName, msg = '') => {
+  if (process.env.NODE_ENV !== 'production') console.error(`${funcName} is deprecated! ${msg}`)
+  return ret
+}
+const WRITE = 'WRITE'
+const ASYNC_WRITE = 'ASYNC_WRITE'
+function wrapCollect(args, func, mode) {
+  const coll = args[0]
+  // it is collection if have cast function
+  const newArgs = coll && coll.cast ? args : [getCollection(coll, args[1]), ...args.slice(2)]
+  const ret = func(...newArgs)
+  if (mode === WRITE) dispatchMutations(newArgs[0].store)
+  else if (mode === ASYNC_WRITE && ret && ret.then) ret.then(() => dispatchMutations(newArgs[0].store))
+  return ret
+}
+function wrapStore(args, func, mode) {
+  const [_store, ...rest] = args
+  const store = _store && _store.dispatch ? _store : getStore(_store)
+  const ret = func(store, ...rest)
+  if (mode === WRITE) dispatchMutations(store)
+  else if (mode === ASYNC_WRITE && ret && ret.then) ret.then(() => dispatchMutations(store))
+  return ret
+}
 
-export { EXPIRED, ALL }
+export { getCollection, dispatchMutations }
+export { loadAsDefaults } from './collection/load'
+export { EXPIRED, ALL } from './collection/invalidate'
 
 // collection
-export const getState = (...args) => wrapCollectionArgs(args, _getState)
-export const addMutation = (...args) => wrapCollectionArgs(args, _addMutation)
-export const getAll = (...args) => wrapCollectionArgs(args, _getAll)
-export const get = (...args) => wrapCollectionArgs(args, _get)
-export const mutateAll = (...args) => wrapCollectionArgs(args, _mutateAll)
-export const setAll = (...args) => wrapCollectionArgs(args, _setAll)
+export const getState = (...args) => wrapCollect(args, _getState)
+export const addMutation = (...args) => wrapCollect(args, _addMutation, WRITE)
+export const getAll = (...args) => wrapCollect(args, _getAll)
+export const get = (...args) => wrapCollect(args, _get)
+export const mutateAll = (...args) => wrapCollect(args, _mutateAll, WRITE)
+export const setAll = (...args) => wrapCollect(args, _setAll, WRITE)
 
-export const load = (...args) => wrapCollectionArgs(args, _load)
+export const load = (...args) => wrapCollect(args, _load, WRITE)
 
-export const invalidate = (...args) => wrapCollectionArgs(args, _invalidate)
-export const reset = (...args) => wrapCollectionArgs(args, _reset)
-export const garbageCollect = (...args) => wrapCollectionArgs(args, _garbageCollect)
+export const invalidate = (...args) => wrapCollect(args, _invalidate, WRITE)
+export const reset = (...args) => wrapCollect(args, _reset, WRITE)
+export const garbageCollect = (...args) => wrapCollect(args, _garbageCollect, WRITE)
 
-export const set = (...args) => wrapCollectionArgs(args, _set)
-export const mutate = (...args) => wrapCollectionArgs(args, _mutate)
-export const del = (...args) => wrapCollectionArgs(args, _del)
-export const insert = (...args) => wrapCollectionArgs(args, _insert)
-export const update = (...args) => wrapCollectionArgs(args, _update)
-export const remove = (...args) => wrapCollectionArgs(args, _remove)
+export const set = (...args) => wrapCollect(args, _set, WRITE)
+export const mutate = (...args) => wrapCollect(args, _mutate, WRITE)
+export const del = (...args) => wrapCollect(args, _del, WRITE)
+export const insert = (...args) => wrapCollect(args, _insert, WRITE)
+export const update = (...args) => wrapCollect(args, _update, WRITE)
+export const remove = (...args) => wrapCollect(args, _remove, WRITE)
 
-export const getOriginals = (...args) => wrapCollectionArgs(args, _getOriginals)
-export const getSubmits = (...args) => wrapCollectionArgs(args, _getSubmits)
-export const submit = (...args) => wrapCollectionArgs(args, _submit)
-export const getSubmittedIds = (...args) => wrapCollectionArgs(args, _getSubmittedIds)
+export const getOriginals = (...args) => wrapCollect(args, _getOriginals)
+export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
+export const submit = (...args) => wrapCollect(args, _submit, ASYNC_WRITE)
+export const getSubmittedIds = (...args) => wrapCollect(args, _getSubmittedIds)
 
-export const find = (...args) => wrapCollectionArgs(args, _find)
-export const findAsync = (...args) => wrapCollectionArgs(args, _findAsync)
+export const find = (...args) => wrapCollect(args, _find)
+export const findAsync = (...args) => wrapCollect(args, _findAsync)
 
-export const getAsync = (...args) => wrapCollectionArgs(args, _getAsync)
-export const findOne = (...args) => wrapCollectionArgs(args, _findOne)
-export const allPendings = (...args) => wrapCollectionArgs(args, _allPendings)
+export const getAsync = (...args) => wrapCollect(args, _getAsync)
+export const findOne = (...args) => wrapCollect(args, _findOne)
+export const allPendings = (...args) => deprecated(wrapCollect(args, _allPendings), 'allPendings', 'Use getPending(state, collection) instead')
+export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
 
-export const findInMemory = (...args) => wrapCollectionArgs(args, _findInMemory)
-export const getInMemory = (...args) => wrapCollectionArgs(args, _getInMemory)
+export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
+export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
 
 // redux
 export { defineCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 
-const deprecated = (funcName, ret) => {
-  if (process.env.NODE_ENV !== 'production') console.error(`${funcName} is deprecated!`)
-  return ret
-}
-
-export { getCollection } from './getArgs'
-
 // store
-export const setOverrides = (...args) => deprecated('setOverrides', wrapStoreArgs(args, _setOverrides))
-export const invalidateStore = (...args) => wrapStoreArgs(args, _invalidateStore)
-export const getStorePending = (...args) => wrapStoreArgs(args, _getStorePending)
-export const serverPreload = (...args) => wrapStoreArgs(args, _serverPreload)
-export const setContext = (...args) => wrapStoreArgs(args, _setContext)
-export const getContext = (...args) => wrapStoreArgs(args, _getContext)
-export const gcStore = (...args) => wrapStoreArgs(args, _gcStore)
-export const loadCollections = (...args) => wrapStoreArgs(args, _loadCollections)
+export const setOverrides = (...args) => deprecated(wrapStore(args, _setOverrides), 'setOverrides')
+export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
+export const gcStore = (...args) => wrapStore(args, _gcStore, WRITE)
+export const loadCollections = (...args) => wrapStore(args, _loadCollections, WRITE)
+export const getStorePending = (...args) => wrapStore(args, _getStorePending, ASYNC_WRITE)
+export const serverPreload = (...args) => wrapStore(args, _serverPreload)
+export const setContext = (...args) => wrapStore(args, _setContext)
+export const getContext = (...args) => wrapStore(args, _getContext)
 
 // plugins
 export plugBrowser from './plug/browser'

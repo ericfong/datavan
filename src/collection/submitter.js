@@ -2,6 +2,7 @@ import _ from 'lodash'
 
 import { getState } from './base'
 import { load, normalizeLoadData } from './load'
+import { dispatchMutations } from '../store-base'
 
 export function getOriginals(table) {
   return getState(table).originals
@@ -22,17 +23,19 @@ export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
   }
 }
 
-export function submit(self, _submit) {
-  const submittedDocs = getSubmits(self)
-  const p = _submit ? _submit(submittedDocs, self) : self.onSubmit(submittedDocs, self)
+export function submit(collection, _submit) {
+  const submittedDocs = getSubmits(collection)
+  const p = _submit ? _submit(submittedDocs, collection) : collection.onSubmit(submittedDocs, collection)
   return Promise.resolve(p).then(
     rawRes => {
       if (rawRes) {
         // !rawRes means DON'T consider as submitted
-        const data = normalizeLoadData(self, rawRes)
+        const data = normalizeLoadData(collection, rawRes)
         // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
         data.$submittedIds = { ...cleanSubmitted(submittedDocs), ...data.$submittedIds }
-        load(self, data)
+        load(collection, data)
+        // flush dispatch mutates after load()
+        dispatchMutations(collection.store)
       }
       return rawRes
     },

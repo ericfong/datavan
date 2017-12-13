@@ -20,7 +20,6 @@ function calcUnset({ gcTime }, timestamps, ids) {
 
 function _invalidate(collection, ids) {
   if (collection.onFetch) {
-    // const delByIds = _omitAts(collection, '_byIdAts', ids)
     const delByIds = calcUnset(collection, collection._byIdAts, ids)
     collection._byIdAts = _.omit(collection._byIdAts, delByIds)
     return {

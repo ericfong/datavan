@@ -3,6 +3,7 @@ import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 import createCollection from './collection/createCollection'
+import { dispatchMutations } from './store-base'
 
 const defaultsPreload = (preloadedState, collections) => {
   const defaults = { datavan: { _timestamp: Date.now() } }
@@ -55,12 +56,15 @@ export default function datavanEnhancer(ctx = {}) {
 
     const mutateReducer = (_state, action) => {
       let newState = reducer(_state, action)
-      // console.log('>>mutateReducer>', action.type, action.mutation)
       if (action.type === DATAVAN_MUTATE) {
         // const start1 = process.hrtime()
-        const { mutations } = action
+        const { mutates } = action
         const oldDvState = newState.datavan
-        const datavan = mutations ? _.reduce(mutations, mutateUtil, oldDvState) : mutateUtil(oldDvState, action.mutation)
+        const datavan = mutates
+          .map(({ collection, mutation }) => ({
+            [collection]: mutation || { _t: { $set: () => {} } },
+          }))
+          .reduce(mutateUtil, oldDvState)
         newState = { ...newState, datavan }
         // mutateTime += calcNano(process.hrtime(start1))
 
@@ -80,19 +84,15 @@ export default function datavanEnhancer(ctx = {}) {
 
     const store = _createStore(mutateReducer, preload, enhancer)
 
-    // init collections
-    _.each(ctx.collections, (spec, name) => {
-      collections[name] = createCollection({ ...spec, name, store })
-    })
-
     // injects
     const { getState, dispatch } = store
     const _getStore = () => store
-    return Object.assign(store, {
+    Object.assign(store, {
       collections,
       vanCtx: {
         ...ctx,
         overrides: ctx.overrides || {},
+        mutates: [],
       },
       getState() {
         const state = getState()
@@ -104,6 +104,15 @@ export default function datavanEnhancer(ctx = {}) {
         return dispatch(action)
       },
     })
+
+    // init collections
+    _.each(ctx.collections, (spec, name) => {
+      collections[name] = createCollection({ ...spec, name, store })
+    })
+    // createCollection may load initState and generate some mutations
+    dispatchMutations(store)
+
+    return store
   }
 }
 

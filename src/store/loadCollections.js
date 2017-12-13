@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getCollection } from '../getArgs'
+import { getCollection } from '../store-base'
 import { load, loadAsDefaults } from '../collection/load'
 
 export default function loadCollections(store, inData, option = {}) {

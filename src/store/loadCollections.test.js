@@ -1,5 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, loadCollections, allPendings, find, getAll } from '..'
+import { datavanEnhancer, loadCollections, getPending, find, getAll } from '..'
 
 const onFetch = () => Promise.resolve([])
 
@@ -39,13 +39,13 @@ test('$relations', async () => {
   // complex query 1
   const query1 = { $or: [{ age: 10 }, { gender: 'M' }] }
   find(store, 'users', query1, { fetchUrl: 'complex-query-1', sort: { _id: 1 } })
-  await Promise.all(allPendings(store, 'users'))
+  await getPending(store, 'users')
   expect(find(store, 'users', query1, { fetchUrl: 'complex-query-1', sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
 
   // complex query 2
   const query2 = { age: 20 }
   find(store, 'users', query2, { fetchUrl: 'complex-query-2' })
-  await Promise.all(allPendings(store, 'users'))
+  await getPending(store, 'users')
   expect(find(store, 'users', query2, { fetchUrl: 'complex-query-2' })).toEqual([{ _id: '4', age: 20, roleId: '2' }])
   expect(getAll(store, 'roles')).toEqual({ reader: { role: 'reader' } })
   expect(getAll(store, 'blogs')).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })

@@ -1,11 +1,12 @@
 // import _ from 'lodash'
 
-import { withoutTmpId } from '../collection/util/idUtil'
-import calcQueryKey from '../collection/util/calcQueryKey'
-import { getState, addMutation } from '../collection/base'
-import { prepareFindData } from '../collection/findInState'
-import { load } from '../collection/load'
-import runHook from '../collection/util/runHook'
+import { withoutTmpId } from './util/idUtil'
+import calcQueryKey from './util/calcQueryKey'
+import { getState, addMutation } from './base'
+import { prepareFindData } from './findInState'
+import { load } from './load'
+import runHook from './util/runHook'
+import { dispatchMutations } from '../store-base'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -57,9 +58,14 @@ function checkFetch(self, query, option) {
   }
 
   // want to return fetching promise for findAsync
-  const { onFetch } = self
-  const p = Promise.resolve(onFetch(fetchQuery, option, self)).then(res => load(self, res, option))
-  return markPromise(self, fetchKey, p)
+  const collection = self
+  const { onFetch } = collection
+  const p = Promise.resolve(onFetch(fetchQuery, option, collection)).then(res => {
+    load(collection, res, option)
+    // flush dispatch mutates after load()
+    dispatchMutations(collection.store)
+  })
+  return markPromise(collection, fetchKey, p)
 }
 
 const confDefaults = {

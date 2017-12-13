@@ -16,6 +16,7 @@ test('insert/create/set, originals will be persist', async () => {
 
 test('setAll', async () => {
   const table = createCollection({ onFetch: _.noop, initState: { byId: { old: { _id: 'old', name: 'old' } } } })
+  expect(getState(table).byId).toEqual({ old: { _id: 'old', name: 'old' } })
 
   // first set
   setAll(table, { a: 1, old: { _id: 'old', name: 'new' } })

@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import createCollection from '../test/createCollection'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate, allPendings, findAsync, insert, update, getAll, find, get } from '..'
+import { invalidate, getPending, findAsync, insert, update, getAll, find, get } from '..'
 import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -34,7 +34,7 @@ test('hasFetch cache', async () => {
     onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
   })
   find(users, ['id-123'])
-  await Promise.all(allPendings(users))
+  await getPending(users)
   find(users, ['id-123'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
@@ -44,7 +44,7 @@ test('onFetch with $invalidate', async () => {
     onFetch: jest.fn(() => timeoutResolve({ byId: { 'id-123': undefined }, $invalidate: ['id-123'] })),
   })
   find(users2, ['id-123'])
-  await Promise.all(allPendings(users2))
+  await getPending(users2)
   find(users2, ['id-123'])
   expect(users2.onFetch).toHaveBeenCalledTimes(2)
 })
@@ -89,7 +89,7 @@ test('consider getFetchKey', async () => {
   // invalid id won't refetch
   find(users, [null])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
-  await Promise.all(allPendings(users))
+  await getPending(users)
   find(users, [null])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
@@ -129,22 +129,22 @@ test('basic', async () => {
 
   // normal get
   expect(get(Users, 'u1')).toBe(undefined)
-  await Promise.all(allPendings(Users))
+  await getPending(Users)
   expect(get(Users, 'u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
   expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
-  await Promise.all(allPendings(Users))
+  await getPending(Users)
   expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
   get(Users, 'u1')
-  await Promise.all(allPendings(Users))
+  await getPending(Users)
   expect(calledGet).toBe(1)
 
   // load something missing
   get(Users, 'not_exists')
-  await Promise.all(allPendings(Users))
+  await getPending(Users)
   expect(calledGet).toBe(2)
 
   // load local won't affect

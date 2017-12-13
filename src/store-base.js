@@ -1,4 +1,4 @@
-import { GET_DATAVAN } from './constant'
+import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 
 const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
 
@@ -22,21 +22,11 @@ export const getCollection = (any, name) => {
   return collections[name]
 }
 
-function getCollectionArgs(args) {
-  const collection = args[0]
-  if (collection && collection.cast) {
-    // it is collection
-    return args
+export function dispatchMutations(store) {
+  const { vanCtx } = store
+  const { mutates } = vanCtx
+  if (mutates.length > 0) {
+    vanCtx.mutates = []
+    store.dispatch({ type: DATAVAN_MUTATE, mutates })
   }
-  return [getCollection(collection, args[1]), ...args.slice(2)]
-}
-
-export function wrapCollectionArgs(args, func) {
-  return func(...getCollectionArgs(args))
-}
-
-export function wrapStoreArgs(args, func) {
-  const [_store, ...rest] = args
-  const store = _store && _store.dispatch ? _store : getStore(_store)
-  return func(store, ...rest)
 }
