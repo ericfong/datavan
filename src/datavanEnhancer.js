@@ -60,11 +60,10 @@ export default function datavanEnhancer(ctx = {}) {
         // const start1 = process.hrtime()
         const { mutates } = action
         const oldDvState = newState.datavan
-        const datavan = mutates
-          .map(({ collection, mutation }) => ({
-            [collection]: mutation || { _t: { $set: () => {} } },
-          }))
-          .reduce(mutateUtil, oldDvState)
+        const datavan = mutates.reduce((state, { collection, mutation }) => {
+          const m = { [collection]: mutation || { _t: { $set: () => {} } } }
+          return mutateUtil(state, m)
+        }, oldDvState)
         newState = { ...newState, datavan }
         // mutateTime += calcNano(process.hrtime(start1))
 

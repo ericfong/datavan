@@ -1,5 +1,6 @@
 import { load } from '../collection/load'
 import { get } from '../collection/base'
+import { dispatchMutations } from '../store-base'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return
@@ -16,6 +17,7 @@ function addOnResize(self) {
           height: window.innerHeight,
         },
       })
+      dispatchMutations(self.store)
     }
     window.addEventListener('resize', onResize)
     onResize()
