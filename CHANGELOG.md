@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.11.0"></a>
+# [2.11.0](https://github.com/ericfong/datavan/compare/v2.10.4...v2.11.0) (2017-12-14)
+
+
+### Bug Fixes
+
+* plugBrowser to dispatch mutations ([610840d](https://github.com/ericfong/datavan/commit/610840d))
+
+
+### Features
+
+* add run() ([c002f06](https://github.com/ericfong/datavan/commit/c002f06))
+
+
+
 <a name="2.10.4"></a>
 ## [2.10.4](https://github.com/ericfong/datavan/compare/v2.10.3...v2.10.4) (2017-12-13)
 
