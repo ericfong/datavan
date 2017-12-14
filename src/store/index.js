@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { allPendings } from '../collection/find-extra'
+import { allPendings } from '../collection/extra'
 import { invalidate, garbageCollect, throttle, EXPIRED, ALL } from '../collection/invalidate'
 
 export function setOverrides(store, _overrides) {

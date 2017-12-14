@@ -17,3 +17,7 @@ export function getPending(collection) {
   const promises = Object.values(collection._fetchingPromises)
   return promises.length <= 0 ? null : Promise.all(promises)
 }
+
+export function _run(collection, funcName, ...args) {
+  return collection[funcName](collection, ...args)
+}

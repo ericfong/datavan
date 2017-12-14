@@ -11,7 +11,7 @@ import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageC
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import { find as _find, findAsync as _findAsync } from './collection/find'
-import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings, getPending as _getPending } from './collection/find-extra'
+import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings, getPending as _getPending, _run } from './collection/extra'
 import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
 import { getCollection, dispatchMutations, getStore } from './store-base'
 
@@ -87,6 +87,7 @@ export const getAsync = (...args) => wrapCollect(args, _getAsync)
 export const findOne = (...args) => wrapCollect(args, _findOne)
 export const allPendings = (...args) => deprecated(wrapCollect(args, _allPendings), 'allPendings', 'Use getPending(state, collection) instead')
 export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
+export const run = (...args) => wrapCollect(args, _run)
 
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
