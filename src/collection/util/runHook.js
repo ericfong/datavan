@@ -3,9 +3,9 @@ export default function runHook(hook, next, ...args) {
   if (next) return next(...args)
 }
 
-export function wrapHook(baseHook, func) {
+export function trapArgs(baseHook, func) {
   return (next, ...args) => {
-    const runNext = (...newArgs) => runHook(baseHook, next, ...newArgs)
-    return func(runNext, ...args)
+    const newArgs = func(...args)
+    return runHook(baseHook, next, ...(newArgs || args))
   }
 }

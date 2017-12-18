@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import jsCookie from 'js-cookie'
 
-import runHook from '../collection/util/runHook'
+import { trapArgs } from '../collection/util/runHook'
 
 export default function plugKoaCookie(cookieConf, koaCtx) {
   return base =>
@@ -9,7 +9,7 @@ export default function plugKoaCookie(cookieConf, koaCtx) {
       getHook(next, collection, id) {
         return koaCtx.cookies.get(id)
       },
-      setAllHook(next, collection, change, option) {
+      setAllHook: trapArgs(base.setAllHook, (collection, change, option) => {
         _.each(change, (v, k) => {
           if (k === '$unset') {
             return _.each(v, id => jsCookie.set(id, null))
@@ -19,7 +19,7 @@ export default function plugKoaCookie(cookieConf, koaCtx) {
           }
           return koaCtx.cookies.set(k, v, cookieConf)
         })
-        return runHook(base.setAllHook, next, collection, change, option)
-      },
+        return [collection, change, option]
+      }),
     })
 }
