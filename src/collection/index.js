@@ -7,7 +7,7 @@ const functions = {
   idField: '_id',
   // gcTime: 60 * 1000,
   // onInit, onLoad
-  // findHook, filterHook, getHook, getAllHook, setAllHook
+  // findHook, filterHook, postFindHook, findAsyncHook, getHook, getAllHook, setAllHook
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 }

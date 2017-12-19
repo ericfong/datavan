@@ -1,11 +1,4 @@
-import {
-  getState as _getState,
-  addMutation as _addMutation,
-  getAll as _getAll,
-  get as _get,
-  mutateAll as _mutateAll,
-  setAll as _setAll,
-} from './collection/base'
+import { getState as _getState, addMutation as _addMutation, getAll as _getAll, get as _get, _mutateAll, setAll as _setAll } from './collection/base'
 import { load as _load } from './collection/load'
 import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'

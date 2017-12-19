@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { mutateAll, setAll } from './base'
+import { _mutateAll, setAll } from './base'
 import { _findInMemory } from './find'
 
 function withId(core, doc) {
@@ -13,7 +13,7 @@ function withId(core, doc) {
 }
 
 export function mutate(collection, id, mutation) {
-  mutateAll(collection, { [id]: mutation })
+  _mutateAll(collection, { [id]: mutation })
 }
 
 export function set(core, id, value) {

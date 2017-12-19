@@ -25,7 +25,7 @@ export const get = (collection, id) => runHook(collection.getHook, _get, collect
 // =============================================
 // Setter
 
-const _mutateAll = (collection, mutations) => {
+export const _mutateAll = (collection, mutations) => {
   const mutation = { byId: mutations }
 
   if (collection.onFetch) {
@@ -51,7 +51,7 @@ const _mutateAll = (collection, mutations) => {
 
   addMutation(collection, mutation)
 }
-export const mutateAll = (collection, mutations) => runHook(collection.mutateAllHook, _mutateAll, collection, mutations)
+// export const mutateAll = (collection, mutations) => runHook(collection.mutateAllHook, _mutateAll, collection, mutations)
 
 // @auto-fold here
 function toMutation(change) {
@@ -66,6 +66,6 @@ function toMutation(change) {
   return mutation
 }
 const _setAll = (collection, change) => {
-  mutateAll(collection, toMutation(change))
+  _mutateAll(collection, toMutation(change))
 }
 export const setAll = (collection, change, option) => runHook(collection.setAllHook, _setAll, collection, change, option)

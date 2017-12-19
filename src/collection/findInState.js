@@ -17,7 +17,7 @@ function mongoToLodash(sort) {
 }
 
 // @auto-fold here
-function processOption(arr, option) {
+function postFind(arr, option) {
   if (option) {
     if (option.sort) {
       const [fields, orders] = mongoToLodash(option.sort)
@@ -98,5 +98,5 @@ export default function findInState(collection, query, option) {
     docs = runHook(option.filterHook || collection.filterHook, filter, collection, docs, query, option)
   }
 
-  return runHook(option.processOptionHook || collection.processOptionHook, processOption, docs, option)
+  return runHook(option.postFindHook || collection.postFindHook, postFind, docs, option)
 }
