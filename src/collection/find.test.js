@@ -2,12 +2,19 @@ import _ from 'lodash'
 
 import createCollection from '../test/createCollection'
 import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate, getPending, findAsync, insert, update, getAll, find, get } from '..'
+import { invalidate, getPending, findAsync, insert, update, getAll, find, get, run } from '..'
 import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
 //
 // afterAll(printTimes)
+
+test('run', async () => {
+  const myFunc = jest.fn()
+  const collection = createCollection({ myFunc })
+  run(collection, 'myFunc', 1, 2)
+  expect(myFunc).lastCalledWith(collection, 1, 2)
+})
 
 test('find in original', async () => {
   const users = createCollection({ onFetch: onFetchEcho })

@@ -5,6 +5,7 @@ import { getState, addMutation } from './base'
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
+// @auto-fold here
 function calcUnset({ gcTime }, timestamps, ids) {
   if (ids === EXPIRED && gcTime > 0) {
     const unset = []
@@ -18,6 +19,7 @@ function calcUnset({ gcTime }, timestamps, ids) {
   return Array.isArray(ids) ? ids : Object.keys(timestamps)
 }
 
+// @auto-fold here
 function _invalidate(collection, ids) {
   if (collection.onFetch) {
     const delByIds = calcUnset(collection, collection._byIdAts, ids)
@@ -54,18 +56,4 @@ export function reset(collection, ids = ALL) {
   const byId = ids ? { $unset: delByIds } : { $set: {} }
   const originals = byId
   addMutation(collection, { fetchAts, byId, originals })
-}
-
-export function throttle(collection, func, ids, option) {
-  if (option && option.now) {
-    func(collection, ids, option)
-  }
-  if (collection.gcTime >= 0) {
-    const now = Date.now()
-    const expire = now - collection.gcTime
-    if (!collection._gcAt || collection._gcAt <= expire) {
-      collection._gcAt = now
-      func(collection, ids, option)
-    }
-  }
 }

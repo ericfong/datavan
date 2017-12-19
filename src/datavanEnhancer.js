@@ -2,7 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
-import createCollection from './collection/createCollection'
+import createCollection from './collection'
 import { dispatchMutations } from './store-base'
 
 const defaultsPreload = (preloadedState, collections) => {

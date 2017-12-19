@@ -10,9 +10,7 @@ import { load as _load } from './collection/load'
 import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
-import { find as _find, findAsync as _findAsync } from './collection/find'
-import { getAsync as _getAsync, findOne as _findOne, getPending as _getPending, _run } from './collection/extra'
-import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
+import { _findInMemory, _getInMemory, _find, _findAsync, _getAsync, _findOne, _getPending, _run } from './collection/find'
 import { getCollection, dispatchMutations, getStore } from './store-base'
 
 import {

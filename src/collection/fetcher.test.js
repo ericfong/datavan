@@ -1,7 +1,27 @@
 import delay from 'delay'
+import { createStore } from 'redux'
+
 import createCollection from '../test/createCollection'
-import { find } from '..'
-import { echoValue } from '../test/onFetchEcho'
+import { find, datavanEnhancer, findAsync } from '..'
+import onFetchEcho, { echoValue } from '../test/onFetchEcho'
+
+test('findAsync', async () => {
+  const onFetch = jest.fn(onFetchEcho)
+  const collections = { users: { onFetch } }
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
+
+  expect(onFetch).toHaveBeenCalledTimes(0)
+  expect(await findAsync(store, 'users', ['a'])).toEqual([{ _id: 'a', name: 'A' }])
+  expect(onFetch).toHaveBeenCalledTimes(1)
+
+  // same query will hit cache
+  await findAsync(store, 'users', ['a'])
+  expect(onFetch).toHaveBeenCalledTimes(1)
+
+  // can force
+  await findAsync(store, 'users', ['a'], { force: true })
+  expect(onFetch).toHaveBeenCalledTimes(2)
+})
 
 test('fetchMaxAge', async () => {
   const onFetch = jest.fn(echoValue)

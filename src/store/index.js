@@ -1,7 +1,21 @@
 import _ from 'lodash'
 
-import { allPendings } from '../collection/extra'
-import { invalidate, garbageCollect, throttle, EXPIRED, ALL } from '../collection/invalidate'
+import { _allPendings } from '../collection/find'
+import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
+
+function throttle(collection, func, ids, option) {
+  if (option && option.now) {
+    func(collection, ids, option)
+  }
+  if (collection.gcTime >= 0) {
+    const now = Date.now()
+    const expire = now - collection.gcTime
+    if (!collection._gcAt || collection._gcAt <= expire) {
+      collection._gcAt = now
+      func(collection, ids, option)
+    }
+  }
+}
 
 export function setOverrides(store, _overrides) {
   return Object.assign(store.vanCtx.overrides, _overrides)
@@ -17,7 +31,7 @@ export function gcStore(store, option = {}) {
 
 export function getStorePending(store) {
   const { collections } = store
-  const promises = _.compact(_.flatMap(collections, allPendings))
+  const promises = _.compact(_.flatMap(collections, _allPendings))
   if (promises.length <= 0) return null
   // TODO timeout or have a limit for recursive wait for promise
   return Promise.all(promises).then(() => getStorePending(store))
