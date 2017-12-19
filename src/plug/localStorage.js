@@ -12,6 +12,9 @@ function parseJson(val) {
 
 export default function plugLocalStorage(_storage) {
   const storage = _storage || global.localStorage
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('plugLocalStorage is depreacted. Please use some standard redux persist layer to load and save')
+  }
   return base =>
     Object.assign({}, base, {
       getAllHook() {

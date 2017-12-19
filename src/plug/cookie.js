@@ -4,6 +4,9 @@ import jsCookie from 'js-cookie'
 import { trapArgs } from '../collection/util/runHook'
 
 export default function plugCookie(cookieConf) {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('plugCookie is depreacted. Please use some standard redux persist layer to load and save')
+  }
   return base =>
     Object.assign({}, base, {
       getHook(next, collection, id) {
