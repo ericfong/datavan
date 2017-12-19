@@ -4,11 +4,9 @@ import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
 
 export const loadAsDefaults = (data, id, self, targets) => {
-  // const data = self.cast(v)
   return data && typeof data === 'object' ? { ...data, ...targets[id] } : data
 }
 export const loadAsMerge = (data, id, self, targets) => {
-  // const data = self.cast(v)
   return data && typeof data === 'object' ? { ...targets[id], ...data } : data
 }
 

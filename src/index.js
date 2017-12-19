@@ -21,7 +21,7 @@ const ASYNC_WRITE = 'ASYNC_WRITE'
 function wrapCollect(args, func, mode) {
   const coll = args[0]
   // it is collection if have cast function
-  const newArgs = coll && coll.cast ? args : [getCollection(coll, args[1]), ...args.slice(2)]
+  const newArgs = coll && coll.idField ? args : [getCollection(coll, args[1]), ...args.slice(2)]
   const ret = func(...newArgs)
   if (mode === WRITE) dispatchMutations(newArgs[0].store)
   else if (mode === ASYNC_WRITE && ret && ret.then) ret.then(() => dispatchMutations(newArgs[0].store))

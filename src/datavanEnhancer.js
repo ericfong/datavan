@@ -36,15 +36,14 @@ const ensureCasted = (obj, func) => {
   // castDefPropTime += calcNano(process.hrtime(start1))
   return newObj
 }
-const castById = (byId, collection) => _.mapValues(byId, doc => ensureCasted(doc, collection.cast))
 const castCollections = (dvState, collections) => {
   ensureCasted(dvState, () => {
     _.each(dvState, (collState, name) => {
       const collection = collections[name]
       if (!collection) return
       ensureCasted(collState, () => {
-        collState.byId = castById(collState.byId, collection)
-        collState.originals = castById(collState.originals, collection)
+        collState.byId = _.mapValues(collState.byId, doc => ensureCasted(doc, collection.cast))
+        collState.originals = _.mapValues(collState.originals, doc => ensureCasted(doc, collection.cast))
       })
     })
   })

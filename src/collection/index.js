@@ -2,7 +2,7 @@ import { TMP_ID_PREFIX } from './util/idUtil'
 import { init } from './load'
 import httpFetcher from './fetcher'
 
-const functions = {
+const collectionPrototype = {
   // __proxy__
   idField: '_id',
   // gcTime: 60 * 1000,
@@ -13,7 +13,7 @@ const functions = {
 }
 
 export default function createCollection(spec) {
-  let self = Object.assign({}, functions, spec)
+  let self = Object.assign({}, collectionPrototype, spec)
 
   if (self.onFetch) self = httpFetcher(self)
 
