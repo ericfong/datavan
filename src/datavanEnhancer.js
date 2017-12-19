@@ -74,11 +74,6 @@ export default function datavanEnhancer(ctx = {}) {
       return newState
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      if (ctx.overrides) console.warn('datavanEnhancer({ overrides }) is deprecated! Please use datavanEnhancer({ collections })')
-      if (!ctx.collections) console.warn('Please register all collections during createStore')
-    }
-
     const preload = defaultsPreload(preloadedState, ctx.collections)
 
     const store = _createStore(mutateReducer, preload, enhancer)

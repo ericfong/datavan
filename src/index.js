@@ -11,12 +11,11 @@ import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageC
 import { mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import { find as _find, findAsync as _findAsync } from './collection/find'
-import { getAsync as _getAsync, findOne as _findOne, allPendings as _allPendings, getPending as _getPending, _run } from './collection/extra'
+import { getAsync as _getAsync, findOne as _findOne, getPending as _getPending, _run } from './collection/extra'
 import _findInMemory, { getInMemory as _getInMemory } from './collection/findInMemory'
 import { getCollection, dispatchMutations, getStore } from './store-base'
 
 import {
-  setOverrides as _setOverrides,
   invalidateStore as _invalidateStore,
   getStorePending as _getStorePending,
   serverPreload as _serverPreload,
@@ -26,10 +25,6 @@ import {
 } from './store'
 import _loadCollections from './store/loadCollections'
 
-const deprecated = (ret, funcName, msg = '') => {
-  if (process.env.NODE_ENV !== 'production') console.error(`${funcName} is deprecated! ${msg}`)
-  return ret
-}
 const WRITE = 'WRITE'
 const ASYNC_WRITE = 'ASYNC_WRITE'
 function wrapCollect(args, func, mode) {
@@ -85,7 +80,6 @@ export const findAsync = (...args) => wrapCollect(args, _findAsync)
 
 export const getAsync = (...args) => wrapCollect(args, _getAsync)
 export const findOne = (...args) => wrapCollect(args, _findOne)
-export const allPendings = (...args) => deprecated(wrapCollect(args, _allPendings), 'allPendings', 'Use getPending(state, collection) instead')
 export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
 export const run = (...args) => wrapCollect(args, _run)
 
@@ -93,12 +87,10 @@ export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
 
 // redux
-export { defineCollection } from './defineCollection'
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export memorizeConnect from './util/memorizeConnect'
 
 // store
-export const setOverrides = (...args) => deprecated(wrapStore(args, _setOverrides), 'setOverrides')
 export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
 export const gcStore = (...args) => wrapStore(args, _gcStore, WRITE)
 export const loadCollections = (...args) => wrapStore(args, _loadCollections, WRITE)
@@ -109,15 +101,9 @@ export const getContext = (...args) => wrapStore(args, _getContext)
 
 // plugins
 export plugBrowser from './plug/browser'
-export plugCookie from './plug/cookie'
-export plugKoaCookie from './plug/koaCookie'
-export plugLocalStorage from './plug/localStorage'
 export plugSearchable from './plug/searchable'
 
 // utils
 export reduxDebounceSubscriber from './util/reduxDebounceSubscriber'
 export runHook, { trapArgs } from './collection/util/runHook'
-export getSetters from './util/getSetters'
-// export { getQueryIds, onFetchById } from './collection/util/idUtil'
-// export batcher from './util/batcher'
 export searchObjects, { tokenizeKeywords } from './util/searchObjects'
