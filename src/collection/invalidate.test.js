@@ -6,6 +6,13 @@ import { echoValue } from '../test/onFetchEcho'
 //
 // afterAll(printTimes)
 
+test('gc for collection without onFetch', async () => {
+  const users = createCollection({ initState: { byId: { a: 'Hi' } }, gcTime: -1 })
+  garbageCollect(users)
+  expect(getState(users).byId).toEqual({ a: 'Hi' })
+  expect('a' in users._byIdAts).toBeTruthy()
+})
+
 test('only gc old docs but keep new docs', async () => {
   const onFetch = jest.fn(echoValue)
   const gcTime = 10000

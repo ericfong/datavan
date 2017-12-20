@@ -21,16 +21,18 @@ function calcUnset({ gcTime }, timestamps, ids) {
 
 // @auto-fold here
 function _invalidate(collection, ids) {
+  const ret = { delByIds: [], fetchAts: { $set: {} } }
   if (collection.onFetch) {
     const delByIds = calcUnset(collection, collection._byIdAts, ids)
     collection._byIdAts = _.omit(collection._byIdAts, delByIds)
-    return {
-      delByIds,
-      // calc all dropping ids when del any byIds
-      fetchAts: ids ? { $unset: calcUnset(collection, getState(collection).fetchAts, delByIds.length > 0 ? ALL : ids) } : { $set: {} },
+
+    ret.delByIds = delByIds
+    // calc all dropping ids when del any byIds
+    if (ids) {
+      ret.fetchAts = { $unset: calcUnset(collection, getState(collection).fetchAts, delByIds.length > 0 ? ALL : ids) }
     }
   }
-  return { delByIds: [] }
+  return ret
 }
 
 export function invalidate(collection, ids = ALL) {
