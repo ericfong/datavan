@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.1"></a>
+## [3.0.1](https://github.com/ericfong/datavan/compare/v3.0.0...v3.0.1) (2017-12-20)
+
+
+### Bug Fixes
+
+* gc for collection without onFetch ([a9f5673](https://github.com/ericfong/datavan/commit/a9f5673))
+
+
+
 <a name="3.0.0"></a>
 # [3.0.0](https://github.com/ericfong/datavan/compare/v2.11.1...v3.0.0) (2017-12-20)
 
