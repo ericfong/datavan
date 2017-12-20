@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/ericfong/datavan/compare/v2.11.1...v3.0.0) (2017-12-20)
+
+
+### Bug Fixes
+
+* re-organize code into less files ([aa1733a](https://github.com/ericfong/datavan/commit/aa1733a))
+* remove deprecated functons ([b69c53a](https://github.com/ericfong/datavan/commit/b69c53a))
+* rename processOptionHook to postFindHook ([89ff490](https://github.com/ericfong/datavan/commit/89ff490))
+
+
+### BREAKING CHANGES
+
+* rename processOptionHook to postFindHook
+* remove deprecated functons
+
+
+
 <a name="2.11.1"></a>
 ## [2.11.1](https://github.com/ericfong/datavan/compare/v2.11.0...v2.11.1) (2017-12-20)
 
