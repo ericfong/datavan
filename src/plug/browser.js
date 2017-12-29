@@ -40,6 +40,6 @@ export default spec =>
     },
     getHeight() {
       ensureListener(this, 'resize', addOnResize)
-      return get(this, 'width')
+      return get(this, 'height')
     },
   })
