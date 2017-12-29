@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.2"></a>
+## [3.0.2](https://github.com/ericfong/datavan/compare/v3.0.1...v3.0.2) (2017-12-29)
+
+
+### Bug Fixes
+
+* browser height ([f7652e2](https://github.com/ericfong/datavan/commit/f7652e2))
+
+
+
 <a name="3.0.1"></a>
 ## [3.0.1](https://github.com/ericfong/datavan/compare/v3.0.0...v3.0.1) (2017-12-20)
 
