@@ -61,6 +61,7 @@ rules:
     - find
     - this
     - postMessage
+    - name
   no-trailing-spaces: 1
   no-underscore-dangle: off
   no-unused-expressions: 1
