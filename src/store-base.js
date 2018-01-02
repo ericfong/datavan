@@ -8,13 +8,16 @@ export function getStore(stateOrDispatch) {
   if (datavanState) return datavanState.get()
 
   // stateOrDispatch = dispatch
-  if (typeof stateOrDispatch === 'function') return stateOrDispatch(GET_DATAVAN_ACTION)
+  if (typeof stateOrDispatch === 'function') {
+    return stateOrDispatch(GET_DATAVAN_ACTION)
+  }
 
   // stateOrDispatch = store
   return stateOrDispatch
 }
 
 export const getCollection = (any, name) => {
+  if (any && any.idField) return any
   const { collections } = getStore(any)
   if (process.env.NODE_ENV !== 'production' && !collections[name]) {
     console.error(`collection "${name}" not found`)

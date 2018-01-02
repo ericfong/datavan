@@ -23,16 +23,22 @@ function wrapCollect(args, func, mode) {
   // it is collection if have cast function
   const newArgs = coll && coll.idField ? args : [getCollection(coll, args[1]), ...args.slice(2)]
   const ret = func(...newArgs)
-  if (mode === WRITE) dispatchMutations(newArgs[0].store)
-  else if (mode === ASYNC_WRITE && ret && ret.then) ret.then(() => dispatchMutations(newArgs[0].store))
+  if (mode === WRITE) {
+    dispatchMutations(newArgs[0].store)
+  } else if (mode === ASYNC_WRITE && ret && ret.then) {
+    ret.then(() => dispatchMutations(newArgs[0].store))
+  }
   return ret
 }
 function wrapStore(args, func, mode) {
   const [_store, ...rest] = args
   const store = _store && _store.dispatch ? _store : getStore(_store)
   const ret = func(store, ...rest)
-  if (mode === WRITE) dispatchMutations(store)
-  else if (mode === ASYNC_WRITE && ret && ret.then) ret.then(() => dispatchMutations(store))
+  if (mode === WRITE) {
+    dispatchMutations(store)
+  } else if (mode === ASYNC_WRITE && ret && ret.then) {
+    ret.then(() => dispatchMutations(store))
+  }
   return ret
 }
 
@@ -79,7 +85,6 @@ export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
 
 // redux
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
-export memorizeConnect from './util/memorizeConnect'
 
 // store
 export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
@@ -90,9 +95,7 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 export const setContext = (...args) => wrapStore(args, _setContext)
 export const getContext = (...args) => wrapStore(args, _getContext)
 
-// plugins
-export plugBrowser from './plug/browser'
-
-// utils
-export reduxDebounceSubscriber from './util/reduxDebounceSubscriber'
-export runHook, { trapArgs } from './collection/util/runHook'
+// extension
+export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extension/browser'
+export reduxDebounceSubscriber from './extension/reduxDebounceSubscriber'
+export memorizeConnect from './extension/memorizeConnect'
