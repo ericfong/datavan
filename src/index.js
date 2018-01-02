@@ -92,9 +92,7 @@ export const getContext = (...args) => wrapStore(args, _getContext)
 
 // plugins
 export plugBrowser from './plug/browser'
-export plugSearchable from './plug/searchable'
 
 // utils
 export reduxDebounceSubscriber from './util/reduxDebounceSubscriber'
 export runHook, { trapArgs } from './collection/util/runHook'
-export searchObjects, { tokenizeKeywords } from './util/searchObjects'

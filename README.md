@@ -12,7 +12,6 @@
 * built-in reselect-like memoizing layer
 * design with offline in mind (persistent, conflict-resolve on your own)
 * supports server rendering
-* with searchable plugin
 * code in es6, support tree-shaking
 
 **How It works?**
@@ -334,6 +333,14 @@ Different between load() and setAll()
 
 * setAll() data will consider as local-changes and trigger re-render
 * load() data will consider as fill data from backend and trigger re-render
+
+### plugBrowser
+
+get and listen to browser resize, will mixin `getWidth()` and `getHeight()` functions
+
+```js
+datavanEnhancer({ collections: { browser: plugBrowser({}) } }) // plugBrowser is a object
+```
 
 # Collection Spec
 
