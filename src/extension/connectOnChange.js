@@ -2,19 +2,18 @@ import _ from 'lodash'
 import { connect } from 'react-redux'
 import { shallowEqual } from 'recompose'
 
-const arrayMapValues = (collections, fn) =>
-  _.reduce(
-    collections,
-    (ret, key) => {
-      ret[key] = fn(key)
-      return ret
-    },
-    {},
-  )
+const getArr = arg => {
+  if (arg === '*') return '*'
+  let ret
+  if (typeof arg === 'string') ret = _.uniq(_.compact(arg.split(',').map(_.trim)))
+  return ret || []
+}
+
+const pickKeys = (props, keys) => (keys === '*' ? props : _.pick(props, keys))
 
 export default (collectionStr, propStr, mapState) => {
-  const collectionNames = collectionStr.split(',').map(_.trim)
-  const propKeys = propStr.split(',').map(_.trim)
+  const collKeys = getArr(collectionStr)
+  const propKeys = getArr(propStr)
 
   return connect(() => {
     // init per component
@@ -24,10 +23,8 @@ export default (collectionStr, propStr, mapState) => {
 
     // real mapState
     return (state, props) => {
-      const stateDv = state.datavan
-      const nextByIds = arrayMapValues(collectionNames, name => stateDv[name].byId)
-
-      const nextProps = _.pick(props, propKeys)
+      const nextByIds = _.mapValues(pickKeys(state.datavan, collKeys), 'byId')
+      const nextProps = pickKeys(props, propKeys)
       if (shallowEqual(nextByIds, currByIds) && shallowEqual(nextProps, currProps)) return currResult
 
       currByIds = nextByIds
