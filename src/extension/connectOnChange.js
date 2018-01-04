@@ -2,35 +2,63 @@ import _ from 'lodash'
 import { connect } from 'react-redux'
 import { shallowEqual } from 'recompose'
 
-const getArr = arg => {
-  if (arg === '*') return '*'
-  let ret
-  if (typeof arg === 'string') ret = _.uniq(_.compact(arg.split(',').map(_.trim)))
-  return ret || []
+const ALWAYS_EQUAL = 'ALWAYS_EQUAL'
+const ALWAYS_DIFF = 'ALWAYS_DIFF'
+
+const getKeys = arg => {
+  if (arg === '') return ALWAYS_EQUAL
+  if (typeof arg === 'string') return _.uniq(_.compact(arg.split(',').map(_.trim)))
+  return ALWAYS_DIFF
 }
 
-const pickKeys = (props, keys) => (keys === '*' ? props : _.pick(props, keys))
+const pickByKeys = (props, keys) => {
+  if (keys === ALWAYS_EQUAL) return null
+  if (keys === ALWAYS_DIFF) return props
+  return _.pick(props, keys)
+}
 
-export default (collectionStr, propStr, mapState) => {
-  const collKeys = getArr(collectionStr)
-  const propKeys = getArr(propStr)
+export function runOnChange({ collections: _collectionNames, props: _propsKeys }, func) {
+  const collNames = getKeys(_collectionNames)
+  const propKeys = getKeys(_propsKeys)
 
-  return connect(() => {
-    // init per component
-    let currProps
-    let currByIds
-    let currResult
-
-    // real mapState
-    return (state, props) => {
-      const nextByIds = _.mapValues(pickKeys(state.datavan, collKeys), 'byId')
-      const nextProps = pickKeys(props, propKeys)
-      if (shallowEqual(nextByIds, currByIds) && shallowEqual(nextProps, currProps)) return currResult
-
-      currByIds = nextByIds
-      currProps = nextProps
-      currResult = mapState(state, props)
-      return currResult
+  const stateAlwaysDiff = collNames === ALWAYS_DIFF
+  const propsAlwaysDiff = propKeys === ALWAYS_DIFF
+  if (stateAlwaysDiff && propsAlwaysDiff) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Use connectOnChange/runOnChange without collections:string or props:string option. You need at least one of them.')
     }
+    return func
+  }
+
+  let currProps
+  let currState
+  let currResult
+
+  return (state, props) => {
+    let nextState
+    let isStateEqual
+    if (stateAlwaysDiff) {
+      nextState = state.datavan
+      isStateEqual = nextState === currState
+    } else {
+      nextState = _.mapValues(pickByKeys(state.datavan, collNames), 'byId')
+      isStateEqual = shallowEqual(nextState, currState)
+    }
+
+    const nextProps = pickByKeys(props, propKeys)
+    if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
+
+    currState = nextState
+    currProps = nextProps
+    // real running of memoize
+    currResult = func(state, props)
+    return currResult
+  }
+}
+
+export default ({ collections, props }, mapState) => {
+  return connect(() => {
+    // create and return memoizer func per component
+    return runOnChange({ collections, props }, mapState)
   })
 }
