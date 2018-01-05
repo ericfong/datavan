@@ -29,15 +29,15 @@ function addOnResize(coll) {
   }
 }
 
-export function getBrowserWidth(state, collection, widthKey = 'browserWidth') {
-  const coll = getCollection(state, collection)
+export function getBrowserWidth(state, collectionName, widthKey = 'browserWidth') {
+  const coll = getCollection(state, collectionName)
   coll._browserWidthKey = widthKey
   ensureListener(coll, '_browserOnResize', addOnResize)
   return _get(coll, widthKey)
 }
 
-export function getBrowserHeight(state, collection, heightKey = 'browserHeight') {
-  const coll = getCollection(state, collection)
+export function getBrowserHeight(state, collectionName, heightKey = 'browserHeight') {
+  const coll = getCollection(state, collectionName)
   coll._browserHeightKey = heightKey
   ensureListener(coll, '_browserOnResize', addOnResize)
   return _get(coll, heightKey)
