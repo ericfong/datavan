@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.1.0"></a>
+# [3.1.0](https://github.com/ericfong/datavan/compare/v3.0.2...v3.1.0) (2018-01-05)
+
+
+### Features
+
+* connectOnChange and runOnChange api ([1319d3e](https://github.com/ericfong/datavan/commit/1319d3e))
+
+
+
 <a name="3.0.2"></a>
 ## [3.0.2](https://github.com/ericfong/datavan/compare/v3.0.1...v3.0.2) (2017-12-29)
 
