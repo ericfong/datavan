@@ -27,7 +27,15 @@ export function _findInMemory(self, query, option = {}) {
   }
 
   // MISS
+  const start = Date.now()
   const ret = (_memory[queryKey] = findInState(self, query, option))
+
+  if (process.env.NODE_ENV === 'development') {
+    const duration = Date.now() - start
+    if (duration > 300) {
+      console.warn(`Slow(${duration}ms) Find Query! Please use connectOnChange or runOnChange to cache your connect logic`)
+    }
+  }
   return ret
 }
 
