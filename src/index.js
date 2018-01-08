@@ -43,7 +43,6 @@ function wrapStore(args, func, mode) {
 }
 
 export { getCollection, dispatchMutations }
-export { loadAsDefaults } from './collection/load'
 export { EXPIRED, ALL } from './collection/invalidate'
 
 // collection

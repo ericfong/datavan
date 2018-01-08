@@ -6,7 +6,7 @@ import createCollection from './collection'
 import { dispatchMutations } from './store-base'
 
 const defaultsPreload = (preloadedState, collections) => {
-  const defaults = { datavan: { _timestamp: Date.now() } }
+  const defaults = { datavan: {} }
   _.each(collections, (c, name) => {
     defaults.datavan[name] = { byId: {}, fetchAts: {}, originals: {} }
   })

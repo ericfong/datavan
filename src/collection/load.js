@@ -3,19 +3,15 @@ import _ from 'lodash'
 import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
 
-export const loadAsDefaults = (data, id, self, targets) => {
-  return data && typeof data === 'object' ? { ...data, ...targets[id] } : data
-}
-export const loadAsMerge = (data, id, self, targets) => {
-  return data && typeof data === 'object' ? { ...targets[id], ...data } : data
+const loadAs = (inDoc, id, targets) => {
+  return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
 }
 
-// @auto-fold here
-function _loop(mut = {}, items, func) {
+function _loop(mut = {}, inDocs, func) {
   const $merge = {}
-  _.each(items, (value, id) => {
+  _.each(inDocs, (inDoc, id) => {
     if (id[0] === '$') return
-    const v = func(value, id)
+    const v = func(inDoc, id)
     if (v !== undefined) {
       $merge[id] = v
       mut.$merge = $merge
@@ -54,25 +50,25 @@ export function normalizeLoadData(self, data) {
   return { byId: data }
 }
 
-export function load(self, _data, { mutation = {}, loadAs = loadAsMerge } = {}) {
+export function load(self, _data, { mutation = {} } = {}) {
   if (!_data) return _data
   const data = normalizeLoadData(self, _data)
 
-  // move tmp id to $submittedIds before loadAsMerge or loadAsDefaults
+  // move tmp id to $submittedIds before loadAsMerge
   if (data.$submittedIds) submitted(self, data.$submittedIds)
 
   // load byId, originals, fetchAts
   const { byId, originals } = getState(self)
   const { _byIdAts } = self
   const now = Date.now()
-  mutation.byId = _loop(mutation.byId, data.byId, (v, id) => {
+  mutation.byId = _loop(mutation.byId, data.byId, (inDoc, id) => {
     if (id in originals) return
     _byIdAts[id] = now
-    return loadAs(v, id, self, byId)
+    return loadAs(inDoc, id, byId)
   })
-  mutation.originals = _loop(mutation.originals, data.originals, (v, id) => {
+  mutation.originals = _loop(mutation.originals, data.originals, (inDoc, id) => {
     // original may be null
-    return v ? loadAs(v, id, self, originals) : v
+    return inDoc ? loadAs(inDoc, id, originals) : inDoc
   })
 
   if (data.fetchAts) {

@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createStore, compose } from 'redux'
 import delay from 'delay'
 
-import { load, loadAsDefaults, datavanEnhancer, getState, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
+import { load, datavanEnhancer, getState, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
 import createCollection from '../test/createCollection'
 import onFetchEcho from '../test/onFetchEcho'
 
@@ -155,6 +155,4 @@ test('load', async () => {
   expect(getAll(users)).toEqual({ a: { x: 1, y: 1 } })
   load(users, { byId: { a: { x: 2 }, b: null } })
   expect(getAll(users)).toEqual({ a: { x: 2, y: 1 }, b: null })
-  load(users, { byId: { a: { x: 3, y: 3, z: 3 } } }, { loadAs: loadAsDefaults })
-  expect(getAll(users)).toEqual({ a: { x: 2, y: 1, z: 3 }, b: null })
 })
