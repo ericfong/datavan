@@ -11,10 +11,20 @@ const getKeys = arg => {
   return ALWAYS_DIFF
 }
 
-const pickByKeys = (props, keys) => {
+const pickByKeys = (props, keys, groupWarnIfNotFound) => {
   if (keys === ALWAYS_EQUAL) return null
   if (keys === ALWAYS_DIFF) return props
-  return _.pick(props, keys)
+  return _.reduce(
+    keys,
+    (ret, key) => {
+      if (process.env.NODE_ENV === 'development' && groupWarnIfNotFound && !props[key]) {
+        console.error(`${groupWarnIfNotFound} "${key}" not found`)
+      }
+      ret[key] = props[key]
+      return ret
+    },
+    {},
+  )
 }
 
 export function runOnChange({ collections: _collectionNames, props: _propsKeys }, func) {
@@ -41,7 +51,7 @@ export function runOnChange({ collections: _collectionNames, props: _propsKeys }
       nextState = state.datavan
       isStateEqual = nextState === currState
     } else {
-      nextState = _.mapValues(pickByKeys(state.datavan, collNames), 'byId')
+      nextState = _.mapValues(pickByKeys(state.datavan, collNames, 'collections'), 'byId')
       isStateEqual = shallowEqual(nextState, currState)
     }
 
