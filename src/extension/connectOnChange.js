@@ -2,6 +2,8 @@ import _ from 'lodash'
 import { connect } from 'react-redux'
 import { shallowEqual } from 'recompose'
 
+import { getStore } from '../store-base'
+
 const ALWAYS_EQUAL = 'ALWAYS_EQUAL'
 const ALWAYS_DIFF = 'ALWAYS_DIFF'
 
@@ -27,7 +29,7 @@ const pickByKeys = (props, keys, groupWarnIfNotFound) => {
   )
 }
 
-function runOnChange({ collections: _collectionNames, props: _propsKeys }, func) {
+export default ({ collections: _collectionNames, props: _propsKeys }, mapStateFunc) => {
   const collNames = getKeys(_collectionNames)
   const propKeys = getKeys(_propsKeys)
 
@@ -37,38 +39,38 @@ function runOnChange({ collections: _collectionNames, props: _propsKeys }, func)
     if (process.env.NODE_ENV !== 'production') {
       console.warn('Use connectOnChange without collections:string or props:string option. You need at least one of them.')
     }
-    return func
+    return mapStateFunc
   }
 
-  let currProps
-  let currState
-  let currResult
-
-  return (state, props) => {
-    let nextState
-    let isStateEqual
-    if (stateAlwaysDiff) {
-      nextState = state.datavan
-      isStateEqual = nextState === currState
-    } else {
-      nextState = _.mapValues(pickByKeys(state.datavan, collNames, 'collections'), 'byId')
-      isStateEqual = shallowEqual(nextState, currState)
-    }
-
-    const nextProps = pickByKeys(props, propKeys)
-    if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
-
-    currState = nextState
-    currProps = nextProps
-    // real running of memoize
-    currResult = func(state, props)
-    return currResult
-  }
-}
-
-export default ({ collections, props }, mapState) => {
   return connect(() => {
+    let currProps
+    let currState
+    let currResult
+
     // create and return memoizer func per component
-    return runOnChange({ collections, props }, mapState)
+    return (state, props) => {
+      let nextState
+      let isStateEqual
+      if (stateAlwaysDiff) {
+        nextState = state.datavan
+        isStateEqual = nextState === currState
+      } else {
+        nextState = _.mapValues(pickByKeys(state.datavan, collNames, 'collections'), 'byId')
+        isStateEqual = shallowEqual(nextState, currState)
+      }
+
+      const nextProps = pickByKeys(props, propKeys)
+      if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
+
+      currState = nextState
+      currProps = nextProps
+      // real running of memoize
+      const { vanCtx } = getStore(state)
+      const _inConnectOnChange = vanCtx.inConnectOnChange
+      vanCtx.inConnectOnChange = true
+      currResult = mapStateFunc(state, props)
+      vanCtx.inConnectOnChange = _inConnectOnChange
+      return currResult
+    }
   })
 }

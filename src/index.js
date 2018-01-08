@@ -43,7 +43,7 @@ function wrapStore(args, func, mode) {
   return ret
 }
 
-export { getCollection, dispatchMutations }
+export { getCollection, dispatchMutations, getStore }
 export { EXPIRED, ALL } from './collection/invalidate'
 
 // collection
