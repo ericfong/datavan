@@ -35,7 +35,7 @@ function runOnChange({ collections: _collectionNames, props: _propsKeys }, func)
   const propsAlwaysDiff = propKeys === ALWAYS_DIFF
   if (stateAlwaysDiff && propsAlwaysDiff) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('Use connectOnChange/runOnChange without collections:string or props:string option. You need at least one of them.')
+      console.warn('Use connectOnChange without collections:string or props:string option. You need at least one of them.')
     }
     return func
   }

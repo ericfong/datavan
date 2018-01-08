@@ -32,8 +32,8 @@ export function _findInMemory(self, query, option = {}) {
 
   if (process.env.NODE_ENV === 'development') {
     const duration = Date.now() - start
-    if (duration > 300) {
-      console.warn(`Slow(${duration}ms) Find Query! Please use connectOnChange or runOnChange to cache your connect logic`)
+    if (duration > 100) {
+      console.warn(`Slow(${duration}ms) Find Query! Please use connectOnChange to cache your connect logic`)
     }
   }
   return ret

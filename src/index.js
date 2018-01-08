@@ -100,3 +100,4 @@ export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extension/brow
 export reduxDebounceSubscriber from './extension/reduxDebounceSubscriber'
 export connectOnChange from './extension/connectOnChange'
 export withMethods from './extension/withMethods'
+export { compose } from 'recompose'
