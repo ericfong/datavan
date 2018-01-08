@@ -98,4 +98,5 @@ export const getContext = (...args) => wrapStore(args, _getContext)
 // extension
 export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extension/browser'
 export reduxDebounceSubscriber from './extension/reduxDebounceSubscriber'
-export connectOnChange, { runOnChange } from './extension/connectOnChange'
+export connectOnChange from './extension/connectOnChange'
+export withMethods from './extension/withMethods'

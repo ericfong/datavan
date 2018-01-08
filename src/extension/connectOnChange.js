@@ -27,7 +27,7 @@ const pickByKeys = (props, keys, groupWarnIfNotFound) => {
   )
 }
 
-export function runOnChange({ collections: _collectionNames, props: _propsKeys }, func) {
+function runOnChange({ collections: _collectionNames, props: _propsKeys }, func) {
   const collNames = getKeys(_collectionNames)
   const propKeys = getKeys(_propsKeys)
 
