@@ -5,7 +5,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get, reduxDebounceSubscriber } from '..'
+import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getAll, get, reduxDebounceSubscriber } from '..'
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const collections = { memory: {} }
@@ -29,7 +29,7 @@ test('merge state with redux dispatch changes by another reducer', () => {
 
   set(store, 'memory', 'after', 'yes')
 
-  expect(getState(store, 'memory').byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
+  expect(getAll(store, 'memory')).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
 })
 

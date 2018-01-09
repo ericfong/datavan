@@ -1,7 +1,10 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { getState, getAll, runHook } from './base'
+export function runHook(hook, next, ...args) {
+  if (hook) return hook(next, ...args)
+  if (next) return next(...args)
+}
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -78,10 +81,10 @@ export function getQueryIds(query, idField) {
 
 export function prepareFindData(self, query, option) {
   if (option._preparedData) return option._preparedData
-  let data = getAll(self)
+  let data = self.getAll()
 
   if (option.inOriginal) {
-    data = _.omitBy({ ...data, ...getState(self).originals }, v => v === null)
+    data = _.omitBy({ ...data, ...self.getState().originals }, v => v === null)
   }
 
   const ids = getQueryIds(query, self.idField)
@@ -95,7 +98,7 @@ export function prepareFindData(self, query, option) {
   return prepared
 }
 
-export default function findInState(collection, query, option) {
+export default function findInMemory(collection, query, option = {}) {
   let docs = prepareFindData(collection, query, option)
   // prevent re-use option
   delete option._preparedData

@@ -1,8 +1,34 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { _mutateAll } from './base'
 import findInMemory from './findInMemory'
+
+export function _mutateAll(collection, mutations) {
+  const mutation = { byId: mutations }
+
+  if (collection.onFetch) {
+    // keep originals
+    const mutOriginals = {}
+    const { originals, byId } = collection.getState()
+    const keepOriginal = k => {
+      if (!(k in originals)) {
+        // need to convert undefined original to null, for persist
+        const original = byId[k]
+        mutOriginals[k] = { $set: original === undefined ? null : original }
+      }
+    }
+    _.each(mutations, (value, key) => {
+      if (key === '$unset' || key === '$merge') {
+        _.each(value, keepOriginal)
+        return
+      }
+      keepOriginal(key)
+    })
+    mutation.originals = mutOriginals
+  }
+
+  collection.addMutation(mutation)
+}
 
 export function _setAll(collection, change) {
   const mutation = {}

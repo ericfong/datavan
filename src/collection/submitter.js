@@ -1,15 +1,14 @@
 import _ from 'lodash'
 
-import { getState } from './base'
 import { load, normalizeLoadData } from './load'
 import { dispatchMutations } from '../store-base'
 
-export function getOriginals(table) {
-  return getState(table).originals
+export function getOriginals(collection) {
+  return collection.getState().originals
 }
 
-export function getSubmits(table) {
-  const { byId, originals } = getState(table)
+export function getSubmits(collection) {
+  const { byId, originals } = collection.getState()
   return _.mapValues(originals, (v, k) => byId[k])
 }
 

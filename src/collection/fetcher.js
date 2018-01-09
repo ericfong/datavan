@@ -2,8 +2,7 @@ import _ from 'lodash'
 // https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
 import stringify from 'fast-stable-stringify'
 
-import { getState, addMutation, runHook } from './base'
-import { prepareFindData } from './findInMemory'
+import { prepareFindData, runHook } from './findInMemory'
 import { load } from './load'
 import { dispatchMutations } from '../store-base'
 
@@ -36,14 +35,14 @@ function markPromise(self, key, promise, overwrite) {
     .then(ret => {
       if (_fetchingPromises[key] === promise) {
         delete _fetchingPromises[key]
-        addMutation(self, null) // force render to update isFetching
+        self.addMutation(null) // force render to update isFetching
       }
       return ret
     })
     .catch(err => {
       if (_fetchingPromises[key] === promise) {
         delete _fetchingPromises[key]
-        addMutation(self, null) // force render to update isFetching
+        self.addMutation(null) // force render to update isFetching
       }
       return Promise.reject(err)
     })
@@ -63,7 +62,7 @@ function checkFetch(self, query, option) {
   if (notForce && fetchKey === false) return false
 
   if (notForce) {
-    const { fetchAts } = getState(self)
+    const { fetchAts } = self.getState()
     const now = Date.now()
     // console.log('checkFetch', fetchAts[fetchKey] - (now - fetchMaxAge))
     const { fetchMaxAge } = self
@@ -123,7 +122,7 @@ const confDefaults = {
   // fetchMaxAge: 1,
 }
 
-export default base => {
+export default function fetcher(base) {
   return {
     ...confDefaults,
     ...base,

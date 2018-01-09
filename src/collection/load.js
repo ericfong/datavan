@@ -1,6 +1,5 @@
 import _ from 'lodash'
 
-import { getState, addMutation } from './base'
 import { invalidate, reset } from './invalidate'
 
 const loadAs = (inDoc, id, targets) => {
@@ -21,7 +20,7 @@ function _loop(mut = {}, inDocs, func) {
 }
 
 function submitted(self, idTable, option) {
-  const { byId } = getState(self)
+  const { byId } = self.getState()
   const { _byIdAts } = self
   const $unset = []
   const byIdMerge = {}
@@ -33,7 +32,7 @@ function submitted(self, idTable, option) {
     }
     $unset.push(oldId)
   })
-  addMutation(self, { byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
+  self.addMutation({ byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
 const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
@@ -58,7 +57,7 @@ export function load(self, _data, { mutation = {} } = {}) {
   if (data.$submittedIds) submitted(self, data.$submittedIds)
 
   // load byId, originals, fetchAts
-  const { byId, originals } = getState(self)
+  const { byId, originals } = self.getState()
   const { _byIdAts } = self
   const now = Date.now()
   mutation.byId = _loop(mutation.byId, data.byId, (inDoc, id) => {
@@ -79,7 +78,7 @@ export function load(self, _data, { mutation = {} } = {}) {
     }
   }
 
-  addMutation(self, mutation)
+  self.addMutation(mutation)
   // console.log(self.store.vanCtx.side, 'load', mutation.byId)
 
   // NOTE for server to pick-it back invalidate or reset data

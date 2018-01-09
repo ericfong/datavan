@@ -1,5 +1,5 @@
 import createCollection from './util/createCollection'
-import { getState, garbageCollect, invalidate, get, getAsync, EXPIRED } from '..'
+import { getAll, garbageCollect, invalidate, get, getAsync, EXPIRED } from '..'
 import { echoValue } from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -9,7 +9,7 @@ import { echoValue } from './util/onFetchEcho'
 test('gc for collection without onFetch', async () => {
   const users = createCollection({ initState: { byId: { a: 'Hi' } }, gcTime: -1 })
   garbageCollect(users)
-  expect(getState(users).byId).toEqual({ a: 'Hi' })
+  expect(getAll(users)).toEqual({ a: 'Hi' })
   expect('a' in users._byIdAts).toBeTruthy()
 })
 
@@ -25,7 +25,7 @@ test('only gc old docs but keep new docs', async () => {
 
   garbageCollect(users, EXPIRED)
   // gc keep 'a'
-  expect(getState(users).byId).toEqual({ a: 'A' })
+  expect(getAll(users)).toEqual({ a: 'A' })
   // _byIdAts.a reduced
   expect(users._byIdAts.a).toBe(oldByIdAtA)
 
@@ -37,7 +37,7 @@ test('only gc old docs but keep new docs', async () => {
 
   // loop gc until drop 'a' but keep 'b'
   garbageCollect(users, EXPIRED)
-  expect(getState(users).byId).toEqual({ b: 'B' })
+  expect(getAll(users)).toEqual({ b: 'B' })
 
   // will not re-fetch 'b'
   onFetch.mockClear()
@@ -48,7 +48,7 @@ test('only gc old docs but keep new docs', async () => {
   // invalidate 'b'
   invalidate(users, ['b'])
   // 'b' remain
-  expect(getState(users).byId).toEqual({ b: 'B' })
+  expect(getAll(users)).toEqual({ b: 'B' })
   // but No _byIdAts
   expect(users._byIdAts.b).toBeFalsy()
 
@@ -67,6 +67,6 @@ test('gc', async () => {
   })
 
   garbageCollect(users)
-  expect(getState(users).byId).toEqual({})
+  expect(getAll(users)).toEqual({})
   expect('a' in users._byIdAts).toBeFalsy()
 })

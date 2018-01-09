@@ -1,23 +1,35 @@
 import { TMP_ID_PREFIX } from '../constant'
 import { init } from './load'
-import httpFetcher from './fetcher'
+import fetcher from './fetcher'
 
 const collectionPrototype = {
-  // __proxy__
   idField: '_id',
   // gcTime: 60 * 1000,
   // onInit, onLoad
-  // findHook, filterHook, postFindHook, findAsyncHook, getHook, getAllHook, setAllHook
+  // getHook, findHook, findAsyncHook, filterHook, postFindHook
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
+
+  getState() {
+    return this.store.getState().datavan[this.name]
+  },
+
+  addMutation(mutation) {
+    this.mutatedAt = Date.now()
+    this.store.vanCtx.mutates.push({ collection: this.name, mutation })
+  },
+
+  getAll() {
+    return this.getState().byId
+  },
 }
 
 export default function createCollection(spec) {
-  let self = Object.assign({}, collectionPrototype, spec)
+  let collection = Object.assign({}, collectionPrototype, spec)
 
-  if (self.onFetch) self = httpFetcher(self)
+  if (spec.onFetch) collection = fetcher(collection)
 
-  init(self)
+  init(collection)
 
-  return self
+  return collection
 }

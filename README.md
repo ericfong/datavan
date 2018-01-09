@@ -21,43 +21,39 @@ During find(), datavan will query your local-data first. If local-data is missin
 **Table of Contents**
 
 <!-- TOC START min:1 max:3 link:true update:true -->
-
-* [Getting Started](#getting-started)
-  * [connectOnChange](#connectonchange)
-  * [datavanEnhancer](#datavanenhancer)
-* [Collection Functions](#collection-functions)
-  * [find](#find)
-  * [findAsync](#findasync)
-  * [findOne](#findone)
-  * [get](#get)
-  * [getAsync](#getasync)
-  * [setAll](#setall)
-  * [getOriginals](#getoriginals)
-  * [getSubmits](#getsubmits)
-  * [set](#set)
-  * [del](#del)
-  * [insert](#insert)
-  * [update](#update)
-  * [remove](#remove)
-  * [invalidate](#invalidate)
-  * [reset](#reset)
-  * [getAll](#getall)
-  * [submit](#submit)
-  * [load](#load)
-* [Collection Spec](#collection-spec)
-  * [idField](#idfield)
-  * [onFetch](#onfetch)
-  * [onSubmit](#onsubmit)
-  * [cast](#cast)
-  * [genId](#genid)
-  * [getFetchKey](#getfetchkey)
-  * [getAllHook](#getallhook)
-  * [getHook](#gethook)
-  * [onSetAll](#onsetall)
-  * [initState](#initstate)
-* [Extension](#extension)
-  * [getBrowserWidth / getBrowserHeight](#getbrowserwidth--getbrowserheight)
-* [Upgrade from (2.7.3)](#upgrade-from-273)
+- [Getting Started](#getting-started)
+    - [connectOnChange](#connectonchange)
+    - [datavanEnhancer](#datavanenhancer)
+- [Collection Functions](#collection-functions)
+    - [find](#find)
+    - [findAsync](#findasync)
+    - [findOne](#findone)
+    - [get](#get)
+    - [getAsync](#getasync)
+    - [setAll](#setall)
+    - [getOriginals](#getoriginals)
+    - [getSubmits](#getsubmits)
+    - [set](#set)
+    - [del](#del)
+    - [insert](#insert)
+    - [update](#update)
+    - [remove](#remove)
+    - [invalidate](#invalidate)
+    - [reset](#reset)
+    - [getAll](#getall)
+    - [submit](#submit)
+    - [load](#load)
+- [Collection Spec](#collection-spec)
+    - [idField](#idfield)
+    - [onFetch](#onfetch)
+    - [onSubmit](#onsubmit)
+    - [cast](#cast)
+    - [genId](#genid)
+    - [getFetchKey](#getfetchkey)
+    - [initState](#initstate)
+- [Extension](#extension)
+    - [getBrowserWidth / getBrowserHeight](#getbrowserwidth--getbrowserheight)
+- [Upgrade from (2.7.3)](#upgrade-from-273)
 
 <!-- TOC END -->
 
@@ -432,48 +428,6 @@ calculate and return fetchKey (to determine cache hit or miss) from fetchQuery
 const collectionSpec = {
   getFetchKey(fetchQuery, option) {
     return 'generated unique cache key from fetchQuery'
-  },
-}
-```
-
-### getAllHook
-
-sync get all documents function. Return: map of documents (keyed by idField)
-
-```js
-const collectionSpec = {
-  getAllHook(next, collection) {
-    return { ...table_of_docs }
-  },
-}
-```
-
-### getHook
-
-sync get one document function. Return: document
-
-```js
-const collectionSpec = {
-  getHook(next, collection, id, option) {
-    return storage.getItem(id)
-  },
-}
-```
-
-### onSetAll
-
-called only when collection setAll or other updates.
-
-```js
-const collectionSpec = {
-  setAllHook(next, collection, change, option) {
-    _.each(change, (value, key) => {
-      if (key === '$unset') {
-        _.each(value, k => storage.removeItem(k))
-        return
-      }
-      storage.setItem(key, value)
-    })
   },
 }
 ```

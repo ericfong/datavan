@@ -2,7 +2,7 @@
 import delay from 'delay'
 import { createStore, compose } from 'redux'
 
-import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getState, getAll, reduxDebounceSubscriber } from '..'
+import { datavanEnhancer, getCollection, plugBrowser, set, gcStore, invalidateStore, getAll, reduxDebounceSubscriber } from '..'
 
 // import { printTimes } from '../datavanEnhancer'
 // afterAll(printTimes)
@@ -12,9 +12,9 @@ test('gcStore all&now', async () => {
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
   const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
-  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
+  expect(getAll(store, 'users')).toEqual({ a: 'A' })
   gcStore(store, { all: true, now: true })
-  expect(getState(store, 'users').byId).toEqual({})
+  expect(getAll(store, 'users')).toEqual({})
 })
 
 test('gcStore', async () => {
@@ -22,10 +22,10 @@ test('gcStore', async () => {
   const collections = { users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime } }
   const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
-  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
+  expect(getAll(store, 'users')).toEqual({ a: 'A' })
   await delay(gcTime * 2)
   gcStore(store)
-  expect(getState(store, 'users').byId).toEqual({})
+  expect(getAll(store, 'users')).toEqual({})
 })
 
 test('invalidateStore', async () => {
@@ -36,7 +36,7 @@ test('invalidateStore', async () => {
   expect(getCollection(store, 'users')._byIdAts.a).toBeTruthy()
   await delay(gcTime * 2)
   invalidateStore(store)
-  expect(getState(store, 'users').byId).toEqual({ a: 'A' })
+  expect(getAll(store, 'users')).toEqual({ a: 'A' })
   expect(getCollection(store, 'users')._byIdAts.a).toBeFalsy()
 })
 

@@ -1,7 +1,5 @@
 import _ from 'lodash'
 
-import { getState, addMutation } from './base'
-
 export const ALL = null
 export const EXPIRED = 'EXPIRED'
 
@@ -29,7 +27,7 @@ function _invalidate(collection, ids) {
     ret.delByIds = delByIds
     // calc all dropping ids when del any byIds
     if (ids) {
-      ret.fetchAts = { $unset: calcUnset(collection, getState(collection).fetchAts, delByIds.length > 0 ? ALL : ids) }
+      ret.fetchAts = { $unset: calcUnset(collection, collection.getState().fetchAts, delByIds.length > 0 ? ALL : ids) }
     }
   }
   return ret
@@ -38,17 +36,17 @@ function _invalidate(collection, ids) {
 export function invalidate(collection, ids = ALL) {
   const mutation = _invalidate(collection, ids)
   delete mutation.delByIds
-  addMutation(collection, mutation)
+  collection.addMutation(mutation)
 }
 
 // garbageCollect only reset tidy docs
 export function garbageCollect(collection, ids = EXPIRED) {
   const { delByIds, fetchAts } = _invalidate(collection, ids)
 
-  const { byId: oldById, originals } = getState(collection)
+  const { byId: oldById, originals } = collection.getState()
   const isTidy = id => !(id in originals)
   const byId = { $unset: _.filter(ids ? delByIds : Object.keys(oldById), isTidy) }
-  addMutation(collection, { fetchAts, byId })
+  collection.addMutation({ fetchAts, byId })
 }
 
 // reset both dirty and tidy docs
@@ -57,5 +55,5 @@ export function reset(collection, ids = ALL) {
 
   const byId = ids ? { $unset: delByIds } : { $set: {} }
   const originals = byId
-  addMutation(collection, { fetchAts, byId, originals })
+  collection.addMutation({ fetchAts, byId, originals })
 }

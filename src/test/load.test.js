@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createStore, compose } from 'redux'
 import delay from 'delay'
 
-import { load, datavanEnhancer, getState, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
+import { load, datavanEnhancer, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
 import createCollection from './util/createCollection'
 import onFetchEcho from './util/onFetchEcho'
 
@@ -17,12 +17,12 @@ test('save&load will not re-fetch by ids', async () => {
   find(serverUsers, ['a', 'b', 'c'])
   find(serverUsers, { name: 'A' })
   await getPending(serverUsers)
-  const serverState = getState(serverUsers)
+  const serverState = serverUsers.getState()
 
   // new browser collection
   const users = createCollection({ onFetch, initState: serverState })
-  expect(getState(users).byId).toEqual({ a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } })
-  expect(_.keys(getState(users).fetchAts)).toEqual(['[["a","b","c"],{}]', '[{"name":"A"},{}]'])
+  expect(getAll(users)).toEqual({ a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } })
+  expect(_.keys(users.getState().fetchAts)).toEqual(['[["a","b","c"],{}]', '[{"name":"A"},{}]'])
   expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
 
   // reset

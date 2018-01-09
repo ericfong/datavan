@@ -1,11 +1,16 @@
-import { getAll, runHook } from './base'
-import findInMemory from './findInMemory'
+import findInMemory, { runHook } from './findInMemory'
 
-const __get = (collection, id) => getAll(collection)[id]
-export const _get = (collection, id) => runHook(collection.getHook, __get, collection, id)
+export function _getAll(collection) {
+  return collection.getAll()
+}
 
-export function _getInMemory(self, id) {
-  return getAll(self)[id]
+const __get = (collection, id) => collection.getAll()[id]
+export function _get(collection, id) {
+  return runHook(collection.getHook, __get, collection, id)
+}
+
+export function _getInMemory(collection, id) {
+  return collection.getAll()[id]
 }
 
 export function _find(collection, query = {}, option = {}) {
