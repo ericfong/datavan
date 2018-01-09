@@ -4,9 +4,8 @@ import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 
-import { findOne, datavanEnhancer } from '..'
-import '../test/enzyme-setup'
-import connectOnChange from './connectOnChange'
+import './util/enzyme-setup'
+import { findOne, datavanEnhancer, connectOnChange } from '..'
 
 test('basic', async () => {
   const func = jest.fn((state, { name }) => ({

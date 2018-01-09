@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import runHook from './util/runHook'
+import runHook from './runHook'
 
 // getState
 export function getState(self) {

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getSubmittedIds } from '..'
+import { getSubmittedIds } from '../..'
 
 const echoSubmitArr = docs =>
   _.reduce(
@@ -11,7 +11,7 @@ const echoSubmitArr = docs =>
       }
       return ret
     },
-    []
+    [],
   )
 
 export const echoSubmit = (docs, collection) => {

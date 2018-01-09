@@ -1,4 +1,4 @@
-import { TMP_ID_PREFIX } from './util/idUtil'
+import { TMP_ID_PREFIX } from '../constant'
 import { init } from './load'
 import httpFetcher from './fetcher'
 

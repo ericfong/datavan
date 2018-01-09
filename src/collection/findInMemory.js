@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { getQueryIds } from './util/idUtil'
-import runHook from './util/runHook'
+import runHook from './runHook'
 import { getState, getAll } from './base'
 
 // @auto-fold here
@@ -66,6 +65,16 @@ function filterDataByIds(self, data, ids, option) {
   }, [])
   option.allIdsHit = allIdsHit
   return ret
+}
+
+// @auto-fold here
+export function getQueryIds(query, idField) {
+  if (Array.isArray(query)) return query
+  const idQuery = query[idField]
+  if (idQuery) {
+    if (Array.isArray(idQuery.$in)) return idQuery.$in
+    if (typeof idQuery === 'string') return [idQuery]
+  }
 }
 
 export function prepareFindData(self, query, option) {

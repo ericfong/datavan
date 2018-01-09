@@ -1,4 +1,4 @@
-import runHook from './util/runHook'
+import runHook from './runHook'
 import { getAll } from './base'
 import findInMemory from './findInMemory'
 

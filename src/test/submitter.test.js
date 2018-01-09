@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import createCollection from '../test/createCollection'
+import createCollection from './util/createCollection'
 import { getSubmits, submit, findOne, getPending, insert, update, remove, get, getAll } from '..'
-import { echoSubmit } from '../test/echo'
+import { echoSubmit } from './util/echo'
 
 // import { printTimes } from '../datavanEnhancer'
 //

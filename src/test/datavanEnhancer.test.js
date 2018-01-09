@@ -4,8 +4,8 @@ import { createStore, combineReducers, compose } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
-import './test/enzyme-setup'
-import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get, reduxDebounceSubscriber } from '.'
+import './util/enzyme-setup'
+import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getState, getAll, get, reduxDebounceSubscriber } from '..'
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const collections = { memory: {} }
@@ -46,7 +46,7 @@ test('combineReducers', async () => {
       datavan: datavanReducer,
     }),
     preloadState,
-    datavanEnhancer({ collections: { memory: {} } })
+    datavanEnhancer({ collections: { memory: {} } }),
   )
 
   expect(store.getState()).toMatchObject(preloadState)
@@ -95,7 +95,7 @@ test('basic', () => {
       onClick() {
         lastClickValue = get(dispatch, 'users', 'u1')
       },
-    })
+    }),
   )(props => {
     props.onClick()
     return <span>{props.user1}</span>

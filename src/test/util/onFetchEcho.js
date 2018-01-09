@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { getQueryIds } from '../collection/util/idUtil'
+import { getQueryIds } from '../../collection/findInMemory'
 
 export const timeoutResolve = (value, t = 10) => new Promise(resolve => setTimeout(() => resolve(value), t))
 

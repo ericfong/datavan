@@ -2,12 +2,13 @@ import _ from 'lodash'
 // https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
 import stringify from 'fast-stable-stringify'
 
-import { withoutTmpId } from './util/idUtil'
 import { getState, addMutation } from './base'
 import { prepareFindData } from './findInMemory'
 import { load } from './load'
-import runHook from './util/runHook'
+import runHook from './runHook'
 import { dispatchMutations } from '../store-base'
+
+import { TMP_ID_PREFIX } from '../constant'
 
 // fields for backend DB select columns
 // fetchName for backend fetch api name
@@ -80,6 +81,40 @@ function checkFetch(self, query, option) {
     dispatchMutations(collection.store)
   })
   return markPromise(collection, fetchKey, p)
+}
+
+const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmpIdPrefix)
+const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id, tmpIdPrefix))
+// @auto-fold here
+export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
+  if (Array.isArray(query)) {
+    const ids = sortUniqFilter(query, tmpIdPrefix)
+    if (ids.length === 0) {
+      return false
+    }
+    return ids
+  }
+
+  const fetchQuery = { ...query }
+  const entries = Object.entries(query)
+  for (let i = 0, ii = entries.length; i < ii; i++) {
+    const [key, matcher] = entries[i]
+    if (matcher) {
+      if (typeof matcher === 'string' && isTmpId(matcher, tmpIdPrefix)) {
+        return false
+      } else if (matcher.$in) {
+        const $in = sortUniqFilter(matcher.$in, tmpIdPrefix)
+        if ($in.length === 0) {
+          return false
+        }
+        fetchQuery[key] = { $in }
+      }
+    } else if (key === idField) {
+      // idField is falsy
+      return false
+    }
+  }
+  return fetchQuery
 }
 
 const confDefaults = {

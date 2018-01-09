@@ -45,6 +45,7 @@ function wrapStore(args, func, mode) {
 
 export { getCollection, dispatchMutations, getStore }
 export { EXPIRED, ALL } from './collection/invalidate'
+export { TMP_ID_PREFIX } from './constant'
 
 // collection
 export const getState = (...args) => wrapCollect(args, _getState)

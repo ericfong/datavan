@@ -1,13 +1,18 @@
 import _ from 'lodash'
 
-import createCollection from '../test/createCollection'
-import { getQueryIds, onFetchById, TMP_ID_PREFIX as TMP } from './util/idUtil'
-import { invalidate, getPending, findAsync, insert, update, getAll, find, get, run } from '..'
-import onFetchEcho, { timeoutResolve } from '../test/onFetchEcho'
+import createCollection from './util/createCollection'
+import { getQueryIds } from '../collection/findInMemory'
+import { invalidate, getPending, findAsync, insert, update, getAll, find, get, run, TMP_ID_PREFIX as TMP } from '..'
+import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
 //
 // afterAll(printTimes)
+
+function onFetchById(query, idField, func) {
+  const ids = getQueryIds(query, idField)
+  return Promise.all(_.map(ids, func)).then(values => _.zipObject(ids, values))
+}
 
 test('run', async () => {
   const myFunc = jest.fn()

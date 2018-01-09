@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { insert, set, setAll, getState, getAll, find } from '..'
-import createCollection from '../test/createCollection'
+import createCollection from './util/createCollection'
 
 test('insert/create/set, originals will be persist', async () => {
   const users = createCollection({ onFetch: _.noop })

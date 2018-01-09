@@ -3,8 +3,8 @@ import { createStore, compose } from 'redux'
 import delay from 'delay'
 
 import { load, datavanEnhancer, getState, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
-import createCollection from '../test/createCollection'
-import onFetchEcho from '../test/onFetchEcho'
+import createCollection from './util/createCollection'
+import onFetchEcho from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
 //

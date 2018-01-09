@@ -6,9 +6,9 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 
-import '../test/enzyme-setup'
+import './util/enzyme-setup'
 import { datavanEnhancer, serverPreload, findOne } from '..'
-import { getQueryIds } from '../collection/util/idUtil'
+import { getQueryIds } from '../collection/findInMemory'
 
 test('server preload', async () => {
   const collections = {

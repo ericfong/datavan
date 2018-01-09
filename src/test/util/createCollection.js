@@ -1,5 +1,5 @@
 import { createStore } from 'redux'
-import { datavanEnhancer, getCollection } from '..'
+import { datavanEnhancer, getCollection } from '../..'
 
 export default function createCollection(spec) {
   const name = spec.name || 'users'
