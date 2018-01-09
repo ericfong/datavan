@@ -2,7 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { _mutateAll, setAll } from './base'
-import { _findInMemory } from './find'
+import findInMemory from './findInMemory'
 
 function withId(core, doc) {
   const { idField } = core
@@ -45,7 +45,7 @@ export function insert(core, docs) {
 }
 
 export function update(core, query, updates, option = {}) {
-  const oldDocs = _findInMemory(core, query, option)
+  const oldDocs = findInMemory(core, query, option)
   const change = {}
   const { idField } = core
   _.each(oldDocs, doc => {
@@ -63,7 +63,7 @@ export function update(core, query, updates, option = {}) {
 }
 
 export function remove(core, query, option = {}) {
-  const removedDocs = _findInMemory(core, query, option)
+  const removedDocs = findInMemory(core, query, option)
   setAll(core, { $unset: _.map(removedDocs, core.idField) })
   return removedDocs
 }

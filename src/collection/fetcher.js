@@ -1,17 +1,31 @@
-// import _ from 'lodash'
+import _ from 'lodash'
+// https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
+import stringify from 'fast-stable-stringify'
 
 import { withoutTmpId } from './util/idUtil'
-import calcQueryKey from './util/calcQueryKey'
 import { getState, addMutation } from './base'
-import { prepareFindData } from './findInState'
+import { prepareFindData } from './findInMemory'
 import { load } from './load'
 import runHook from './util/runHook'
 import { dispatchMutations } from '../store-base'
 
-export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
+// fields for backend DB select columns
+// fetchName for backend fetch api name
+// fetch object for backend fetch parameters
+const serializingFields = ['sort', 'skip', 'limit', 'keyBy', 'fields', 'fetch', 'fetchName', 'inOriginal']
+
+const pickOptionForSerialize = (option, fields = serializingFields) => _.pick(option, fields)
+
+function calcQueryKey(query, option, fields) {
+  if (query === false) return false
+  if (Array.isArray(query) && query.length === 1) return query[0]
+  return stringify([query, pickOptionForSerialize(option, fields)])
+}
+
+const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
 // @auto-fold here
-export function markPromise(self, key, promise, overwrite) {
+function markPromise(self, key, promise, overwrite) {
   const { _fetchingPromises } = self
   if (!overwrite) {
     const oldPromise = _fetchingPromises[key]

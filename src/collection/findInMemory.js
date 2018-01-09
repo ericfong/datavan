@@ -16,7 +16,6 @@ function mongoToLodash(sort) {
   return [fields, orders]
 }
 
-// @auto-fold here
 function postFind(arr, option) {
   if (option) {
     if (option.sort) {
@@ -95,7 +94,16 @@ export default function findInState(collection, query, option) {
 
   // query is object instead of id-array  (id-array should be done by prepareFindData)
   if (!Array.isArray(query)) {
+    const start = process.env.NODE_ENV === 'development' && Date.now()
+
     docs = runHook(option.filterHook || collection.filterHook, filter, collection, docs, query, option)
+
+    if (process.env.NODE_ENV === 'development' && !collection.store.vanCtx.inConnectOnChange) {
+      const duration = Date.now() - start
+      if (duration > 60) {
+        console.warn(`Slow(${duration}ms) Find Query! Please use connectOnChange to cache your connect logic`)
+      }
+    }
   }
 
   return runHook(option.postFindHook || collection.postFindHook, postFind, docs, option)
