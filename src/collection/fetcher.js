@@ -2,10 +2,9 @@ import _ from 'lodash'
 // https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
 import stringify from 'fast-stable-stringify'
 
-import { getState, addMutation } from './base'
+import { getState, addMutation, runHook } from './base'
 import { prepareFindData } from './findInMemory'
 import { load } from './load'
-import runHook from './runHook'
 import { dispatchMutations } from '../store-base'
 
 import { TMP_ID_PREFIX } from '../constant'

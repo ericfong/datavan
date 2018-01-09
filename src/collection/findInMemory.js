@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import runHook from './runHook'
-import { getState, getAll } from './base'
+import { getState, getAll, runHook } from './base'
 
 // @auto-fold here
 function mongoToLodash(sort) {

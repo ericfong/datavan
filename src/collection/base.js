@@ -1,7 +1,5 @@
 import _ from 'lodash'
 
-import runHook from './runHook'
-
 // getState
 export function getState(self) {
   return self.store && self.store.getState().datavan[self.name]
@@ -16,16 +14,18 @@ export function addMutation(self, mutation) {
 // =============================================
 // Getter
 
+export function runHook(hook, next, ...args) {
+  if (hook) return hook(next, ...args)
+  if (next) return next(...args)
+}
+
 const _getAll = collection => getState(collection).byId
 export const getAll = collection => runHook(collection.getAllHook, _getAll, collection)
-
-const _get = (collection, id) => getAll(collection)[id]
-export const get = (collection, id) => runHook(collection.getHook, _get, collection, id)
 
 // =============================================
 // Setter
 
-export const _mutateAll = (collection, mutations) => {
+export function _mutateAll(collection, mutations) {
   const mutation = { byId: mutations }
 
   if (collection.onFetch) {
@@ -51,21 +51,3 @@ export const _mutateAll = (collection, mutations) => {
 
   addMutation(collection, mutation)
 }
-// export const mutateAll = (collection, mutations) => runHook(collection.mutateAllHook, _mutateAll, collection, mutations)
-
-// @auto-fold here
-function toMutation(change) {
-  const mutation = {}
-  _.each(change, (value, key) => {
-    if (key === '$unset') {
-      mutation.$unset = value
-      return
-    }
-    mutation[key] = { $set: value }
-  })
-  return mutation
-}
-const _setAll = (collection, change) => {
-  _mutateAll(collection, toMutation(change))
-}
-export const setAll = (collection, change, option) => runHook(collection.setAllHook, _setAll, collection, change, option)

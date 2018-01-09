@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { _allPendings } from './collection/find'
+import { _allPendings } from './collection/getter'
 import { invalidate, garbageCollect, EXPIRED, ALL } from './collection/invalidate'
 import { getCollection } from './store-base'
 import { load } from './collection/load'

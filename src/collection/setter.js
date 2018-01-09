@@ -1,8 +1,20 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { _mutateAll, setAll } from './base'
+import { _mutateAll } from './base'
 import findInMemory from './findInMemory'
+
+export function _setAll(collection, change) {
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  _mutateAll(collection, mutation)
+}
 
 function withId(core, doc) {
   const { idField } = core
@@ -19,14 +31,14 @@ export function mutate(collection, id, mutation) {
 export function set(core, id, value) {
   if (typeof id === 'object') {
     const castedDoc = withId(core, id)
-    setAll(core, { [castedDoc[core.idField]]: castedDoc })
+    _setAll(core, { [castedDoc[core.idField]]: castedDoc })
   } else {
-    setAll(core, { [id]: value })
+    _setAll(core, { [id]: value })
   }
 }
 
 export function del(core, id) {
-  setAll(core, { $unset: [id] })
+  _setAll(core, { $unset: [id] })
 }
 
 export function insert(core, docs) {
@@ -39,7 +51,7 @@ export function insert(core, docs) {
     change[castedDoc[core.idField]] = castedDoc
     return castedDoc
   })
-  setAll(core, change)
+  _setAll(core, change)
 
   return inputIsArray ? castedDocs : castedDocs[0]
 }
@@ -58,12 +70,12 @@ export function update(core, query, updates, option = {}) {
       change[newDoc[idField]] = newDoc
     }
   })
-  setAll(core, change)
+  _setAll(core, change)
   return oldDocs
 }
 
 export function remove(core, query, option = {}) {
   const removedDocs = findInMemory(core, query, option)
-  setAll(core, { $unset: _.map(removedDocs, core.idField) })
+  _setAll(core, { $unset: _.map(removedDocs, core.idField) })
   return removedDocs
 }

@@ -1,6 +1,8 @@
-import runHook from './runHook'
-import { getAll } from './base'
+import { getAll, runHook } from './base'
 import findInMemory from './findInMemory'
+
+const __get = (collection, id) => getAll(collection)[id]
+export const _get = (collection, id) => runHook(collection.getHook, __get, collection, id)
 
 export function _getInMemory(self, id) {
   return getAll(self)[id]
