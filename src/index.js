@@ -14,8 +14,8 @@ import {
   setContext as _setContext,
   getContext as _getContext,
   gcStore as _gcStore,
-} from './store'
-import _loadCollections from './store/loadCollections'
+  loadCollections as _loadCollections,
+} from './store-extra'
 
 const WRITE = 'WRITE'
 const ASYNC_WRITE = 'ASYNC_WRITE'

@@ -1,7 +1,21 @@
 import _ from 'lodash'
 
-import { _allPendings } from '../collection/find'
-import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
+import { _allPendings } from './collection/find'
+import { invalidate, garbageCollect, EXPIRED, ALL } from './collection/invalidate'
+import { getCollection } from './store-base'
+import { load } from './collection/load'
+
+export function loadCollections(store, inData, option = {}) {
+  return _.mapValues(inData, (data, collectionName) => {
+    if (collectionName[0] === '_') return data
+
+    const collection = getCollection(store, collectionName)
+    if (collection) {
+      load(collection, data, option)
+      return data
+    }
+  })
+}
 
 function throttle(collection, func, ids, option) {
   if (option && option.now) {
