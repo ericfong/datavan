@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.2.0"></a>
+# [3.2.0](https://github.com/ericfong/datavan/compare/v3.1.0...v3.2.0) (2018-01-09)
+
+
+### Features
+
+* add findInState ([2e31e9b](https://github.com/ericfong/datavan/commit/2e31e9b))
+* memorizer ([b0e77fb](https://github.com/ericfong/datavan/commit/b0e77fb))
+* move getState(), addMutation(), getAll() to be overridable ([5ad3762](https://github.com/ericfong/datavan/commit/5ad3762))
+* re-export compose from recompose and enhance warning messages ([06df59f](https://github.com/ericfong/datavan/commit/06df59f))
+* remove auto-json-base caching layer ([ced4a03](https://github.com/ericfong/datavan/commit/ced4a03))
+* simplify load() ([9f41b33](https://github.com/ericfong/datavan/commit/9f41b33))
+
+
+
 <a name="3.1.0"></a>
 # [3.1.0](https://github.com/ericfong/datavan/compare/v3.0.2...v3.1.0) (2018-01-05)
 
