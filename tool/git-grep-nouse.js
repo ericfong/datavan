@@ -17,7 +17,7 @@ function gitGrepAny(name) {
 
 function getPackageJson() {
   // eslint-disable-next-line
-  return require(`${process.cwd()}/package.json`)
+  return require(`${__dirname}/../package.json`)
 }
 
 const SKIPPED_PACKAGES = [/^babel-*/, /^eslint-*/]
@@ -25,22 +25,20 @@ const SKIPPED_PACKAGES = [/^babel-*/, /^eslint-*/]
 function main() {
   const packageJson = getPackageJson()
 
-  const packageJsonOtherStr = JSON.stringify(_.omit(packageJson, 'dependencies', 'devDependencies'), null, '  ')
+  const packageJsonOtherStr = JSON.stringify(_.omit(packageJson, 'dependencies', 'peerDependencies', 'devDependencies'), null, '  ')
   function isNotUsedInPackageJsonScript(name) {
     return packageJsonOtherStr.indexOf(name) < 0
   }
 
   let testPackages = Object.keys(packageJson.dependencies)
-
-  // options
-  // packageJson.devDependencies
-  // const skippedPackages = _.slice(process.argv, 2)
+  testPackages = _.uniq(testPackages.concat(Object.keys(packageJson.peerDependencies)))
+  testPackages = _.uniq(testPackages.concat(Object.keys(packageJson.devDependencies)))
 
   testPackages = _.filter(testPackages, name => isNotUsedInPackageJsonScript(name) && _.every(SKIPPED_PACKAGES, regexp => !name.match(regexp)))
 
   const nouses = _.filter(testPackages, name => {
     const greped = gitGrepAny(name)
-    // console.log(`\n\n${name}:`)
+    // console.log(`${name}:`)
     // _.each(greped, pair => console.log(`\t\t${pair.file}:${pair.content}`))
     return greped.length <= 0
   })
