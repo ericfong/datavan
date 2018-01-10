@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { load, normalizeLoadData } from './load'
-import { dispatchMutations } from '../store-base'
+import { load, normalizeLoadData } from '../collection/load'
+import { dispatchMutations } from '../store'
 
 export function getOriginals(collection) {
   return collection.getState().originals
@@ -45,6 +45,6 @@ export function submit(collection, _submit) {
         console.error(err)
       }
       return err instanceof Error ? err : new Error(err)
-    }
+    },
   )
 }

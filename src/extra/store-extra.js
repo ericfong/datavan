@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { _allPendings } from './collection/getter'
-import { invalidate, garbageCollect, EXPIRED, ALL } from './collection/invalidate'
-import { getCollection } from './store-base'
-import { load } from './collection/load'
+import { _allPendings } from './getter'
+import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
+import { getCollection } from '../store'
+import { load } from '../collection/load'
 
 export function loadCollections(store, inData, option = {}) {
   return _.mapValues(inData, (data, collectionName) => {

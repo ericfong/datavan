@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import findInMemory from './findInMemory'
+import findInMemory from '../collection/findInMemory'
 
 export function _mutateAll(collection, mutations) {
   const mutation = { byId: mutations }

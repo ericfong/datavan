@@ -1,8 +1,8 @@
 {
   "scripts": {
     "build": "npm run build:cjs && npm run build:es6",
-    "build:cjs": "BABEL_ENV=cjs babel src --out-dir lib --ignore spec.js,test.js",
-    "build:es6": "BABEL_ENV=es6 babel src --out-dir lib/es6 --ignore spec.js,test.js",
+    "build:cjs": "BABEL_ENV=cjs babel src --out-dir lib --ignore spec.js,test.js,test",
+    "build:es6": "BABEL_ENV=es6 babel src --out-dir lib/es6 --ignore spec.js,test.js,test",
     "prepublish": "npm test && npm run eslint && rm -rf ./lib && npm run build",
     "babel": "NODE_ENV=test babel-node",
     "start": "npm run build:es6 -- --watch",

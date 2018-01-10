@@ -4,7 +4,7 @@ import stringify from 'fast-stable-stringify'
 
 import { prepareFindData, runHook } from './findInMemory'
 import { load } from './load'
-import { dispatchMutations } from '../store-base'
+import { dispatchMutations } from '../store'
 
 import { TMP_ID_PREFIX } from '../constant'
 

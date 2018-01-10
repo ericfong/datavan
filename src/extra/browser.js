@@ -1,6 +1,6 @@
 import { load } from '../collection/load'
-import { _get } from '../collection/getter'
-import { dispatchMutations, getCollection } from '../store-base'
+import { _get } from './getter'
+import { dispatchMutations, getCollection } from '../store'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
   if (self[listenerKey]) return

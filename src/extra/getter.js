@@ -1,4 +1,4 @@
-import findInMemory, { runHook } from './findInMemory'
+import findInMemory, { runHook } from '../collection/findInMemory'
 
 export function _getAll(collection) {
   return collection.getAll()

@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { connect } from 'react-redux'
 import { shallowEqual } from 'recompose'
 
-import { getStore } from '../store-base'
+import { getStore } from '../store'
 
 const ALWAYS_EQUAL = 'ALWAYS_EQUAL'
 const ALWAYS_DIFF = 'ALWAYS_DIFF'

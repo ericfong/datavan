@@ -3,7 +3,7 @@ import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
 import createCollection from './collection'
-import { dispatchMutations } from './store-base'
+import { dispatchMutations } from './store'
 
 const defaultsPreload = (preloadedState, collections) => {
   const defaults = { datavan: {} }
@@ -13,27 +13,12 @@ const defaultsPreload = (preloadedState, collections) => {
   return _.defaultsDeep(preloadedState, defaults)
 }
 
-// let mutateTime = 0
-// let castTime = 0
-// let castDefPropTime = 0
-// const NS_PER_SEC = 1e9
-// const calcNano = diff => diff[0] * NS_PER_SEC + diff[1]
-// export const printTimes = () => {
-//   console.log(`ratio=${_.round(mutateTime / castTime, 1)} ${_.round(
-//     castDefPropTime / castTime,
-//     2
-//   )} mutateTime=${mutateTime} castTime=${castTime} castDefPropTime=${castDefPropTime}`)
-// }
-
 const castedKey = '__c'
 const castedValue = () => {}
 const ensureCasted = (obj, func) => {
   if (!obj || typeof obj !== 'object' || obj[castedKey]) return obj
   const newObj = func(obj) || obj
-  // FIXME test it
-  // const start1 = process.hrtime()
   Object.defineProperty(newObj, castedKey, { value: castedValue, enumerable: false })
-  // castDefPropTime += calcNano(process.hrtime(start1))
   return newObj
 }
 const castCollections = (dvState, collections) => {
@@ -56,7 +41,6 @@ export default function datavanEnhancer(ctx = {}) {
     const mutateReducer = (_state, action) => {
       let newState = reducer(_state, action)
       if (action.type === DATAVAN_MUTATE) {
-        // const start1 = process.hrtime()
         const { mutates } = action
         const oldDvState = newState.datavan
         const datavan = mutates.reduce((state, { collection, mutation }) => {
@@ -64,11 +48,8 @@ export default function datavanEnhancer(ctx = {}) {
           return mutateUtil(state, m)
         }, oldDvState)
         newState = { ...newState, datavan }
-        // mutateTime += calcNano(process.hrtime(start1))
 
-        // const start2 = process.hrtime()
         castCollections(newState.datavan, collections)
-        // castTime += calcNano(process.hrtime(start2))
       }
       return newState
     }
