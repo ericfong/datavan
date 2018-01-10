@@ -44,50 +44,41 @@ function wrapStore(args, func, mode) {
 }
 
 export { getCollection, dispatchMutations, getStore }
-export { EXPIRED, ALL } from './collection/invalidate'
+export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX } from './constant'
+export { EXPIRED, ALL } from './collection/invalidate'
+export { queryTester } from './collection/findInMemory'
 
 // collection
 export const getAll = (...args) => wrapCollect(args, _getAll)
 export const get = (...args) => wrapCollect(args, _get)
 export const mutateAll = (...args) => wrapCollect(args, _mutateAll, WRITE)
 export const setAll = (...args) => wrapCollect(args, _setAll, WRITE)
-
 export const load = (...args) => wrapCollect(args, _load, WRITE)
-
 export const invalidate = (...args) => wrapCollect(args, _invalidate, WRITE)
 export const reset = (...args) => wrapCollect(args, _reset, WRITE)
 export const garbageCollect = (...args) => wrapCollect(args, _garbageCollect, WRITE)
-
 export const set = (...args) => wrapCollect(args, _set, WRITE)
 export const mutate = (...args) => wrapCollect(args, _mutate, WRITE)
 export const del = (...args) => wrapCollect(args, _del, WRITE)
 export const insert = (...args) => wrapCollect(args, _insert, WRITE)
 export const update = (...args) => wrapCollect(args, _update, WRITE)
 export const remove = (...args) => wrapCollect(args, _remove, WRITE)
-
 export const getOriginals = (...args) => wrapCollect(args, _getOriginals)
 export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
 export const submit = (...args) => wrapCollect(args, _submit, ASYNC_WRITE)
 export const getSubmittedIds = (...args) => wrapCollect(args, _getSubmittedIds)
-
 export const find = (...args) => wrapCollect(args, _find)
 export const findAsync = (...args) => wrapCollect(args, _findAsync)
-
 export const getAsync = (...args) => wrapCollect(args, _getAsync)
 export const findOne = (...args) => wrapCollect(args, _findOne)
 export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
 export const run = (...args) => wrapCollect(args, _run)
-
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
-
 export const groupBy = (...args) => wrapCollect(args, _groupBy)
 export const keyBy = (...args) => wrapCollect(args, _keyBy)
 export const runOnChange = (...args) => wrapCollect(args, _runOnChange)
-
-// redux
-export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 
 // store
 export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)

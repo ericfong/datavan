@@ -42,15 +42,13 @@ function postFind(arr, option) {
   return arr
 }
 
-// @auto-fold here
-const filter = (collection, docs, query) => {
-  if (Object.keys(query).length === 0) {
-    return _.values(docs)
-  }
+export const queryTester = query => {
+  if (Object.keys(query).length === 0) return () => true
   const mingoQuery = new Mingo.Query(query)
-  const filterFunc = doc => doc && mingoQuery.test(doc)
-  return _.filter(docs, filterFunc)
+  return doc => doc && mingoQuery.test(doc)
 }
+
+const filter = (collection, docs, query) => _.filter(docs, queryTester(query))
 
 // @auto-fold here
 function filterDataByIds(self, data, ids, option) {
