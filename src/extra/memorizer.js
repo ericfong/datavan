@@ -16,20 +16,34 @@ function memorize(collection, memoryKey, func) {
   }
 
   // MISS
-  const ret = func()
+  const ret = func(byId)
 
   _memory[memoryKey] = ret
   return ret
 }
 
 export function _groupBy(collection, field) {
-  return memorize(collection, `groupBy-${field}`, () => _.groupBy(collection.getAll(), field))
+  return memorize(collection, `groupBy-${field}`, byId => _.groupBy(byId, field))
 }
 
 export function _keyBy(collection, field) {
-  return memorize(collection, `groupBy-${field}`, () => _.keyBy(collection.getAll(), field))
+  return memorize(collection, `groupBy-${field}`, byId => _.keyBy(byId, field))
+}
+
+export function buildIndex(docs, fields, isUnique) {
+  fields = typeof fields === 'string' ? fields.split('.') : fields
+  const field = fields[0]
+  if (fields.length === 1) {
+    return isUnique ? _.keyBy(docs, field) : _.groupBy(docs, field)
+  }
+  const restSteps = fields.slice(1)
+  const groups = _.groupBy(docs, field)
+  return _.mapValues(groups, groupDocs => buildIndex(groupDocs, restSteps, isUnique))
+}
+export function _getIndex(collection, fields, isUnique) {
+  return memorize(collection, `index-${fields}-${isUnique}`, byId => buildIndex(byId, fields, isUnique))
 }
 
 export function _runOnChange(collection, funcName, firstArgStr = '') {
-  return memorize(collection, `run-${funcName}-${firstArgStr}`, () => collection[funcName](firstArgStr))
+  return memorize(collection, `run-${funcName}-${firstArgStr}`, byId => collection[funcName](byId, firstArgStr))
 }

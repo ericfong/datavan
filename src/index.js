@@ -6,7 +6,7 @@ import { getCollection, dispatchMutations, getStore } from './store'
 import { _getAll, _get, _getInMemory, _find, _findAsync, _getAsync, _findOne, _getPending, _run } from './extra/getter'
 import { _mutateAll, _setAll, mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './extra/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './extra/submitter'
-import { _groupBy, _keyBy, _runOnChange } from './extra/memorizer'
+import { _groupBy, _keyBy, _runOnChange, _getIndex } from './extra/memorizer'
 import {
   invalidateStore as _invalidateStore,
   getStorePending as _getStorePending,
@@ -79,6 +79,7 @@ export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
 export const groupBy = (...args) => wrapCollect(args, _groupBy)
 export const keyBy = (...args) => wrapCollect(args, _keyBy)
 export const runOnChange = (...args) => wrapCollect(args, _runOnChange)
+export const getIndex = (...args) => wrapCollect(args, _getIndex)
 
 // store
 export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
