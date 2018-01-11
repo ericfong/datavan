@@ -2,10 +2,7 @@ import _ from 'lodash'
 
 import { invalidate, reset } from './invalidate'
 
-const loadAs = (inDoc, id, targets) => {
-  return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
-}
-
+// @auto-fold here
 function _loop(mut = {}, inDocs, func) {
   const $merge = {}
   _.each(inDocs, (inDoc, id) => {
@@ -19,6 +16,7 @@ function _loop(mut = {}, inDocs, func) {
   return mut
 }
 
+// @auto-fold here
 function submitted(self, idTable, option) {
   const { byId } = self.getState()
   const { _byIdAts } = self
@@ -49,6 +47,7 @@ export function normalizeLoadData(self, data) {
   return { byId: data }
 }
 
+const loadAs = (inDoc, id, targets) => (inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc)
 export function load(self, _data, { mutation = {} } = {}) {
   if (!_data) return _data
   const data = normalizeLoadData(self, _data)
@@ -85,18 +84,6 @@ export function load(self, _data, { mutation = {} } = {}) {
   if (data.$invalidate) invalidate(self, data.$invalidate)
   if (data.$reset) reset(self, data.$reset)
 
-  if (self.onLoad) self.onLoad(self, data, mutation)
-
   // always return original _data, so that can access raw result
   return _data
-}
-
-export function init(self) {
-  self._memory = {}
-  self._fetchingPromises = {}
-  self._byIdAts = {}
-
-  if (self.initState) load(self, self.initState)
-
-  if (self.onInit) self.onInit(self)
 }

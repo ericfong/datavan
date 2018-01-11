@@ -30,6 +30,7 @@ rules:
     - 1
     - skip:
         - table
+  function-paren-newline: warn
   import/default: 2
   import/export: 2
   import/named: error

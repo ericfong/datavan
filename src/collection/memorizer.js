@@ -1,11 +1,13 @@
 import _ from 'lodash'
 
+import { _getAll } from './findInMemory'
+
 function memorize(collection, memoryKey, func) {
   let { _memory } = collection
   const { _memoryById } = collection
 
   // reset cache or not
-  const byId = collection.getAll()
+  const byId = _getAll(collection)
   const shouldReset = byId !== _memoryById
   collection._memoryById = byId
   if (shouldReset) _memory = collection._memory = {}

@@ -1,9 +1,10 @@
 import _ from 'lodash'
 
-import { _allPendings } from './getter'
-import { invalidate, garbageCollect, EXPIRED, ALL } from '../collection/invalidate'
-import { getCollection } from '../store'
+import { INVALIDATE_ALL, INVALIDATE_EXPIRED } from '../constant'
+import { invalidate, garbageCollect } from '../collection/invalidate'
 import { load } from '../collection/load'
+import { getCollection } from '../store'
+import { _allPendings } from '../collection/getter'
 
 export function loadCollections(store, inData, option = {}) {
   return _.mapValues(inData, (data, collectionName) => {
@@ -36,11 +37,11 @@ export function setOverrides(store, _overrides) {
 }
 
 export function invalidateStore(store, option = {}) {
-  _.each(store.collections, coll => throttle(coll, invalidate, option.all ? ALL : EXPIRED, option))
+  _.each(store.collections, coll => throttle(coll, invalidate, option.all ? INVALIDATE_ALL : INVALIDATE_EXPIRED, option))
 }
 
 export function gcStore(store, option = {}) {
-  _.each(store.collections, coll => throttle(coll, garbageCollect, option.all ? ALL : EXPIRED, option))
+  _.each(store.collections, coll => throttle(coll, garbageCollect, option.all ? INVALIDATE_ALL : INVALIDATE_EXPIRED, option))
 }
 
 export function getStorePending(store) {

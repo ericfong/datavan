@@ -2,7 +2,8 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
-import createCollection from './collection'
+import initCollection from './collection'
+import { load } from './collection/load'
 import { dispatchMutations } from './store'
 
 const defaultsPreload = (preloadedState, collections) => {
@@ -36,8 +37,6 @@ const castCollections = (dvState, collections) => {
 
 export default function datavanEnhancer(ctx = {}) {
   return _createStore => (reducer, preloadedState, enhancer) => {
-    const collections = {}
-
     const mutateReducer = (_state, action) => {
       let newState = reducer(_state, action)
       if (action.type === DATAVAN_MUTATE) {
@@ -49,7 +48,7 @@ export default function datavanEnhancer(ctx = {}) {
         }, oldDvState)
         newState = { ...newState, datavan }
 
-        castCollections(newState.datavan, collections)
+        castCollections(newState.datavan, ctx.collections)
       }
       return newState
     }
@@ -62,7 +61,7 @@ export default function datavanEnhancer(ctx = {}) {
     const { getState, dispatch } = store
     const _getStore = () => store
     Object.assign(store, {
-      collections,
+      collections: ctx.collections,
       vanCtx: {
         ...ctx,
         overrides: ctx.overrides || {},
@@ -80,11 +79,17 @@ export default function datavanEnhancer(ctx = {}) {
     })
 
     // init collections
-    _.each(ctx.collections, (spec, name) => {
-      collections[name] = createCollection({ ...spec, name, store })
+    let isLoaded = false
+    _.each(ctx.collections, (collection, name) => {
+      initCollection(collection, name, store)
+      if (collection.initState) {
+        // use load to normalize the initState or preloadedState
+        load(collection, collection.initState)
+        isLoaded = true
+      }
     })
     // createCollection may load initState and generate some mutations
-    dispatchMutations(store)
+    if (isLoaded) dispatchMutations(store)
 
     return store
   }

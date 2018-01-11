@@ -2,26 +2,19 @@ import _ from 'lodash'
 // https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
 import stringify from 'fast-stable-stringify'
 
-import { prepareFindData, runHook } from './findInMemory'
-import { load } from './load'
+import { load } from '../collection/load'
+import { prepareFindData } from './findInMemory'
 import { dispatchMutations } from '../store'
 
 import { TMP_ID_PREFIX } from '../constant'
 
-// fields for backend DB select columns
-// fetchName for backend fetch api name
-// fetch object for backend fetch parameters
-const serializingFields = ['sort', 'skip', 'limit', 'keyBy', 'fields', 'fetch', 'fetchName', 'inOriginal']
+export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
-const pickOptionForSerialize = (option, fields = serializingFields) => _.pick(option, fields)
-
-function calcQueryKey(query, option, fields) {
+function defaultGetFetchKey(query, option) {
   if (query === false) return false
   if (Array.isArray(query) && query.length === 1) return query[0]
-  return stringify([query, pickOptionForSerialize(option, fields)])
+  return stringify([query, _.omitBy(option, (v, k) => k[0] === '_')])
 }
-
-const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
 // @auto-fold here
 function markPromise(self, key, promise, overwrite) {
@@ -50,41 +43,10 @@ function markPromise(self, key, promise, overwrite) {
   return promise
 }
 
-function checkFetch(self, query, option) {
-  const notForce = !option.force
-
-  prepareFindData(self, query, option)
-  if (notForce && option.allIdsHit) return false
-
-  const { getFetchQuery, getFetchKey } = self
-  const fetchQuery = getFetchQuery(query, option, self)
-  const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
-  if (notForce && fetchKey === false) return false
-
-  if (notForce) {
-    const { fetchAts } = self.getState()
-    const now = Date.now()
-    // console.log('checkFetch', fetchAts[fetchKey] - (now - fetchMaxAge))
-    const { fetchMaxAge } = self
-    if (fetchMaxAge > 0 ? fetchAts[fetchKey] > now - fetchMaxAge : fetchAts[fetchKey]) return false
-    fetchAts[fetchKey] = now
-  }
-
-  // want to return fetching promise for findAsync
-  const collection = self
-  const { onFetch } = collection
-  const p = Promise.resolve(onFetch(fetchQuery, option, collection)).then(res => {
-    load(collection, res, option)
-    // flush dispatch mutates after load()
-    dispatchMutations(collection.store)
-  })
-  return markPromise(collection, fetchKey, p)
-}
-
 const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmpIdPrefix)
 const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id, tmpIdPrefix))
 // @auto-fold here
-export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
+function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   if (Array.isArray(query)) {
     const ids = sortUniqFilter(query, tmpIdPrefix)
     if (ids.length === 0) {
@@ -115,40 +77,34 @@ export function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
-const confDefaults = {
-  getFetchQuery: (query, option, self) => withoutTmpId(query, self.idField),
-  getFetchKey: (fetchQuery, option) => calcQueryKey(fetchQuery, option),
-  // fetchMaxAge in seconds; null, 0 or -1 means no maxAge
-  // fetchMaxAge: 1,
-}
+export function checkFetch(self, query, option) {
+  const notForce = !option.force
 
-export default function fetcher(base) {
-  return {
-    ...confDefaults,
-    ...base,
+  prepareFindData(self, query, option)
+  if (notForce && option._allIdsHit) return false
 
-    getHook(next, collection, id, option = {}) {
-      if (option.fetch !== false && !isPreloadSkip(collection, option)) {
-        checkFetch(collection, [id], option)
-      }
-      return runHook(base.getHook, next, collection, id, option)
-    },
+  // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
+  const { getFetchKey = defaultGetFetchKey, fetchMaxAge } = self
 
-    findHook(next, collection, query = {}, option = {}) {
-      if (option.fetch !== false && !isPreloadSkip(collection, option)) {
-        checkFetch(collection, query, option)
-      }
-      return runHook(base.findHook, next, collection, query, option)
-    },
+  const fetchQuery = withoutTmpId(query, self.idField)
+  const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
+  if (notForce && fetchKey === false) return false
 
-    // NOTE option.force, returnRaw
-    findAsyncHook(next, collection, query = {}, option = {}) {
-      return Promise.resolve(checkFetch(collection, query, option)).then(() => {
-        // if (option.force && option.returnRaw) return raw
-        // _preparedData no longer valid after fetch promise resolved
-        delete option._preparedData
-        return runHook(base.findAsyncHook, next, collection, query, option)
-      })
-    },
+  if (notForce) {
+    const { fetchAts } = self.getState()
+    const now = Date.now()
+    // console.log('checkFetch', fetchAts[fetchKey] - (now - fetchMaxAge))
+    if (fetchMaxAge > 0 ? fetchAts[fetchKey] > now - fetchMaxAge : fetchAts[fetchKey]) return false
+    fetchAts[fetchKey] = now
   }
+
+  // want to return fetching promise for findAsync
+  const collection = self
+  const { onFetch } = collection
+  const p = Promise.resolve(onFetch(fetchQuery, option, collection)).then(res => {
+    load(collection, res, option)
+    // flush dispatch mutates after load()
+    dispatchMutations(collection.store)
+  })
+  return markPromise(collection, fetchKey, p)
 }

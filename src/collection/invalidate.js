@@ -1,11 +1,10 @@
 import _ from 'lodash'
 
-export const ALL = null
-export const EXPIRED = 'EXPIRED'
+import { INVALIDATE_ALL, INVALIDATE_EXPIRED } from '../constant'
 
 // @auto-fold here
 function calcUnset({ gcTime }, timestamps, ids) {
-  if (ids === EXPIRED && gcTime > 0) {
+  if (ids === INVALIDATE_EXPIRED && gcTime > 0) {
     const unset = []
     const expired = Date.now() - gcTime
     _.each(timestamps, (timestamp, id) => {
@@ -27,20 +26,20 @@ function _invalidate(collection, ids) {
     ret.delByIds = delByIds
     // calc all dropping ids when del any byIds
     if (ids) {
-      ret.fetchAts = { $unset: calcUnset(collection, collection.getState().fetchAts, delByIds.length > 0 ? ALL : ids) }
+      ret.fetchAts = { $unset: calcUnset(collection, collection.getState().fetchAts, delByIds.length > 0 ? INVALIDATE_ALL : ids) }
     }
   }
   return ret
 }
 
-export function invalidate(collection, ids = ALL) {
+export function invalidate(collection, ids = INVALIDATE_ALL) {
   const mutation = _invalidate(collection, ids)
   delete mutation.delByIds
   collection.addMutation(mutation)
 }
 
 // garbageCollect only reset tidy docs
-export function garbageCollect(collection, ids = EXPIRED) {
+export function garbageCollect(collection, ids = INVALIDATE_EXPIRED) {
   const { delByIds, fetchAts } = _invalidate(collection, ids)
 
   const { byId: oldById, originals } = collection.getState()
@@ -50,7 +49,7 @@ export function garbageCollect(collection, ids = EXPIRED) {
 }
 
 // reset both dirty and tidy docs
-export function reset(collection, ids = ALL) {
+export function reset(collection, ids = INVALIDATE_ALL) {
   const { delByIds, fetchAts } = _invalidate(collection, ids)
 
   const byId = ids ? { $unset: delByIds } : { $set: {} }

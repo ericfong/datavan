@@ -1,12 +1,10 @@
+import _ from 'lodash'
+
 import { TMP_ID_PREFIX } from '../constant'
-import { init } from './load'
-import fetcher from './fetcher'
 
 const collectionPrototype = {
   idField: '_id',
   // gcTime: 60 * 1000,
-  // onInit, onLoad
-  // getHook, findHook, findAsyncHook, filterHook, postFindHook
   cast: v => v,
   genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
 
@@ -15,7 +13,6 @@ const collectionPrototype = {
   },
 
   addMutation(mutation) {
-    this.mutatedAt = Date.now()
     this.store.vanCtx.mutates.push({ collection: this.name, mutation })
   },
 
@@ -24,12 +21,15 @@ const collectionPrototype = {
   },
 }
 
-export default function createCollection(spec) {
-  let collection = Object.assign({}, collectionPrototype, spec)
+export const _getAll = collection => collection.getState().byId
 
-  if (spec.onFetch) collection = fetcher(collection)
-
-  init(collection)
-
-  return collection
+export default function initCollection(collection, name, store) {
+  _.defaults(collection, collectionPrototype)
+  return Object.assign(collection, {
+    name,
+    store,
+    _memory: {},
+    _fetchingPromises: {},
+    _byIdAts: {},
+  })
 }

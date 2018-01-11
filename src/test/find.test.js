@@ -128,10 +128,14 @@ test('basic', async () => {
         if (ids) {
           ++calledGet
           // console.log('onFetch get', ids, calledGet)
-          return Promise.resolve(_.compact(_.map(ids, id => {
-            if (id === 'not_exists') return null
-            return { _id: id, name: `${id} name` }
-          })))
+          return Promise.resolve(
+            _.compact(
+              _.map(ids, id => {
+                if (id === 'not_exists') return null
+                return { _id: id, name: `${id} name` }
+              }),
+            ),
+          )
         }
       }
       ++calledFind

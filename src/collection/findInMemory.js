@@ -1,11 +1,6 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-export function runHook(hook, next, ...args) {
-  if (hook) return hook(next, ...args)
-  if (next) return next(...args)
-}
-
 // @auto-fold here
 function mongoToLodash(sort) {
   const fields = []
@@ -48,22 +43,20 @@ export const queryTester = query => {
   return doc => doc && mingoQuery.test(doc)
 }
 
-const filter = (collection, docs, query) => _.filter(docs, queryTester(query))
-
 // @auto-fold here
 function filterDataByIds(self, data, ids, option) {
   const { fetchMaxAge } = self
-  let allIdsHit = true
+  let _allIdsHit = true
   const ret = ids.reduce((result, id) => {
     if (id in data) {
       result.push(data[id])
     }
     if (!(fetchMaxAge > 0 ? self._byIdAts[id] > Date.now() - fetchMaxAge : self._byIdAts[id])) {
-      allIdsHit = false
+      _allIdsHit = false
     }
     return result
   }, [])
-  option.allIdsHit = allIdsHit
+  option._allIdsHit = _allIdsHit
   return ret
 }
 
@@ -77,9 +70,11 @@ export function getQueryIds(query, idField) {
   }
 }
 
+export const _getAll = collection => collection.getState().byId
+
 export function prepareFindData(self, query, option) {
   if (option._preparedData) return option._preparedData
-  let data = self.getAll()
+  let data = _getAll(self)
 
   if (option.inOriginal) {
     data = _.omitBy({ ...data, ...self.getState().originals }, v => v === null)
@@ -96,7 +91,7 @@ export function prepareFindData(self, query, option) {
   return prepared
 }
 
-export default function findInMemory(collection, query, option = {}) {
+export function findInMemory(collection, query, option = {}) {
   let docs = prepareFindData(collection, query, option)
   // prevent re-use option
   delete option._preparedData
@@ -105,7 +100,10 @@ export default function findInMemory(collection, query, option = {}) {
   if (!Array.isArray(query)) {
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
-    docs = runHook(option.filterHook || collection.filterHook, filter, collection, docs, query, option)
+    if (option.filterHook) {
+      docs = option.filterHook(docs, query, option, collection)
+    }
+    docs = _.filter(docs, queryTester(query))
 
     if (process.env.NODE_ENV === 'development' && !collection.store.vanCtx.inConnectOnChange) {
       const duration = Date.now() - start
@@ -115,5 +113,5 @@ export default function findInMemory(collection, query, option = {}) {
     }
   }
 
-  return runHook(option.postFindHook || collection.postFindHook, postFind, docs, option)
+  return postFind(docs, option)
 }

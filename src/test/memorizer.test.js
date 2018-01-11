@@ -1,4 +1,4 @@
-import { buildIndex } from '../extra/memorizer'
+import { buildIndex } from '../collection/memorizer'
 
 test('buildIndex', async () => {
   const docs = [
