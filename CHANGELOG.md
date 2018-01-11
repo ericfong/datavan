@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.1"></a>
+## [3.3.1](https://github.com/ericfong/datavan/compare/v3.3.0...v3.3.1) (2018-01-11)
+
+
+### Features
+
+* simplify and remove all hooks ([2480a0a](https://github.com/ericfong/datavan/commit/2480a0a))
+
+
+### BREAKING CHANGES
+
+* remove onInit, onLoad, getHook, findHook, findAsyncHook,
+filterHook, postFindHook
+
+
+
 <a name="3.3.0"></a>
 # [3.3.0](https://github.com/ericfong/datavan/compare/v3.2.0...v3.3.0) (2018-01-10)
 
