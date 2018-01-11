@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.3"></a>
+## [3.3.3](https://github.com/ericfong/datavan/compare/v3.3.2...v3.3.3) (2018-01-11)
+
+
+### Bug Fixes
+
+* filterHook which need to handle both pre and post find processing ([30f77f8](https://github.com/ericfong/datavan/commit/30f77f8))
+
+
+
 <a name="3.3.2"></a>
 ## [3.3.2](https://github.com/ericfong/datavan/compare/v3.3.1...v3.3.2) (2018-01-11)
 
