@@ -101,9 +101,10 @@ export function findInMemory(collection, query, option = {}) {
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
     if (option.filterHook) {
-      docs = option.filterHook(docs, query, option, collection)
+      docs = option.filterHook((newDocs, newQuery) => _.filter(newDocs || docs, queryTester(newQuery || query)), docs, query, option, collection)
+    } else {
+      docs = _.filter(docs, queryTester(query))
     }
-    docs = _.filter(docs, queryTester(query))
 
     if (process.env.NODE_ENV === 'development' && !collection.store.vanCtx.inConnectOnChange) {
       const duration = Date.now() - start
