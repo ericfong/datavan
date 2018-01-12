@@ -1,19 +1,19 @@
 import _ from 'lodash'
 // https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
-import stringify from 'fast-stable-stringify'
-
-import { load } from '../collection/load'
-import { prepareFindData } from './findInMemory'
-import { dispatchMutations } from '../store'
+// import stringify from 'fast-stable-stringify'
 
 import { TMP_ID_PREFIX } from '../constant'
+import { load } from '../collection/load'
+import { dispatchMutations } from '../store'
+import { prepareFindData } from './findInMemory'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
-function defaultGetFetchKey(query, option) {
-  if (query === false) return false
-  if (Array.isArray(query) && query.length === 1) return query[0]
-  return stringify([query, _.omitBy(option, (v, k) => k[0] === '_')])
+function defaultGetQueryString(query, option) {
+  // if (Array.isArray(query) && query.length === 1) return query[0]
+  // return stringify([query, _.omitBy(option, (v, k) => k[0] === '_')])
+  const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
+  return _.map(_.keys(opt).sort(), k => `${k}=${JSON.stringify(opt[k])}`).join('&')
 }
 
 // @auto-fold here
@@ -83,19 +83,20 @@ export function checkFetch(self, query, option) {
   prepareFindData(self, query, option)
   if (notForce && option._allIdsHit) return false
 
-  // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
-  const { getFetchKey = defaultGetFetchKey, fetchMaxAge } = self
-
   const fetchQuery = withoutTmpId(query, self.idField)
-  const fetchKey = (option._fetchKey = getFetchKey(fetchQuery, option))
-  if (notForce && fetchKey === false) return false
+  if (notForce && fetchQuery === false) return false
+
+  const queryString = (self.getQueryString || self.getFetchKey || defaultGetQueryString)(fetchQuery, option)
+  if (notForce && queryString === false) return false
+  option.queryString = queryString
 
   if (notForce) {
     const { fetchAts } = self.getState()
     const now = Date.now()
-    // console.log('checkFetch', fetchAts[fetchKey] - (now - fetchMaxAge))
-    if (fetchMaxAge > 0 ? fetchAts[fetchKey] > now - fetchMaxAge : fetchAts[fetchKey]) return false
-    fetchAts[fetchKey] = now
+    // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
+    const { fetchMaxAge } = self
+    if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) return false
+    fetchAts[queryString] = now
   }
 
   // want to return fetching promise for findAsync
@@ -106,5 +107,5 @@ export function checkFetch(self, query, option) {
     // flush dispatch mutates after load()
     dispatchMutations(collection.store)
   })
-  return markPromise(collection, fetchKey, p)
+  return markPromise(collection, queryString, p)
 }

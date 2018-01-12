@@ -29,7 +29,7 @@ test('fetchMaxAge', async () => {
     onFetch,
     initState: {
       byId: { a: { name: 'A' } },
-      fetchAts: { '[{},{}]': Date.now() },
+      fetchAts: { 'query={}': Date.now() },
     },
     fetchMaxAge: 100,
   })

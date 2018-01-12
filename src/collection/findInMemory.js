@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
+import { _getAll } from '.'
+
 // @auto-fold here
 function mongoToLodash(sort) {
   const fields = []
@@ -69,8 +71,6 @@ export function getQueryIds(query, idField) {
     if (typeof idQuery === 'string') return [idQuery]
   }
 }
-
-export const _getAll = collection => collection.getState().byId
 
 export function prepareFindData(self, query, option) {
   if (option._preparedData) return option._preparedData

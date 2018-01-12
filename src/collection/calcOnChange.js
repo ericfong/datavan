@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { _getAll } from './findInMemory'
+import { _getAll } from '.'
 
 function memorize(collection, memoryKey, func) {
   let { _memory } = collection

@@ -88,7 +88,7 @@ test('without tmp-id', async () => {
 })
 
 test('consider getFetchKey', async () => {
-  const users = createCollection({ onFetch: jest.fn(onFetchEcho), getFetchQuery: () => ({}), getFetchKey: () => '' })
+  const users = createCollection({ onFetch: jest.fn(onFetchEcho), getFetchQuery: () => ({}), getQueryString: () => '' })
   find(users, ['db-1'])
   expect(users.onFetch).toHaveBeenCalledTimes(1)
   find(users, ['db-2'])

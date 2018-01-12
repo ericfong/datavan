@@ -1,4 +1,4 @@
-import { buildIndex } from '../collection/memorizer'
+import { buildIndex } from '../collection/calcOnChange'
 
 test('buildIndex', async () => {
   const docs = [

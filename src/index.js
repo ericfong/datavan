@@ -1,8 +1,8 @@
+import { getCollection, dispatchMutations, getStore } from './store'
+import { _getAll } from './collection'
 import { invalidate as _invalidate, reset as _reset, garbageCollect as _garbageCollect } from './collection/invalidate'
 import { load as _load } from './collection/load'
-import { getCollection, dispatchMutations, getStore } from './store'
-
-import { findInMemory as _findInMemory, _getAll } from './collection/findInMemory'
+import { findInMemory as _findInMemory } from './collection/findInMemory'
 import { _get, _getInMemory, _find, _findAsync, _getAsync, _findOne, _getPending, _run } from './collection/getter'
 import { _mutateAll, _setAll, mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'

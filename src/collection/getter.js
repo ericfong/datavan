@@ -1,4 +1,5 @@
-import { findInMemory, _getAll } from './findInMemory'
+import { _getAll } from '.'
+import { findInMemory } from './findInMemory'
 import { checkFetch, isPreloadSkip } from './fetcher'
 
 export function _getInMemory(collection, id) {
