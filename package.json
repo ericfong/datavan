@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "fast-stable-stringify": "1.0.0",
-    "immutability-helper": "2.6.3",
+    "immutability-helper": "2.6.4",
     "lodash": "4.17.4",
     "mingo": "2.1.1",
     "recompose": "0.26.0"
@@ -47,7 +47,7 @@
     "babel-cli": "6.26.0",
     "babel-core": "6.26.0",
     "babel-eslint": "^8.2.1",
-    "babel-jest": "22.0.4",
+    "babel-jest": "22.0.6",
     "babel-plugin-dev-expression": "0.2.1",
     "babel-plugin-lodash": "3.3.2",
     "babel-plugin-module-resolver": "3.0.0",
@@ -67,19 +67,19 @@
     "eslint-plugin-babel": "4.1.2",
     "eslint-plugin-dependencies": "2.4.0",
     "eslint-plugin-import": "2.8.0",
-    "eslint-plugin-jest": "21.5.0",
+    "eslint-plugin-jest": "21.6.1",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-lodash": "2.5.0",
     "eslint-plugin-mocha": "4.11.0",
     "eslint-plugin-react": "7.5.1",
-    "jest": "22.0.4",
+    "jest": "22.0.6",
     "jsdom": "11.5.1",
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "react-redux": "5.0.6",
     "react-test-renderer": "16.2.0",
     "redux": "3.7.2",
-    "shelljs": "0.7.8"
+    "shelljs": "0.8.0"
   },
   "repository": {
     "type": "git",
