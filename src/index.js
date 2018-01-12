@@ -6,7 +6,7 @@ import { findInMemory as _findInMemory, _getAll } from './collection/findInMemor
 import { _get, _getInMemory, _find, _findAsync, _getAsync, _findOne, _getPending, _run } from './collection/getter'
 import { _mutateAll, _setAll, mutate as _mutate, set as _set, del as _del, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { getOriginals as _getOriginals, getSubmits as _getSubmits, submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
-import { _groupBy, _keyBy, _runOnChange, _getIndex } from './collection/memorizer'
+import { _calcOnChange, _getIndex } from './collection/calcOnChange'
 import {
   invalidateStore as _invalidateStore,
   getStorePending as _getStorePending,
@@ -75,9 +75,7 @@ export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRIT
 export const run = (...args) => wrapCollect(args, _run)
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const getInMemory = (...args) => wrapCollect(args, _getInMemory)
-export const groupBy = (...args) => wrapCollect(args, _groupBy)
-export const keyBy = (...args) => wrapCollect(args, _keyBy)
-export const runOnChange = (...args) => wrapCollect(args, _runOnChange)
+export const calcOnChange = (...args) => wrapCollect(args, _calcOnChange)
 export const getIndex = (...args) => wrapCollect(args, _getIndex)
 
 // store
