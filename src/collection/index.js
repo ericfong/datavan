@@ -2,11 +2,13 @@ import _ from 'lodash'
 
 import { TMP_ID_PREFIX } from '../constant'
 
+export const genId = () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`
+
 const collectionPrototype = {
   idField: '_id',
   // gcTime: 60 * 1000,
   cast: v => v,
-  genId: () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`,
+  genId,
 
   getState() {
     return this.store.getState().datavan[this.name]

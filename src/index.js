@@ -47,6 +47,7 @@ export { getCollection, dispatchMutations, getStore }
 export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'
+export { genId } from './collection'
 
 // collection
 export const getAll = (...args) => wrapCollect(args, _getAll)
