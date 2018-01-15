@@ -1,8 +1,17 @@
 import _ from 'lodash'
-import { createStore, compose } from 'redux'
+import { createStore } from 'redux'
 import delay from 'delay'
 
-import { load, datavanEnhancer, getAll, get, find, set, loadCollections, getPending, reduxDebounceSubscriber } from '..'
+import {
+  load,
+  datavanEnhancer,
+  getAll,
+  get,
+  find,
+  insert,
+  loadCollections,
+  getPending,
+} from '..'
 import createCollection from './util/createCollection'
 import onFetchEcho from './util/onFetchEcho'
 
@@ -21,8 +30,15 @@ test('save&load will not re-fetch by ids', async () => {
 
   // new browser collection
   const users = createCollection({ onFetch, initState: serverState })
-  expect(getAll(users)).toEqual({ a: { _id: 'a', name: 'A' }, b: { _id: 'b', name: 'B' }, c: { _id: 'c', name: 'C' } })
-  expect(_.keys(users.getState().fetchAts)).toEqual(['query=["a","b","c"]', 'query={"name":"A"}'])
+  expect(getAll(users)).toEqual({
+    a: { _id: 'a', name: 'A' },
+    b: { _id: 'b', name: 'B' },
+    c: { _id: 'c', name: 'C' },
+  })
+  expect(_.keys(users.getState().fetchAts)).toEqual([
+    'query=["a","b","c"]',
+    'query={"name":"A"}',
+  ])
   expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
 
   // reset
@@ -91,16 +107,25 @@ const persistState = {
 }
 
 test('load stored data Async', async () => {
-  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
+  const store = createStore(
+    rehydrateReducer,
+    preloadState,
+    datavanEnhancer({ collections }),
+  )
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
 
   // get, set before rehydrate
-  set(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
+  insert(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
-  expect(get(store, 'tasks', 't1')).toMatchObject({ name: 'customize idField', num: 2 })
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'customize idField',
+    num: 2,
+  })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
+    '2017-09-01T01:00:00.000Z',
+  )
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // Need to block all mutation before first change?
@@ -117,26 +142,37 @@ test('load stored data Async', async () => {
     done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
+    '2017-10-01T01:00:00.000Z',
+  )
   expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 
 test('load stored data sync', async () => {
-  const store = createStore(rehydrateReducer, preloadState, compose(reduxDebounceSubscriber(), datavanEnhancer({ collections })))
+  const store = createStore(
+    rehydrateReducer,
+    preloadState,
+    datavanEnhancer({ collections }),
+  )
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
 
   // get, set before rehydrate
-  await store.flush(() => set(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 }))
+  insert(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
-  expect(get(store, 'tasks', 't1')).toMatchObject({ name: 'customize idField', num: 2 })
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'customize idField',
+    num: 2,
+  })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
+    '2017-09-01T01:00:00.000Z',
+  )
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // rehydrate
   loadCollections(store, persistState.datavan)
-  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
   expect(get(store, 'tasks', 't1')).toMatchObject({
     name: 'new',
     rehydrate: 1,
@@ -144,8 +180,9 @@ test('load stored data sync', async () => {
     done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
-  await store.flush()
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
+    '2017-10-01T01:00:00.000Z',
+  )
   expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 

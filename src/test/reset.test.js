@@ -1,14 +1,13 @@
 import createCollection from './util/createCollection'
-import { getAll, garbageCollect, invalidate, get, getAsync, INVALIDATE_EXPIRED } from '..'
+import { getAll, reset, get, findAsync } from '..'
 import { echoValue } from './util/onFetchEcho'
 
-// import { printTimes } from '../datavanEnhancer'
-//
-// afterAll(printTimes)
-
 test('gc for collection without onFetch', async () => {
-  const users = createCollection({ initState: { byId: { a: 'Hi' } }, gcTime: -1 })
-  garbageCollect(users)
+  const users = createCollection({
+    initState: { byId: { a: 'Hi' } },
+    gcTime: -1,
+  })
+  reset(users, { expired: true })
   expect(getAll(users)).toEqual({ a: 'Hi' })
   expect('a' in users._byIdAts).toBeTruthy()
 })
@@ -19,11 +18,11 @@ test('only gc old docs but keep new docs', async () => {
   const users = createCollection({ onFetch, gcTime })
 
   // fetch 'a'
-  await getAsync(users, 'a')
+  await findAsync(users, ['a']).then(arr => arr[0])
   const oldByIdAtA = users._byIdAts.a
   expect(oldByIdAtA).toBeTruthy()
 
-  garbageCollect(users, INVALIDATE_EXPIRED)
+  reset(users, { expired: true })
   // gc keep 'a'
   expect(getAll(users)).toEqual({ a: 'A' })
   // _byIdAts.a reduced
@@ -33,10 +32,10 @@ test('only gc old docs but keep new docs', async () => {
   users._byIdAts.a -= gcTime
 
   // fetch 'b'
-  await getAsync(users, 'b')
+  await findAsync(users, ['b']).then(arr => arr[0])
 
   // loop gc until drop 'a' but keep 'b'
-  garbageCollect(users, INVALIDATE_EXPIRED)
+  reset(users, { expired: true })
   expect(getAll(users)).toEqual({ b: 'B' })
 
   // will not re-fetch 'b'
@@ -46,7 +45,7 @@ test('only gc old docs but keep new docs', async () => {
   expect(onFetch).toHaveBeenCalledTimes(0)
 
   // invalidate 'b'
-  invalidate(users, ['b'])
+  reset(users, { ids: ['b'], mutated: false })
   // 'b' remain
   expect(getAll(users)).toEqual({ b: 'B' })
   // but No _byIdAts
@@ -66,7 +65,7 @@ test('gc', async () => {
     gcTime: -1,
   })
 
-  garbageCollect(users)
+  reset(users, { expired: true })
   expect(getAll(users)).toEqual({})
   expect('a' in users._byIdAts).toBeFalsy()
 })

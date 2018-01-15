@@ -21,46 +21,54 @@ During find(), datavan will query your local-data first. If local-data is missin
 **Table of Contents**
 
 <!-- TOC START min:1 max:3 link:true update:true -->
-- [Getting Started](#getting-started)
-    - [connectOnChange](#connectonchange)
-    - [datavanEnhancer](#datavanenhancer)
-- [Collection Functions](#collection-functions)
-    - [find](#find)
-    - [findAsync](#findasync)
-    - [findOne](#findone)
-    - [get](#get)
-    - [getAsync](#getasync)
-    - [setAll](#setall)
-    - [getOriginals](#getoriginals)
-    - [getSubmits](#getsubmits)
-    - [set](#set)
-    - [del](#del)
-    - [insert](#insert)
-    - [update](#update)
-    - [remove](#remove)
-    - [invalidate](#invalidate)
-    - [reset](#reset)
-    - [getAll](#getall)
-    - [submit](#submit)
-    - [load](#load)
-- [Collection Spec](#collection-spec)
-    - [idField](#idfield)
-    - [onFetch](#onfetch)
-    - [onSubmit](#onsubmit)
-    - [cast](#cast)
-    - [genId](#genid)
-    - [getFetchKey](#getfetchkey)
-    - [initState](#initstate)
-- [Extension](#extension)
-    - [getBrowserWidth / getBrowserHeight](#getbrowserwidth--getbrowserheight)
-- [Upgrade from (2.7.3)](#upgrade-from-273)
+
+* [Getting Started](#getting-started)
+  * [connectOnChange](#connectonchange)
+  * [datavanEnhancer](#datavanenhancer)
+* [Collection Functions](#collection-functions)
+  * [find](#find)
+  * [findAsync](#findasync)
+  * [findOne](#findone)
+  * [get](#get)
+  * [getAsync](#getasync)
+  * [setAll](#setall)
+  * [getOriginals](#getoriginals)
+  * [getSubmits](#getsubmits)
+  * [set](#set)
+  * [del](#del)
+  * [insert](#insert)
+  * [update](#update)
+  * [remove](#remove)
+  * [invalidate](#invalidate)
+  * [reset](#reset)
+  * [getAll](#getall)
+  * [submit](#submit)
+  * [load](#load)
+* [Collection Spec](#collection-spec)
+  * [idField](#idfield)
+  * [onFetch](#onfetch)
+  * [onSubmit](#onsubmit)
+  * [cast](#cast)
+  * [genId](#genid)
+  * [getFetchKey](#getfetchkey)
+  * [initState](#initstate)
+* [Store functions](#store-functions)
+  * [getCollection](#getcollection)
+  * [invalidateStore(store, option)](#invalidatestorestore-option)
+  * [gcStore(store, option)](#gcstorestore-option)
+  * [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
+  * [getContext(store)](#getcontextstore)
+  * [setContext(store, ctx)](#setcontextstore-ctx)
+  * [loadCollections(store, collectionsData)](#loadcollectionsstore-collectionsdata)
+* [Extension](#extension)
+  * [getBrowserWidth / getBrowserHeight](#getbrowserwidth--getbrowserheight)
+* [Upgrade from (2.7.3)](#upgrade-from-273)
 
 <!-- TOC END -->
 
 **Other Docs**
 
 * [Server Rendering](https://github.com/ericfong/datavan/blob/master/doc/Server_Rendering.md)
-* [Store functions](https://github.com/ericfong/datavan/blob/master/doc/Store_Functions.md)
 
 # Getting Started
 
@@ -452,6 +460,31 @@ const collectionSpec = {
   },
 }
 ```
+
+# Store functions
+
+### getCollection
+
+get collection instance from redux store
+
+```js
+const store = createStore()
+const collection = getCollection(store, 'collection-name')
+```
+
+### invalidateStore(store, option)
+
+run auto invalidate on all collections
+
+### gcStore(store, option)
+
+run auto gc on all collections
+
+### serverPreload(store, renderCallback)
+
+render react components in server side. Reference to [Server Rendering](#server-rendering)
+
+### loadCollections(store, collectionsData)
 
 # Extension
 

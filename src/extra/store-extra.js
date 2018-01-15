@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
-import { INVALIDATE_ALL, INVALIDATE_EXPIRED } from '../constant'
-import { invalidate, garbageCollect } from '../collection/invalidate'
+import { reset } from '../collection/reset'
 import { load } from '../collection/load'
 import { getCollection } from '../store'
 import { _allPendings } from '../collection/getter'
@@ -18,30 +17,38 @@ export function loadCollections(store, inData, option = {}) {
   })
 }
 
-function throttle(collection, func, ids, option) {
+function throttle(collection, func, option) {
   if (option && option.now) {
-    func(collection, ids, option)
+    func(collection, option)
   }
   if (collection.gcTime >= 0) {
     const now = Date.now()
     const expire = now - collection.gcTime
     if (!collection._gcAt || collection._gcAt <= expire) {
       collection._gcAt = now
-      func(collection, ids, option)
+      func(collection, option)
     }
   }
 }
 
-export function setOverrides(store, _overrides) {
-  return Object.assign(store.vanCtx.overrides, _overrides)
+export function resetStore(store, option = {}) {
+  if (option.expired === undefined) option.expired = true
+  // console.log(`>>`, option)
+  _.each(store.collections, coll => throttle(coll, reset, option))
 }
 
-export function invalidateStore(store, option = {}) {
-  _.each(store.collections, coll => throttle(coll, invalidate, option.all ? INVALIDATE_ALL : INVALIDATE_EXPIRED, option))
+export function invalidateStore(store, option) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('invalidateStore() is deprecated! Use resetStore()')
+  }
+  resetStore(store, option)
 }
 
 export function gcStore(store, option = {}) {
-  _.each(store.collections, coll => throttle(coll, garbageCollect, option.all ? INVALIDATE_ALL : INVALIDATE_EXPIRED, option))
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('invalidateStore() is deprecated! Use resetStore()')
+  }
+  resetStore(store, option)
 }
 
 export function getStorePending(store) {

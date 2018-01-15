@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { invalidate, reset } from './invalidate'
+import { reset } from './reset'
 
 // @auto-fold here
 function _loop(mut = {}, inDocs, func) {
@@ -30,10 +30,14 @@ function submitted(self, idTable, option) {
     }
     $unset.push(oldId)
   })
-  self.addMutation({ byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
+  self.addMutation(
+    { byId: { $unset, $merge: byIdMerge }, originals: { $unset } },
+    option,
+  )
 }
 
-const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
+const toById = (data, idField) =>
+  _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
 
 export function normalizeLoadData(self, data) {
   if (!data) return data
@@ -47,7 +51,12 @@ export function normalizeLoadData(self, data) {
   return { byId: data }
 }
 
-const loadAs = (inDoc, id, targets) => (inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc)
+const loadAs = (inDoc, id, targets) => {
+  return inDoc && typeof inDoc === 'object'
+    ? _.defaults(inDoc, targets[id])
+    : inDoc
+}
+
 export function load(self, _data, { mutation = {} } = {}) {
   if (!_data) return _data
   const data = normalizeLoadData(self, _data)
@@ -64,10 +73,14 @@ export function load(self, _data, { mutation = {} } = {}) {
     _byIdAts[id] = now
     return loadAs(inDoc, id, byId)
   })
-  mutation.originals = _loop(mutation.originals, data.originals, (inDoc, id) => {
-    // original may be null
-    return inDoc ? loadAs(inDoc, id, originals) : inDoc
-  })
+  mutation.originals = _loop(
+    mutation.originals,
+    data.originals,
+    (inDoc, id) => {
+      // original may be null
+      return inDoc ? loadAs(inDoc, id, originals) : inDoc
+    },
+  )
 
   if (data.fetchAts) {
     mutation.fetchAts = { $merge: data.fetchAts }
@@ -81,7 +94,7 @@ export function load(self, _data, { mutation = {} } = {}) {
   // console.log(self.store.vanCtx.side, 'load', mutation.byId)
 
   // NOTE for server to pick-it back invalidate or reset data
-  if (data.$invalidate) invalidate(self, data.$invalidate)
+  if (data.$invalidate) reset(self, { ids: data.$invalidate, mutated: false })
   if (data.$reset) reset(self, data.$reset)
 
   // always return original _data, so that can access raw result

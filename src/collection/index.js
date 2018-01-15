@@ -27,7 +27,7 @@ export const _getAll = collection => collection.getState().byId
 
 export default function initCollection(collection, name, store) {
   if (process.env.NODE_ENV !== 'production') {
-    if (collection.getFetchKey) console.warn(`For ${name} collection. Please use getQueryString() instead of getFetchKey()`)
+    if (collection.getFetchKey) console.warn(`Deprecated! For ${name} collection. Please use getQueryString() instead of getFetchKey()`)
   }
 
   _.defaults(collection, collectionPrototype)

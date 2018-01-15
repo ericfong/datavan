@@ -1,10 +1,9 @@
 import _ from 'lodash'
-import mutateUtil from 'immutability-helper'
 
 import { findInMemory } from './findInMemory'
 
-export function _mutateAll(collection, mutations) {
-  const mutation = { byId: mutations }
+function _mutateAll(collection, byIdMutations) {
+  const mutation = { byId: byIdMutations }
 
   if (collection.onFetch) {
     // keep originals
@@ -17,12 +16,14 @@ export function _mutateAll(collection, mutations) {
         mutOriginals[k] = { $set: original === undefined ? null : original }
       }
     }
-    _.each(mutations, (value, key) => {
-      if (key === '$unset' || key === '$merge') {
-        _.each(value, keepOriginal)
-        return
+    _.each(byIdMutations, (subMut, id) => {
+      if (id === '$unset') {
+        _.each(subMut, keepOriginal)
+      } else if (id === '$merge') {
+        _.each(subMut, (subSubMut, subId) => keepOriginal(subId))
+      } else {
+        keepOriginal(id)
       }
-      keepOriginal(key)
     })
     mutation.originals = mutOriginals
   }
@@ -30,16 +31,19 @@ export function _mutateAll(collection, mutations) {
   collection.addMutation(mutation)
 }
 
-export function _setAll(collection, change) {
-  const mutation = {}
-  _.each(change, (value, key) => {
-    if (key === '$unset') {
-      mutation.$unset = value
-      return
-    }
-    mutation[key] = { $set: value }
-  })
-  _mutateAll(collection, mutation)
+const wrapDeepByPath = (steps, value) =>
+  steps.reduceRight((ret, step) => ({ [step]: ret }), value)
+
+export function mutate(collection, path, mutation) {
+  let mut
+  if (typeof path === 'string') {
+    mut = { [path]: mutation }
+  } else if (Array.isArray(path)) {
+    mut = wrapDeepByPath(path, mutation)
+  } else {
+    mut = path
+  }
+  _mutateAll(collection, mut)
 }
 
 function withId(core, doc) {
@@ -50,58 +54,67 @@ function withId(core, doc) {
   return doc
 }
 
-export function mutate(collection, id, mutation) {
-  _mutateAll(collection, { [id]: mutation })
-}
-
 export function set(core, id, value) {
+  // deprecated!
   if (typeof id === 'object') {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`set() a doc without id is deprecated! Please use insert()`)
+    }
     const castedDoc = withId(core, id)
-    _setAll(core, { [castedDoc[core.idField]]: castedDoc })
+    _mutateAll(core, { [castedDoc[core.idField]]: { $set: castedDoc } })
   } else {
-    _setAll(core, { [id]: value })
+    _mutateAll(core, { [id]: { $set: value } })
   }
 }
 
 export function del(core, id) {
-  _setAll(core, { $unset: [id] })
+  // deprecated!
+  _mutateAll(core, { $unset: [id] })
 }
 
 export function insert(core, docs) {
   const inputIsArray = Array.isArray(docs)
   const inserts = inputIsArray ? docs : [docs]
 
-  const change = {}
+  const merge = {}
   const castedDocs = _.map(inserts, d => {
     const castedDoc = withId(core, d)
-    change[castedDoc[core.idField]] = castedDoc
+    merge[castedDoc[core.idField]] = castedDoc
     return castedDoc
   })
-  _setAll(core, change)
+  _mutateAll(core, { $merge: merge })
 
   return inputIsArray ? castedDocs : castedDocs[0]
 }
 
 export function update(core, query, updates, option = {}) {
   const oldDocs = findInMemory(core, query, option)
-  const change = {}
   const { idField } = core
+  const mut = {}
   _.each(oldDocs, doc => {
-    // TODO use mongo operators like $set, $push...
-    const newDoc = mutateUtil(doc, updates)
-
-    // delete and set the newDoc with new id
-    change[doc[idField]] = undefined
-    if (newDoc) {
-      change[newDoc[idField]] = newDoc
-    }
+    mut[doc[idField]] = updates
   })
-  _setAll(core, change)
+  _mutateAll(core, mut)
   return oldDocs
 }
 
 export function remove(core, query, option = {}) {
   const removedDocs = findInMemory(core, query, option)
-  _setAll(core, { $unset: _.map(removedDocs, core.idField) })
+  _mutateAll(core, { $unset: _.map(removedDocs, core.idField) })
   return removedDocs
+}
+
+export function _setAll(collection, change) {
+  // if (process.env.NODE_ENV !== 'production') {
+  //   console.warn(`setAll() a doc without id is deprecated! Please use mutate()`)
+  // }
+  const mutation = {}
+  _.each(change, (value, key) => {
+    if (key === '$unset') {
+      mutation.$unset = value
+      return
+    }
+    mutation[key] = { $set: value }
+  })
+  _mutateAll(collection, mutation)
 }

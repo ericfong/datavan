@@ -42,9 +42,6 @@ rules:
   import/prefer-default-export: off
   jsx-a11y/href-no-hash: off
   linebreak-style: off
-  max-len:
-    - warn
-    - code: 160
   no-console:
     - warn
     - allow:
