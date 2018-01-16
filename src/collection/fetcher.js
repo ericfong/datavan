@@ -13,7 +13,8 @@ function defaultGetQueryString(query, option) {
   // if (Array.isArray(query) && query.length === 1) return query[0]
   // return stringify([query, _.omitBy(option, (v, k) => k[0] === '_')])
   const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
-  return _.map(_.keys(opt).sort(), k => `${k}=${JSON.stringify(opt[k])}`).join('&')
+  const sortedKeys = _.keys(opt).sort()
+  return _.map(sortedKeys, k => `${k}=${JSON.stringify(opt[k])}`).join('&')
 }
 
 // @auto-fold here
@@ -95,7 +96,9 @@ export function checkFetch(self, query, option) {
     const now = Date.now()
     // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
     const { fetchMaxAge } = self
-    if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) return false
+    if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) {
+      return false
+    }
     fetchAts[queryString] = now
   }
 

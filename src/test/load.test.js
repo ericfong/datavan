@@ -110,7 +110,7 @@ test('load stored data Async', async () => {
   const store = createStore(
     rehydrateReducer,
     preloadState,
-    datavanEnhancer({ collections }),
+    datavanEnhancer({ collections })
   )
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
@@ -123,9 +123,7 @@ test('load stored data Async', async () => {
     num: 2,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
-    '2017-09-01T01:00:00.000Z',
-  )
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // Need to block all mutation before first change?
@@ -142,9 +140,7 @@ test('load stored data Async', async () => {
     done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
-    '2017-10-01T01:00:00.000Z',
-  )
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
   expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 
@@ -152,7 +148,7 @@ test('load stored data sync', async () => {
   const store = createStore(
     rehydrateReducer,
     preloadState,
-    datavanEnhancer({ collections }),
+    datavanEnhancer({ collections })
   )
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
@@ -165,9 +161,7 @@ test('load stored data sync', async () => {
     num: 2,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
-    '2017-09-01T01:00:00.000Z',
-  )
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
   expect(mockCubscribe).toHaveBeenCalledTimes(1)
 
   // rehydrate
@@ -180,9 +174,7 @@ test('load stored data sync', async () => {
     done: 0,
   })
   expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
-  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe(
-    '2017-10-01T01:00:00.000Z',
-  )
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
   expect(mockCubscribe).toHaveBeenCalledTimes(2)
 })
 

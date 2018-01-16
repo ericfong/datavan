@@ -27,21 +27,24 @@ rules:
       objects: always-multiline
   consistent-return: off
   dependencies/no-cycles:
-    - 1
+    - warn
     - skip:
         - table
   function-paren-newline: warn
-  import/default: 2
-  import/export: 2
+  import/default: error
+  import/export: error
   import/named: error
   import/newline-after-import: warn
   import/no-unresolved:
-    - 2
+    - error
     - amd: true
       commonjs: true
   import/prefer-default-export: off
   jsx-a11y/href-no-hash: off
   linebreak-style: off
+  max-len:
+    - warn
+    - code: 140
   no-console:
     - warn
     - allow:
@@ -60,19 +63,19 @@ rules:
     - this
     - postMessage
     - name
-  no-trailing-spaces: 1
+  no-trailing-spaces: warn
   no-underscore-dangle: off
-  no-unused-expressions: 1
-  no-unused-labels: 1
-  no-unused-vars: 1
-  prefer-const: 1
+  no-unused-expressions: warn
+  no-unused-labels: warn
+  no-unused-vars: warn
+  prefer-const: warn
   prefer-destructuring: off
   quotes:
-    - 1
+    - warn
     - single
-  react/prop-types: 0
+  react/prop-types: off
   semi:
-    - 1
+    - warn
     - never
 settings:
   import/extensions:

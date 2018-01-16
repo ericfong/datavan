@@ -14,7 +14,11 @@ test('$relations', async () => {
         users: {
           onFetch: jest.fn((query, { fetchUrl }) => {
             if (fetchUrl === 'complex-query-1') {
-              return [{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }, { _id: '3', name: 'not-related' }]
+              return [
+                { _id: '1', age: 10 },
+                { _id: '2', gender: 'M' },
+                { _id: '3', name: 'not-related' },
+              ]
             }
             if (fetchUrl === 'complex-query-2') {
               return Promise.resolve({
@@ -23,7 +27,9 @@ test('$relations', async () => {
                 },
                 $relations: {
                   roles: [{ role: 'reader' }],
-                  blogs: [{ _id: '6', title: 'How to use datavan', userId: '1' }],
+                  blogs: [
+                    { _id: '6', title: 'How to use datavan', userId: '1' },
+                  ],
                 },
               }).then(res => {
                 loadCollections(store, res.$relations)
@@ -38,9 +44,15 @@ test('$relations', async () => {
 
   // complex query 1
   const query1 = { $or: [{ age: 10 }, { gender: 'M' }] }
-  find(store, 'users', query1, { fetchUrl: 'complex-query-1', sort: { _id: 1 } })
+  find(store, 'users', query1, {
+    fetchUrl: 'complex-query-1',
+    sort: { _id: 1 },
+  })
   await getPending(store, 'users')
-  expect(find(store, 'users', query1, { fetchUrl: 'complex-query-1', sort: { _id: 1 } })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+  expect(find(store, 'users', query1, {
+    fetchUrl: 'complex-query-1',
+    sort: { _id: 1 },
+  })).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
 
   // complex query 2
   const query2 = { age: 20 }
@@ -48,5 +60,7 @@ test('$relations', async () => {
   await getPending(store, 'users')
   expect(find(store, 'users', query2, { fetchUrl: 'complex-query-2' })).toEqual([{ _id: '4', age: 20, roleId: '2' }])
   expect(getAll(store, 'roles')).toEqual({ reader: { role: 'reader' } })
-  expect(getAll(store, 'blogs')).toEqual({ 6: { _id: '6', title: 'How to use datavan', userId: '1' } })
+  expect(getAll(store, 'blogs')).toEqual({
+    6: { _id: '6', title: 'How to use datavan', userId: '1' },
+  })
 })

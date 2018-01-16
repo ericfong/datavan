@@ -30,14 +30,10 @@ function submitted(self, idTable, option) {
     }
     $unset.push(oldId)
   })
-  self.addMutation(
-    { byId: { $unset, $merge: byIdMerge }, originals: { $unset } },
-    option,
-  )
+  self.addMutation({ byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
 }
 
-const toById = (data, idField) =>
-  _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
+const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)
 
 export function normalizeLoadData(self, data) {
   if (!data) return data
@@ -52,9 +48,7 @@ export function normalizeLoadData(self, data) {
 }
 
 const loadAs = (inDoc, id, targets) => {
-  return inDoc && typeof inDoc === 'object'
-    ? _.defaults(inDoc, targets[id])
-    : inDoc
+  return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
 }
 
 export function load(self, _data, { mutation = {} } = {}) {
@@ -73,14 +67,10 @@ export function load(self, _data, { mutation = {} } = {}) {
     _byIdAts[id] = now
     return loadAs(inDoc, id, byId)
   })
-  mutation.originals = _loop(
-    mutation.originals,
-    data.originals,
-    (inDoc, id) => {
-      // original may be null
-      return inDoc ? loadAs(inDoc, id, originals) : inDoc
-    },
-  )
+  mutation.originals = _loop(mutation.originals, data.originals, (inDoc, id) => {
+    // original may be null
+    return inDoc ? loadAs(inDoc, id, originals) : inDoc
+  })
 
   if (data.fetchAts) {
     mutation.fetchAts = { $merge: data.fetchAts }

@@ -101,7 +101,8 @@ export function findInMemory(collection, query, option = {}) {
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
     if (option.filterHook) {
-      docs = option.filterHook((newDocs, newQuery) => _.filter(newDocs || docs, queryTester(newQuery || query)), docs, query, option, collection)
+      const doFilter = (newDocs, newQuery) => _.filter(newDocs || docs, queryTester(newQuery || query))
+      docs = option.filterHook(doFilter, docs, query, option, collection)
     } else {
       docs = _.filter(docs, queryTester(query))
     }

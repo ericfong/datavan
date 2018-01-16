@@ -2,18 +2,7 @@ import _ from 'lodash'
 
 import createCollection from './util/createCollection'
 import { getQueryIds } from '../collection/findInMemory'
-import {
-  getPending,
-  findAsync,
-  insert,
-  update,
-  getAll,
-  find,
-  get,
-  run,
-  TMP_ID_PREFIX as TMP,
-  reset,
-} from '..'
+import { getPending, findAsync, insert, update, getAll, find, get, run, TMP_ID_PREFIX as TMP, reset } from '..'
 import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -38,10 +27,7 @@ test('find in original', async () => {
   update(users, { name: 'A' }, { $merge: { newField: 1 } })
   expect(_.map(getAll(users), 'name')).toEqual(['A', 'B'])
   insert(users, { _id: 'c', name: 'C' })
-  expect(find(users, {}, { inOriginal: true })).toEqual([
-    { _id: 'a', name: 'A' },
-    { _id: 'b', name: 'B' },
-  ])
+  expect(find(users, {}, { inOriginal: true })).toEqual([{ _id: 'a', name: 'A' }, { _id: 'b', name: 'B' }])
   expect(_.map(getAll(users), 'name')).toEqual(['A', 'B', 'C'])
 })
 
@@ -58,9 +44,7 @@ test('normalizeQuery', async () => {
 
 test('hasFetch cache', async () => {
   const users = createCollection({
-    onFetch: jest.fn((query, option, self) =>
-      onFetchById(query, self.idField, () => timeoutResolve(undefined)),
-    ),
+    onFetch: jest.fn((query, option, self) => onFetchById(query, self.idField, () => timeoutResolve(undefined))),
   })
   find(users, ['id-123'])
   await getPending(users)
@@ -74,8 +58,7 @@ test('onFetch with $invalidate', async () => {
       timeoutResolve({
         byId: { 'id-123': undefined },
         $invalidate: ['id-123'],
-      }),
-    ),
+      })),
   })
   find(users2, ['id-123'])
   await getPending(users2)
@@ -95,17 +78,11 @@ test('without tmp-id', async () => {
   // removed tmp-id
   find(Users, ['db-id-abc', `${TMP}-123`, 'db-id-xyz', `${TMP}-456`])
   expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual([
-    'db-id-abc',
-    'db-id-xyz',
-  ])
+  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // reverse will use same cacheKey??
   find(Users, ['db-id-xyz', 'db-id-abc'])
-  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual([
-    'db-id-abc',
-    'db-id-xyz',
-  ])
+  expect(_.last(Users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
 
   // find other fields with tmp id
   Users.onFetch.mockClear()
@@ -160,14 +137,10 @@ test('basic', async () => {
         if (ids) {
           ++calledGet
           // console.log('onFetch get', ids, calledGet)
-          return Promise.resolve(
-            _.compact(
-              _.map(ids, id => {
-                if (id === 'not_exists') return null
-                return { _id: id, name: `${id} name` }
-              }),
-            ),
-          )
+          return Promise.resolve(_.compact(_.map(ids, id => {
+            if (id === 'not_exists') return null
+            return { _id: id, name: `${id} name` }
+          })))
         }
       }
       ++calledFind
@@ -181,14 +154,9 @@ test('basic', async () => {
   expect(get(Users, 'u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
-  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([
-    { _id: 'u1', name: 'u1 name' },
-  ])
+  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
   await getPending(Users)
-  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([
-    { _id: 'u1', name: 'u1 name' },
-    { _id: 'u2', name: 'users Eric' },
-  ])
+  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
   get(Users, 'u1')

@@ -46,7 +46,7 @@ test('combineReducers', async () => {
       datavan: datavanReducer,
     }),
     preloadState,
-    datavanEnhancer({ collections: { memory: {} } }),
+    datavanEnhancer({ collections: { memory: {} } })
   )
 
   expect(store.getState()).toMatchObject(preloadState)
@@ -70,7 +70,7 @@ test('basic', () => {
       onClick() {
         lastClickValue = get(dispatch, 'users', 'u1')
       },
-    }),
+    })
   )(props => {
     props.onClick()
     return <span>{props.user1}</span>

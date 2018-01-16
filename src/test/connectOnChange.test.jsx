@@ -26,7 +26,7 @@ test('basic', async () => {
       collections: {
         users: { initState: [{ name: 'Eric', gender: 'M' }, { name: 'Eva', gender: 'F' }] },
       },
-    }),
+    })
   )
   const App = ({ name = 'Eric', other }) => (
     <Provider store={store}>

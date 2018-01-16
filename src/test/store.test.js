@@ -12,11 +12,7 @@ test('gcStore all&now', async () => {
   const collections = {
     users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime },
   }
-  const store = createStore(
-    s => s || {},
-    null,
-    datavanEnhancer({ collections }),
-  )
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getAll(store, 'users')).toEqual({ a: 'A' })
   resetStore(store, { expired: false, now: true })
@@ -28,11 +24,7 @@ test('gcStore', async () => {
   const collections = {
     users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime },
   }
-  const store = createStore(
-    s => s || {},
-    null,
-    datavanEnhancer({ collections }),
-  )
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getAll(store, 'users')).toEqual({ a: 'A' })
   await delay(gcTime * 2)
@@ -45,11 +37,7 @@ test('invalidateStore', async () => {
   const collections = {
     users: { initState: { byId: { a: 'A' } }, onFetch: () => {}, gcTime },
   }
-  const store = createStore(
-    s => s || {},
-    null,
-    datavanEnhancer({ collections }),
-  )
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   expect(getCollection(store, 'users')._byIdAts.a).toBeTruthy()
   await delay(gcTime * 2)
@@ -59,21 +47,13 @@ test('invalidateStore', async () => {
 })
 
 test('defineCollection', async () => {
-  const store = createStore(
-    s => s || {},
-    null,
-    datavanEnhancer({ collections: { user_table: {} } }),
-  )
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections: { user_table: {} } }))
   expect(getAll(store, 'user_table')).toEqual({})
 })
 
 test('merge collections states again will trigger new dispatch', async () => {
   const collections = { users: {} }
-  const store = createStore(
-    s => s || {},
-    null,
-    datavanEnhancer({ collections }),
-  )
+  const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   const mySubscribe = jest.fn()
   store.subscribe(mySubscribe)

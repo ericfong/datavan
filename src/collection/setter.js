@@ -58,7 +58,7 @@ export function set(core, id, value) {
   // deprecated!
   if (typeof id === 'object') {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`set() a doc without id is deprecated! Please use insert()`)
+      console.warn('set() a doc without id is deprecated! Please use insert()')
     }
     const castedDoc = withId(core, id)
     _mutateAll(core, { [castedDoc[core.idField]]: { $set: castedDoc } })

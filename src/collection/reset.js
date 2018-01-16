@@ -16,10 +16,7 @@ function calcUnset({ gcTime }, timestamps, ids, expired) {
 }
 
 // reset both dirty and tidy docs
-export function reset(
-  collection,
-  { ids, expired = false, mutated = true } = {},
-) {
+export function reset(collection, { ids, expired = false, mutated = true } = {}) {
   if (!collection.onFetch) return
   const mut = {}
 
@@ -49,9 +46,7 @@ export function reset(
 
 export function _invalidate(collection, ids = INVALIDATE_ALL) {
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(
-      'invalidate() is deprecated! Use reset(state, "table", { resetById: false, resetOriginals: false })',
-    )
+    console.warn('invalidate() is deprecated! Use reset(state, "table", { resetById: false, resetOriginals: false })')
   }
   reset(collection, {
     ids,
@@ -63,9 +58,7 @@ export function _invalidate(collection, ids = INVALIDATE_ALL) {
 // garbageCollect only reset tidy docs
 export function _garbageCollect(collection, ids = INVALIDATE_EXPIRED) {
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(
-      'garbageCollect() is deprecated! Use reset(state, "table", { tidyOnly: 1 })',
-    )
+    console.warn('garbageCollect() is deprecated! Use reset(state, "table", { tidyOnly: 1 })')
   }
   reset(collection, {
     ids,

@@ -45,7 +45,7 @@ export function getBrowserHeight(state, collectionName, heightKey = 'browserHeig
 
 export default function plugBrowser(spec) {
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(`Deprecated! Please use css based responsive method or getBrowserWidth() or getBrowserHeight() instead of plugBrowser()`)
+    console.warn('Deprecated! Please use css based responsive method or getBrowserWidth() or getBrowserHeight() instead of plugBrowser()')
   }
   return Object.assign({}, spec, {
     getWidth() {

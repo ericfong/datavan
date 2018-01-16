@@ -45,6 +45,6 @@ export function submit(collection, _submit) {
         console.error(err)
       }
       return err instanceof Error ? err : new Error(err)
-    },
+    }
   )
 }

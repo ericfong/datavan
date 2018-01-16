@@ -11,7 +11,7 @@ const echoSubmitArr = docs =>
       }
       return ret
     },
-    [],
+    []
   )
 
 export const echoSubmit = (docs, collection) => {

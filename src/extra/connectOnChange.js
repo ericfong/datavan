@@ -25,7 +25,7 @@ const pickByKeys = (props, keys, groupWarnIfNotFound) => {
       ret[key] = props[key]
       return ret
     },
-    {},
+    {}
   )
 }
 
