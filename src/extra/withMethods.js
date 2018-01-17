@@ -2,6 +2,10 @@ import { createFactory, Component } from 'react'
 import { setDisplayName, wrapDisplayName } from 'recompose'
 import { connect } from 'react-redux'
 
+function bindPropsToFunc(func, self) {
+  return (...args) => func.apply(self, [self.props, ...args])
+}
+
 const withMethods = spec => BaseComponent => {
   const factory = createFactory(BaseComponent)
 
@@ -16,7 +20,10 @@ const withMethods = spec => BaseComponent => {
 
       const methods = {}
       Object.keys(spec).forEach(key => {
-        if (key !== 'constructor') methods[key] = spec[key].bind(this)
+        const func = spec[key]
+        if (key !== 'constructor' && typeof func === 'function') {
+          methods[key] = bindPropsToFunc(func, this)
+        }
       })
       this.methods = methods
 
