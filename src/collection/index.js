@@ -7,7 +7,7 @@ export const genId = () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`
 const collectionPrototype = {
   idField: '_id',
   // gcTime: 60 * 1000,
-  cast: v => v,
+  // cast: v => v,
   genId,
 
   getState() {

@@ -26,7 +26,7 @@ const castCollections = (dvState, collections) => {
   ensureCasted(dvState, () => {
     _.each(dvState, (collState, name) => {
       const collection = collections[name]
-      if (!collection) return
+      if (!collection || !collection.cast) return
       ensureCasted(collState, () => {
         collState.byId = _.mapValues(collState.byId, doc => ensureCasted(doc, collection.cast))
         collState.originals = _.mapValues(collState.originals, doc => ensureCasted(doc, collection.cast))

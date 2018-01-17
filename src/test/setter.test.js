@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { insert, set, setAll, getAll, getOriginals, find, mutate } from '..'
+import { insert, set, getAll, find, mutate } from '..'
 import createCollection from './util/createCollection'
 
-test('setAll', async () => {
+test('mutate', async () => {
   const table = createCollection({
     onFetch: _.noop,
     initState: { byId: { old: { _id: 'old', name: 'old' } } },
@@ -33,30 +33,30 @@ test('insert/create/set, originals will be persist', async () => {
   expect(_.keys(persistedState.originals)).toEqual(['a'])
 })
 
-test('setAll', async () => {
-  const table = createCollection({
-    onFetch: _.noop,
-    initState: { byId: { old: { _id: 'old', name: 'old' } } },
-  })
-  expect(getAll(table)).toEqual({ old: { _id: 'old', name: 'old' } })
-
-  // first set
-  setAll(table, { a: 1, old: { _id: 'old', name: 'new' } })
-  expect(getAll(table)).toEqual({ a: 1, old: { _id: 'old', name: 'new' } })
-  expect(getOriginals(table)).toEqual({
-    a: null,
-    old: { _id: 'old', name: 'old' },
-  })
-
-  // set again
-  setAll(table, { a: 2, old: { _id: 'old', name: 'new2' } })
-  expect(getAll(table)).toEqual({ a: 2, old: { _id: 'old', name: 'new2' } })
-  // originals will keep as first change
-  expect(getOriginals(table)).toEqual({
-    a: null,
-    old: { _id: 'old', name: 'old' },
-  })
-})
+// test('setAll', async () => {
+//   const table = createCollection({
+//     onFetch: _.noop,
+//     initState: { byId: { old: { _id: 'old', name: 'old' } } },
+//   })
+//   expect(getAll(table)).toEqual({ old: { _id: 'old', name: 'old' } })
+//
+//   // first set
+//   setAll(table, { a: 1, old: { _id: 'old', name: 'new' } })
+//   expect(getAll(table)).toEqual({ a: 1, old: { _id: 'old', name: 'new' } })
+//   expect(getOriginals(table)).toEqual({
+//     a: null,
+//     old: { _id: 'old', name: 'old' },
+//   })
+//
+//   // set again
+//   setAll(table, { a: 2, old: { _id: 'old', name: 'new2' } })
+//   expect(getAll(table)).toEqual({ a: 2, old: { _id: 'old', name: 'new2' } })
+//   // originals will keep as first change
+//   expect(getOriginals(table)).toEqual({
+//     a: null,
+//     old: { _id: 'old', name: 'old' },
+//   })
+// })
 
 test('insert & find', async () => {
   const collection = createCollection({})
