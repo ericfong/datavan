@@ -23,52 +23,34 @@ During find(), datavan will query your local-data first. If local-data is missin
 <!-- TOC START min:1 max:3 link:true update:true -->
 
 * [Getting Started](#getting-started)
-  * [connectOnChange](#connectonchange)
+* [Setup](#setup)
   * [datavanEnhancer](#datavanenhancer)
-* [Collection Functions](#collection-functions)
+  * [use with redux's combineReducers](#use-with-reduxs-combinereducers)
+  * [data in redux store state](#data-in-redux-store-state)
+* [Better Performance](#better-performance)
+  * [connectOnChange](#connectonchange)
+  * [withMethods](#withmethods)
+* [API](#api)
   * [find](#find)
   * [findAsync](#findasync)
   * [findOne](#findone)
   * [get](#get)
-  * [getAsync](#getasync)
-  * [setAll](#setall)
-  * [getOriginals](#getoriginals)
-  * [getSubmits](#getsubmits)
-  * [set](#set)
-  * [del](#del)
+  * [getAll, getOriginals, getSubmits](#getall-getoriginals-getsubmits)
   * [insert](#insert)
   * [update](#update)
   * [remove](#remove)
-  * [invalidate](#invalidate)
+  * [mutate](#mutate)
   * [reset](#reset)
-  * [getAll](#getall)
   * [submit](#submit)
   * [load](#load)
-* [Collection Spec](#collection-spec)
-  * [idField](#idfield)
-  * [onFetch](#onfetch)
-  * [onSubmit](#onsubmit)
-  * [cast](#cast)
-  * [genId](#genid)
-  * [getFetchKey](#getfetchkey)
-  * [initState](#initstate)
-* [Store functions](#store-functions)
   * [getCollection](#getcollection)
-  * [invalidateStore(store, option)](#invalidatestorestore-option)
-  * [gcStore(store, option)](#gcstorestore-option)
-  * [serverPreload(store, renderCallback)](#serverpreloadstore-rendercallback)
-  * [getContext(store)](#getcontextstore)
-  * [setContext(store, ctx)](#setcontextstore-ctx)
-  * [loadCollections(store, collectionsData)](#loadcollectionsstore-collectionsdata)
-* [Extension](#extension)
-  * [getBrowserWidth / getBrowserHeight](#getbrowserwidth--getbrowserheight)
-* [Upgrade from (2.7.3)](#upgrade-from-273)
+  * [resetStore](#resetstore)
+* [Extra](#extra)
+  * [loadCollections](#loadcollections)
+  * [get and listen to browser size](#get-and-listen-to-browser-size)
+  * [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
-
-**Other Docs**
-
-* [Server Rendering](https://github.com/ericfong/datavan/blob/master/doc/Server_Rendering.md)
 
 # Getting Started
 
@@ -82,7 +64,7 @@ const PureComponent = props => <div>{props.user.name}</div>
 // normal redux connect
 const MyApp = connect(
   (state, { name }) => {
-    const user = findOne(state, 'users' /* collection */, { name } /* mongo query syntax */)
+    const user = findOne(state, 'user_table' /* collection */, { name } /* mongo query syntax */)
     // first call result will be undefined
     // after HTTP response, connect will be re-run
     // second result will get user object
@@ -90,9 +72,10 @@ const MyApp = connect(
   },
   (dispatch, { name }) => {
     return {
-      modifyUser: () => update(dispatch, 'users' /* collection */, { name } /* query */, { $merge: { name: 'smith' } } /* mongo update syntax */),
+      modifyUser: () =>
+        update(dispatch, 'user_table' /* collection */, { name } /* query */, { $merge: { name: 'smith' } } /* mongo update syntax */),
     }
-  },
+  }
 )(PureComponent)
 
 // create redux store
@@ -103,70 +86,163 @@ const store = createStore(
   {},
   datavanEnhancer({
     collections: {
-      // defined collection called 'users'
-      users: {
+      // defined collection called 'user_table'
+      user_table: {
         onFetch(collection, query, option) {
           return Promise.resolve([{ _id: 'id', name: 'john' }])
         },
       },
     },
-  }),
+  })
 )
 
 render(
   <Provider store={store}>
     <MyApp name="john" />
-  </Provider>,
+  </Provider>
 )
 ```
 
 * [query syntax from mingo](https://www.npmjs.com/package/mingo)
 * [update syntax from immutability-helper](https://www.npmjs.com/package/immutability-helper)
 
-### connectOnChange
+# Setup
+
+### datavanEnhancer
+
+Use `datavanEnhancer` to create datavan enhancer for redux `createStore`.
 
 ```js
-connectOnChange({ collections: string, props: string }, func)
+import { genId, defaultGetQueryString } from 'datavan'
+
+const enhancer = datavanEnhancer({
+  collections: {
+    user_table: {
+      // all following fields are optional
+
+      // id field for document (default: `_id`)
+      idField: 'id',
+
+      // async fetch function (default: `undefined`). Should return array or map of documents
+      onFetch(query, option, collection) {
+        return fetch('restful-api?name=john')
+      },
+
+      // async submit function (default: `undefined`). Should return array or map of documents. Return `false` means submit cancelled.
+      onSubmit(submits, collection) {
+        return fetch('restful-api', { method: 'POST', body: JSON.stringify(submits) })
+      },
+
+      // cast and convert doc fields. Return: casted doc
+      cast(doc) {
+        doc.count = parseInt(doc.count)
+        return doc
+      },
+
+      // generate a new tmp id string (default: genId from datavan)
+      genId: genId,
+
+      // calculate and return fetchKey (to determine cache hit or miss) from fetchQuery (default: defaultGetQueryString from datavan)
+      getQueryString: () => '',
+
+      // another way to setup initial data. With `{ byId: {}, originals: {}, fetchAts: {} }` object tables.
+      initState: {
+        // byId is table of docs
+        byId: {
+          'user-1': { _id: 'user-1', name: 'John' },
+        },
+        // originals is table of modified docs' originals
+        originals: {
+          'user-1': { _id: 'user-1', name: 'Old Name' },
+        },
+        // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
+        fetchAts: {},
+      },
+
+      // gcTime (in msec) for reset expired calculation
+      gcTime: 60 * 1000,
+    },
+  },
+})
 ```
 
-You can also use connectOnChange to memoize connect function result
+### use with redux's combineReducers
+
+if you use `combineReducers`, you also need to assign `datavanReducer` to `datavan` for `combineReducers`
+
+```js
+import { datavanReducer } from 'datavan'
+
+const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer({ collections }))
+```
+
+### data in redux store state
+
+datavan will store docs in the following structure
+
+```js
+const state = store.getState()
+
+state = {
+  datavan: {
+    user_table: {
+      byId: {
+        id_1: {
+          _id: 'id_1',
+          name: 'John',
+        },
+        id_2: {
+          _id: 'id_2',
+          name: 'May',
+        },
+      },
+
+      // table of modified docs' originals
+      originals: {},
+
+      // server fetch times/markers (msec, to prevent re-fetch after server rendering)
+      fetchAts: {},
+    },
+  },
+}
+```
+
+You can use any redux persist packages to save and load data
+
+# Better Performance
+
+### connectOnChange
+
+connectOnChange can memoize map state function result and only re-run if specified collections or props changed
 
 ```js
 const MyApp = connectOnChange(
   {
-    collections: 'users, collectionA, collectionB',
+    // specify collections and props in string
+    collections: 'user_table, collectionA, collectionB',
     props: 'name',
   },
+  // map state function
   (state, { name }) => {
-    return { user: findOne(state, 'users', { name }) }
-  },
+    return { user: findOne(state, 'user_table', { name }) }
+  }
 )(PureComponent)
 ```
 
-### datavanEnhancer
+### withMethods
+
+use withMethods to prevent re-create handler functions when props changed
 
 ```js
-datavanEnhancer({ collections })
+withMethods({
+  onClick(props, event) {
+    event.preventDefault()
+    return mutate(props.dispatch, 'user_table', 'id-1', { x: { $set: 1 } })
+  },
+})(Comp)
 ```
 
-define collections and create datavan enhancer for redux. Refer to [Collection Spec](#collection-spec) for more collection spec options
-
-```js
-import { datavanEnhancer, datavanReducer } from 'datavan'
-
-const collections = {
-  users: { idField: 'id', ...spec },
-}
-
-const store = createStore(reducer, preloadedState, datavanEnhancer({ collections }))
-
-// if you use combineReducers, you also need to use `datavanReducer`
-const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer({ collections }))
-
-find(store, 'users', query)
-```
-
-# Collection Functions
+# API
 
 ### find
 
@@ -184,7 +260,7 @@ find(state, collection, query, [option])
 ```js
 arr = find(
   state,
-  'users',
+  'user_table',
   { name: 'john' },
   {
     sort: { createdAt: -1 },
@@ -194,14 +270,14 @@ arr = find(
     keyBy: 'username',
     groupBy: 'shortId',
     map: 'name', // like pluck
-  },
+  }
 )
 ```
 
 ### findAsync
 
 ```js
-findAsync(state, collection, query, [option])
+findAsync(stateOrDispatch, collection, query, [option])
 ```
 
 Async function that always fetch and find data from server
@@ -211,63 +287,26 @@ Async function that always fetch and find data from server
 like find() but return a single document
 
 ```js
-findOne(state, collection, query, [option])
-doc = findOne(state, 'users', query)
+doc = findOne(stateOrDispatch, 'user_table', query, [option])
 ```
 
 ### get
 
 ```js
-get(state, collection, id)
-doc = get(state, 'users', 'id-123')
+doc = get(stateOrDispatch, 'user_table', 'id-123')
 ```
 
-### getAsync
+### getAll, getOriginals, getSubmits
 
 ```js
-getAsync(state, collection, query, [option])
-```
+// get all documents. This won't trigger onFetch()
+const docsTable = getAll(stateOrDispatch, 'user_table')
 
-### setAll
+// get local changed documents
+const dirtyDocs = getSubmits(stateOrDispatch, 'user_table')
 
-set a table of documents into collection
-
-```js
-setAll(state, collection, valuesTable)
-setAll(state, 'users', { key: doc, key2: doc2 })
-```
-
-### getOriginals
-
-get local changed documents' originals
-
-```js
-getOriginals(state, collection)
-const originalDocs = getOriginals(state, 'users')
-```
-
-### getSubmits
-
-get local changed documents
-
-```js
-getSubmits(state, collection)
-const dirtyDocs = getSubmits(state, 'users')
-```
-
-### set
-
-```js
-set(state, collection, id, doc) | set(state, collection, doc)
-set(state, 'users', 'id-123', { _id: 'id-123', name: 'Mary' })
-set(state, 'users', { _id: 'id-123', name: 'Mary' })
-```
-
-### del
-
-```js
-del(state, collection, id)
-del(state, 'users', 'id-123')
+// get local changed documents' originals
+const originalDocs = getOriginals(stateOrDispatch, 'user_table')
 ```
 
 ### insert
@@ -275,9 +314,9 @@ del(state, 'users', 'id-123')
 Return: inserted docs
 
 ```js
-insert(state, collection, doc | docs)
-insertedDoc = insert(state, 'users', { name: 'Mary' })
-insertedDocs = insert(state, 'users', [{ name: 'Mary' }, { name: 'John' }])
+insertedDoc = insert(stateOrDispatch, 'user_table', { name: 'Mary' })
+// can also insert array
+insertedDocs = insert(stateOrDispatch, 'user_table', [{ name: 'Mary' }, { name: 'John' }])
 ```
 
 ### update
@@ -285,8 +324,9 @@ insertedDocs = insert(state, 'users', [{ name: 'Mary' }, { name: 'John' }])
 * update operations based on [immutability-helper](https://www.npmjs.com/package/immutability-helper)
 
 ```js
-update(state, collection, query, update)
-update(state, 'users', { name: 'Mary' }, { $merge: { name: 'Mary C' } })
+const query = { name: 'Mary' }
+const mutation = { $merge: { name: 'Mary C' } }
+update(stateOrDispatch, 'user_table', query, mutation)
 ```
 
 ### remove
@@ -294,19 +334,22 @@ update(state, 'users', { name: 'Mary' }, { $merge: { name: 'Mary C' } })
 remove all docs that match the query
 
 ```js
-remove(state, collection, query)
-remove(state, 'users', { name: 'May' })
+remove(stateOrDispatch, 'user_table', { name: 'May' })
 ```
 
-### invalidate
+### mutate
 
-invalidate cache and re-fetch in future get/find
+mutate documents using [immutability-helper](https://www.npmjs.com/package/immutability-helper) syntax
 
 ```js
-invalidate(state, collection, ids)
-invalidate(state, 'users', ['id-123', 'query-fetchKey'])
-// OR invalidate all
-invalidate(state, 'users')
+// merge by doc id
+mutate(stateOrDispatch, 'user_table', 'id-123', { $merge: { name: 'Mary' } })
+
+// merge by array of path
+mutate(stateOrDispatch, 'user_table', ['id-123', 'name'], { $set: 'Mary' })
+
+// merge in many docs
+mutate(stateOrDispatch, 'user_table', { $merge: { docId1: doc1, docId2: doc2 } })
 ```
 
 ### reset
@@ -314,28 +357,26 @@ invalidate(state, 'users')
 reset local change and re-fetch in future get/find
 
 ```js
-reset(state, collection, ids, option)
-reset(state, 'users', ['id-123'])
-// OR invalidate all
-reset(state, 'users')
-```
+// reset all docs, both mutated or non-mutated (default option: { expired = false, mutated = true })
+reset(stateOrDispatch, 'user_table', [option])
 
-### getAll
+// reset only expired docs, both mutated or non-mutated
+// expire time controlled by collection's gcTime
+reset(stateOrDispatch, 'user_table', { expired: true })
 
-get all documents. This won't trigger onFetch()
+// reset only expired docs, non-mutated-only
+reset(stateOrDispatch, 'user_table', { expired: true, mutated: false })
 
-```js
-getAll(state, collection)
-const docsTable = getAll(state, 'users')
+// reset by ids array, ids will be ignored if expired=true
+reset(stateOrDispatch, 'user_table', { ids: ['id-1'], mutated: false })
 ```
 
 ### submit
 
-submit collection with onSubmitFunc. If onSubmitFunc is missing, defined onSubmit will be used
+submit collection with onSubmitFunc. If onSubmitFunc is missing, will use collection's onSubmit
 
 ```js
-promise = submit(state, collection, onSubmitFunc)
-await submit(state, 'users')
+await submit(stateOrDispatch, 'user_table', [onSubmitFunc])
 ```
 
 ### load
@@ -343,7 +384,7 @@ await submit(state, 'users')
 load bulk data into store. data can be
 
 ```js
-load(state, collection, data, option)
+load(stateOrDispatch, collection, data, option)
 ```
 
 * Array of docs
@@ -352,10 +393,10 @@ load(state, collection, data, option)
 
 ```js
 // Array of docs
-load(users, [{ _id: 'user-1', name: 'John' }])
+load(stateOrDispatch, [{ _id: 'user-1', name: 'John' }])
 
 // Or a object with at least one of `{ byId: {}, originals: {}, fetchAts: {} }`
-load(users, {
+load(stateOrDispatch, {
   // byId is table of docs
   byId: {
     'user-1': { _id: 'user-1', name: 'John' },
@@ -369,99 +410,12 @@ load(users, {
 })
 
 // Or Table of docs (byId)
-load(users, {
+load(stateOrDispatch, {
   'user-1': { _id: 'user-1', name: 'John' },
 })
 ```
 
-Different between load() and setAll()
-
-* setAll() data will consider as local-changes and trigger re-render
 * load() data will consider as fill data from backend and trigger re-render
-
-# Collection Spec
-
-options that can be used in [datavanEnhancer](#datavanenhancer)
-
-### idField
-
-id field for document (default: `_id`)
-
-### onFetch
-
-async fetch function (default: `undefined`). Should return array or map of documents
-
-```js
-const collectionSpec = {
-  onFetch(query, option, collection) {
-    return fetch('restful-api?name=john')
-  },
-}
-```
-
-### onSubmit
-
-async submit function (default: `undefined`). Should return array or map of documents. Return `false` means submit cancelled.
-
-```js
-const collectionSpec = {
-  onSubmit(submits, collection) {
-    return fetch('restful-api', { method: 'POST', body: JSON.stringify(submits) })
-  },
-}
-```
-
-### cast
-
-cast and convert doc fields. Return: casted doc
-
-```js
-const collectionSpec = {
-  cast(doc) {
-    doc.count = parseInt(doc.count)
-    return doc
-  },
-}
-```
-
-### genId
-
-generate a new tmp id string
-
-### getFetchKey
-
-calculate and return fetchKey (to determine cache hit or miss) from fetchQuery
-
-```js
-const collectionSpec = {
-  getFetchKey(fetchQuery, option) {
-    return 'generated unique cache key from fetchQuery'
-  },
-}
-```
-
-### initState
-
-another way to setup initial collection data. With `{ byId: {}, originals: {}, fetchAts: {} }` object tables.
-
-```js
-const collectionSpec = {
-  initState: {
-    // byId is table of docs
-    byId: {
-      'user-1': { _id: 'user-1', name: 'John' },
-    },
-    // originals is table of modified docs' originals
-    originals: {
-      'user-1': { _id: 'user-1', name: 'Old Name' },
-    },
-    // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
-    fetchAts: {},
-  },
-}
-```
-
-# Store functions
 
 ### getCollection
 
@@ -469,26 +423,28 @@ get collection instance from redux store
 
 ```js
 const store = createStore()
-const collection = getCollection(store, 'collection-name')
+const collection = getCollection(store | state | dispatch, 'collection-name')
 ```
 
-### invalidateStore(store, option)
+### resetStore
 
-run auto invalidate on all collections
+resetStore all collections data
 
-### gcStore(store, option)
+```js
+resetStore(store, { expired: true | false, ids: ['idStr'], mutated: true | false })
+```
 
-run auto gc on all collections
+# Extra
 
-### serverPreload(store, renderCallback)
+### loadCollections
 
-render react components in server side. Reference to [Server Rendering](#server-rendering)
+like [`load`](#load) but load multiple collection data in one dispatch cycle
 
-### loadCollections(store, collectionsData)
+```js
+resetStore(store, { user_table: [...], other_table: [...] })
+```
 
-# Extension
-
-### getBrowserWidth / getBrowserHeight
+### get and listen to browser size
 
 get width & height and listen to browser resize automatically
 
@@ -497,16 +453,43 @@ const browserWidth = getBrowserWidth(state, collectionName, (widthKey = 'browser
 const browserHeight = getBrowserHeight(state, collectionName, (heightKey = 'browserHeight'))
 ```
 
-# Upgrade from (2.7.3)
-
-* use `datavanEnhancer({ collections })` instead of `defineCollection()`. Or temp migrate using
+### Server Rendering
 
 ```js
-const Users = defineCollection(...)
-const collections = {
-  users: Users.spec,
-}
-createStore(reducer, preloadedState, datavanEnhancer({ collections }))
-```
+import { createStore } from 'redux'
+import { Provider, connect } from 'react-redux'
+import { datavanEnhancer, serverPreload } from '.'
 
-* use `find(state, 'users')` instead of `find(Users(state))`
+// define collection
+const collections = {
+  users: {
+    onFetch(query, option) { /* browser side implementation */ },
+  },
+}
+
+// connect react component
+const MyApp = connect((state, { username }) => {
+  return {
+    user: findOne(state, 'users', { username }, { serverPreload: true }),
+  }
+})(PureComponent)
+
+// create store
+const serverStore = createStore(null, null, datavanEnhancer({ collections }))
+
+// serverPreload will wait for all serverPreload marked find/fetches done
+const html = await serverPreload(serverStore, () =>
+  ReactDOMServer.renderToString(<Provider store={serverStore}><MyApp /></Provider>)
+)
+
+// transfer data to browser
+const json = JSON.stringify(store.getState())
+
+// -------
+
+// browser side
+const preloadedState = JSON.parse(json)
+const browserStore = createStore(null, preloadedState, datavanEnhancer({ collections }))
+
+ReactDOM.render(<Provider store={browserStore}><MyApp /></Provider>, dom)
+```

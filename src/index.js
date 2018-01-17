@@ -1,22 +1,9 @@
 import { getCollection, dispatchMutations, getStore } from './store'
 import { _getAll } from './collection'
-import {
-  reset as _reset,
-  _invalidate,
-  _garbageCollect,
-} from './collection/reset'
+import { reset as _reset, _invalidate, _garbageCollect } from './collection/reset'
 import { load as _load } from './collection/load'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
-import {
-  _get,
-  _getInMemory,
-  _find,
-  _findAsync,
-  _getAsync,
-  _findOne,
-  _getPending,
-  _run,
-} from './collection/getter'
+import { _get, _getInMemory, _find, _findAsync, _getAsync, _findOne, _getPending, _run } from './collection/getter'
 import {
   _setAll,
   mutate as _mutate,
@@ -49,10 +36,7 @@ const ASYNC_WRITE = 'ASYNC_WRITE'
 function wrapCollect(args, func, mode) {
   const coll = args[0]
   // it is collection if have cast function
-  const newArgs =
-    coll && coll.idField
-      ? args
-      : [getCollection(coll, args[1]), ...args.slice(2)]
+  const newArgs = coll && coll.idField ? args : [getCollection(coll, args[1]), ...args.slice(2)]
   const ret = func(...newArgs)
   if (mode === WRITE) {
     dispatchMutations(newArgs[0].store)
@@ -78,6 +62,7 @@ export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'
 export { genId } from './collection'
+export { defaultGetQueryString } from './collection/fetcher'
 
 // collection
 export const getAll = (...args) => wrapCollect(args, _getAll)
@@ -99,8 +84,7 @@ export const mutate = (...args) => wrapCollect(args, _mutate, WRITE)
 export const setAll = (...args) => wrapCollect(args, _setAll, WRITE)
 export const invalidate = (...args) => wrapCollect(args, _invalidate, WRITE)
 export const reset = (...args) => wrapCollect(args, _reset, WRITE)
-export const garbageCollect = (...args) =>
-  wrapCollect(args, _garbageCollect, WRITE)
+export const garbageCollect = (...args) => wrapCollect(args, _garbageCollect, WRITE)
 export const set = (...args) => wrapCollect(args, _set, WRITE)
 export const del = (...args) => wrapCollect(args, _del, WRITE)
 export const insert = (...args) => wrapCollect(args, _insert, WRITE)
@@ -109,19 +93,15 @@ export const remove = (...args) => wrapCollect(args, _remove, WRITE)
 
 export const submit = (...args) => wrapCollect(args, _submit, ASYNC_WRITE)
 export const getSubmittedIds = (...args) => wrapCollect(args, _getSubmittedIds)
-export const getPending = (...args) =>
-  wrapCollect(args, _getPending, ASYNC_WRITE)
+export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
 export const run = (...args) => wrapCollect(args, _run)
 
 // store
 export const resetStore = (...args) => wrapStore(args, _resetStore, WRITE)
-export const invalidateStore = (...args) =>
-  wrapStore(args, _invalidateStore, WRITE)
+export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
 export const gcStore = (...args) => wrapStore(args, _gcStore, WRITE)
-export const loadCollections = (...args) =>
-  wrapStore(args, _loadCollections, WRITE)
-export const getStorePending = (...args) =>
-  wrapStore(args, _getStorePending, ASYNC_WRITE)
+export const loadCollections = (...args) => wrapStore(args, _loadCollections, WRITE)
+export const getStorePending = (...args) => wrapStore(args, _getStorePending, ASYNC_WRITE)
 export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 export const setContext = (...args) => wrapStore(args, _setContext)
 export const getContext = (...args) => wrapStore(args, _getContext)

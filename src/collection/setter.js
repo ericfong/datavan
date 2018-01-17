@@ -31,8 +31,7 @@ function _mutateAll(collection, byIdMutations) {
   collection.addMutation(mutation)
 }
 
-const wrapDeepByPath = (steps, value) =>
-  steps.reduceRight((ret, step) => ({ [step]: ret }), value)
+const wrapDeepByPath = (steps, value) => steps.reduceRight((ret, step) => ({ [step]: ret }), value)
 
 export function mutate(collection, path, mutation) {
   let mut
@@ -105,9 +104,9 @@ export function remove(core, query, option = {}) {
 }
 
 export function _setAll(collection, change) {
-  // if (process.env.NODE_ENV !== 'production') {
-  //   console.warn(`setAll() a doc without id is deprecated! Please use mutate()`)
-  // }
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`setAll() a doc without id is deprecated! Please use mutate()`)
+  }
   const mutation = {}
   _.each(change, (value, key) => {
     if (key === '$unset') {
