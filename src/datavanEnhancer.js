@@ -14,25 +14,25 @@ const defaultsPreload = (preloadedState, collections) => {
   return _.defaultsDeep(preloadedState, defaults)
 }
 
-const castedKey = '__c'
-const castedValue = () => {}
-const ensureCasted = (obj, func) => {
-  if (!obj || typeof obj !== 'object' || obj[castedKey]) return obj
-  const newObj = func(obj) || obj
-  Object.defineProperty(newObj, castedKey, { value: castedValue, enumerable: false })
-  return newObj
-}
-const castCollections = (dvState, collections) => {
-  ensureCasted(dvState, () => {
-    _.each(dvState, (collState, name) => {
-      const collection = collections[name]
-      if (!collection || !collection.cast) return
-      ensureCasted(collState, () => {
-        collState.byId = _.mapValues(collState.byId, doc => ensureCasted(doc, collection.cast))
-        collState.originals = _.mapValues(collState.originals, doc => ensureCasted(doc, collection.cast))
-      })
-    })
+function castCollection(collection, newById, oldById) {
+  return _.mapValues(newById, (doc, _id) => {
+    if (doc === oldById[_id] || !doc || typeof doc !== 'object') return doc
+    return collection.cast(doc) || doc
   })
+}
+function castCollections(ctx, newDvState, oldDvState) {
+  if (newDvState !== oldDvState) {
+    _.each(ctx.collections, (collection, collName) => {
+      if (!collection.cast) return
+      const newCollState = newDvState[collName]
+      const oldCollState = oldDvState[collName]
+      if (newCollState === oldCollState || !newCollState) return
+      const newById = newCollState.byId
+      const oldById = oldCollState && oldCollState.byId
+      if (newById === oldById) return
+      newCollState.byId = castCollection(collection, newById, oldById || {})
+    })
+  }
 }
 
 export default function datavanEnhancer(ctx = {}) {
@@ -42,13 +42,15 @@ export default function datavanEnhancer(ctx = {}) {
       if (action.type === DATAVAN_MUTATE) {
         const { mutates } = action
         const oldDvState = newState.datavan
-        const datavan = mutates.reduce((state, { collection, mutation }) => {
+
+        const newDvState = mutates.reduce((state, { collection, mutation }) => {
           const m = { [collection]: mutation || { _t: { $set: () => {} } } }
           return mutateUtil(state, m)
         }, oldDvState)
-        newState = { ...newState, datavan }
 
-        castCollections(newState.datavan, ctx.collections)
+        castCollections(ctx, newDvState, oldDvState)
+
+        newState = { ...newState, datavan: newDvState }
       }
       return newState
     }

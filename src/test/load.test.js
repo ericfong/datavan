@@ -2,16 +2,7 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import {
-  load,
-  datavanEnhancer,
-  getAll,
-  get,
-  find,
-  insert,
-  loadCollections,
-  getPending,
-} from '..'
+import { load, datavanEnhancer, getAll, get, find, insert, loadCollections, getPending } from '..'
 import createCollection from './util/createCollection'
 import onFetchEcho from './util/onFetchEcho'
 
@@ -35,10 +26,7 @@ test('save&load will not re-fetch by ids', async () => {
     b: { _id: 'b', name: 'B' },
     c: { _id: 'c', name: 'C' },
   })
-  expect(_.keys(users.getState().fetchAts)).toEqual([
-    'query=["a","b","c"]',
-    'query={"name":"A"}',
-  ])
+  expect(_.keys(users.getState().fetchAts)).toEqual(['query=["a","b","c"]', 'query={"name":"A"}'])
   expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
 
   // reset
@@ -107,11 +95,7 @@ const persistState = {
 }
 
 test('load stored data Async', async () => {
-  const store = createStore(
-    rehydrateReducer,
-    preloadState,
-    datavanEnhancer({ collections })
-  )
+  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
 
@@ -145,11 +129,7 @@ test('load stored data Async', async () => {
 })
 
 test('load stored data sync', async () => {
-  const store = createStore(
-    rehydrateReducer,
-    preloadState,
-    datavanEnhancer({ collections })
-  )
+  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
   const mockCubscribe = jest.fn()
   store.subscribe(mockCubscribe)
 
