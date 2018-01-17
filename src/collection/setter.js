@@ -105,7 +105,7 @@ export function remove(core, query, option = {}) {
 
 export function _setAll(collection, change) {
   if (process.env.NODE_ENV !== 'production') {
-    console.warn(`setAll() a doc without id is deprecated! Please use mutate()`)
+    console.warn('setAll() a doc without id is deprecated! Please use mutate()')
   }
   const mutation = {}
   _.each(change, (value, key) => {
