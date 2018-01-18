@@ -20,9 +20,9 @@ function castCollection(collection, newById, oldById) {
     return collection.cast(doc) || doc
   })
 }
-function castCollections(ctx, newDvState, oldDvState) {
+function castCollections(collections, newDvState, oldDvState) {
   if (newDvState !== oldDvState) {
-    _.each(ctx.collections, (collection, collName) => {
+    _.each(collections, (collection, collName) => {
       if (!collection.cast) return
       const newCollState = newDvState[collName]
       const oldCollState = oldDvState[collName]
@@ -35,27 +35,45 @@ function castCollections(ctx, newDvState, oldDvState) {
   }
 }
 
-export default function datavanEnhancer(ctx = {}) {
+export const datavanReducer = (state = {}) => state
+
+export function createVanReducer(vanConf) {
+  return (oldVanState = {}, action) => {
+    if (action.type === DATAVAN_MUTATE) {
+      action.vanReduced = true
+      const { mutates } = action
+
+      const newVanState = mutates.reduce((state, { collection, mutation }) => {
+        const m = { [collection]: mutation || { _t: { $set: () => {} } } }
+        return mutateUtil(state, m)
+      }, oldVanState)
+
+      castCollections(vanConf.collections, newVanState, oldVanState)
+
+      return newVanState
+    }
+    return oldVanState
+  }
+}
+
+export default function datavanEnhancer(vanConf) {
+  const vanReducer = createVanReducer(vanConf)
+
   return _createStore => (reducer, preloadedState, enhancer) => {
-    const mutateReducer = (_state, action) => {
-      let newState = reducer(_state, action)
-      if (action.type === DATAVAN_MUTATE) {
-        const { mutates } = action
-        const oldDvState = newState.datavan
-
-        const newDvState = mutates.reduce((state, { collection, mutation }) => {
-          const m = { [collection]: mutation || { _t: { $set: () => {} } } }
-          return mutateUtil(state, m)
-        }, oldDvState)
-
-        castCollections(ctx, newDvState, oldDvState)
-
-        newState = { ...newState, datavan: newDvState }
+    let reducerIsDuplicated = false
+    const mutateReducer = (oldState, action) => {
+      const newState = reducer(oldState, action)
+      if (!reducerIsDuplicated && action.type === DATAVAN_MUTATE) {
+        if (action.vanReduced) {
+          reducerIsDuplicated = true
+          return newState
+        }
+        return { ...newState, datavan: vanReducer(newState.datavan, action) }
       }
       return newState
     }
 
-    const preload = defaultsPreload(preloadedState, ctx.collections)
+    const preload = defaultsPreload(preloadedState, vanConf.collections)
 
     const store = _createStore(mutateReducer, preload, enhancer)
 
@@ -63,10 +81,9 @@ export default function datavanEnhancer(ctx = {}) {
     const { getState, dispatch } = store
     const _getStore = () => store
     Object.assign(store, {
-      collections: ctx.collections,
+      collections: vanConf.collections,
       vanCtx: {
-        ...ctx,
-        overrides: ctx.overrides || {},
+        ...vanConf,
         mutates: [],
       },
       getState() {
@@ -82,7 +99,7 @@ export default function datavanEnhancer(ctx = {}) {
 
     // init collections
     let isLoaded = false
-    _.each(ctx.collections, (collection, name) => {
+    _.each(vanConf.collections, (collection, name) => {
       initCollection(collection, name, store)
       if (collection.initState) {
         // use load to normalize the initState or preloadedState
@@ -96,5 +113,3 @@ export default function datavanEnhancer(ctx = {}) {
     return store
   }
 }
-
-export const datavanReducer = (state = {}) => state

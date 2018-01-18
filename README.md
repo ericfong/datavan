@@ -168,12 +168,16 @@ const enhancer = datavanEnhancer({
 
 ### use with redux's combineReducers
 
-if you use `combineReducers`, you also need to assign `datavanReducer` to `datavan` for `combineReducers`
+if you use `combineReducers`, you also need to use `createVanReducer`
 
 ```js
-import { datavanReducer } from 'datavan'
+import { createVanReducer } from 'datavan'
 
-const store = createStore(combineReducers({ ..., datavan: datavanReducer }), preloadedState, datavanEnhancer({ collections }))
+const vanConf = { collections }
+
+const rootReducer = combineReducers({ ..., datavan: createVanReducer(vanConf) })
+
+const store = createStore(rootReducer, preloadedState, datavanEnhancer(vanConf))
 ```
 
 ### data in redux store state

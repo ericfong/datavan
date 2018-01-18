@@ -5,14 +5,43 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import { datavanReducer, datavanEnhancer, getStorePending, loadCollections, set, getAll, get } from '..'
+import { datavanReducer, datavanEnhancer, createVanReducer, getStorePending, loadCollections, mutate, getAll, get } from '..'
+
+test('combineReducers', async () => {
+  const preloadState = {
+    datavan: {
+      memory: { byId: { theme: 'light' } },
+    },
+  }
+  const vanConf = {
+    collections: {
+      memory: {},
+    },
+  }
+  const store = createStore(
+    combineReducers({
+      other: state => state || null,
+      datavan: createVanReducer(vanConf),
+    }),
+    preloadState,
+    datavanEnhancer(vanConf)
+  )
+
+  expect(store.getState()).toMatchObject(preloadState)
+  expect(getAll(store, 'memory')).toEqual({ theme: 'light' })
+
+  mutate(store, 'memory', ['theme'], { $set: 'dark' })
+  await getStorePending(store)
+  expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
+  expect(getAll(store, 'memory')).toEqual({ theme: 'dark' })
+})
 
 test('merge state with redux dispatch changes by another reducer', () => {
   const collections = { memory: {} }
   const store = createStore((state, action) => (action.type === 'rehydrate' ? action.state : state), {}, datavanEnhancer({ collections }))
 
   // init and set
-  set(store, 'memory', 'theme', 'dark')
+  mutate(store, 'memory', ['theme'], { $set: 'dark' })
 
   // dispatch and change before flush
   const datavan = loadCollections(store, {
@@ -27,7 +56,7 @@ test('merge state with redux dispatch changes by another reducer', () => {
     },
   })
 
-  set(store, 'memory', 'after', 'yes')
+  mutate(store, 'memory', ['after'], { $set: 'yes' })
 
   expect(getAll(store, 'memory')).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
   expect(store.getState().datavan.memory.byId).toEqual({ theme: 'light', locale: 'en', after: 'yes' })
@@ -52,7 +81,7 @@ test('combineReducers', async () => {
   expect(store.getState()).toMatchObject(preloadState)
   expect(getAll(store, 'memory')).toEqual({ theme: 'light' })
 
-  set(store, 'memory', 'theme', 'dark')
+  mutate(store, 'memory', ['theme'], { $set: 'dark' })
   await getStorePending(store)
   expect(store.getState().datavan.memory).toMatchObject({ byId: { theme: 'dark' } })
   expect(getAll(store, 'memory')).toEqual({ theme: 'dark' })
@@ -76,7 +105,7 @@ test('basic', () => {
     return <span>{props.user1}</span>
   })
 
-  set(store, 'users', 'u1', 'user 1 name!!')
+  mutate(store, 'users', ['u1'], { $set: 'user 1 name!!' })
 
   const wrapper = mount(React.createElement(Provider, { store }, <UserComp />))
 

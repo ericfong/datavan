@@ -58,7 +58,7 @@ function wrapStore(args, func, mode) {
 }
 
 export { getCollection, dispatchMutations }
-export datavanEnhancer, { datavanReducer } from './datavanEnhancer'
+export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'
 export { genId } from './collection'
