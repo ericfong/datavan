@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.6"></a>
+## [3.3.6](https://github.com/ericfong/datavan/compare/v3.3.5...v3.3.6) (2018-01-18)
+
+
+### Bug Fixes
+
+* enhance cast speed remove deprecated test ([e3f26bc](https://github.com/ericfong/datavan/commit/e3f26bc))
+* eslint ([7dbba1b](https://github.com/ericfong/datavan/commit/7dbba1b))
+* use less hacky way to cast mutated docs ([47bceee](https://github.com/ericfong/datavan/commit/47bceee))
+
+
+
 <a name="3.3.5"></a>
 ## [3.3.5](https://github.com/ericfong/datavan/compare/v3.3.4...v3.3.5) (2018-01-17)
 
