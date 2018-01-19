@@ -51,7 +51,7 @@ const loadAs = (inDoc, id, targets) => {
   return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
 }
 
-export function load(self, _data, { mutation = {} } = {}) {
+export function load(self, _data) {
   if (!_data) return _data
   const data = normalizeLoadData(self, _data)
 
@@ -62,6 +62,7 @@ export function load(self, _data, { mutation = {} } = {}) {
   const { byId, originals } = self.getState()
   const { _byIdAts } = self
   const now = Date.now()
+  const mutation = {}
   mutation.byId = _loop(mutation.byId, data.byId, (inDoc, id) => {
     if (id in originals) return
     _byIdAts[id] = now

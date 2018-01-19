@@ -106,7 +106,7 @@ export function checkFetch(self, query, option) {
   const collection = self
   const { onFetch } = collection
   const p = Promise.resolve(onFetch(fetchQuery, option, collection)).then(res => {
-    load(collection, res, option)
+    load(collection, res)
     // flush dispatch mutates after load()
     dispatchMutations(collection.store)
   })

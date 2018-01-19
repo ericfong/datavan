@@ -2,19 +2,11 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
-import initCollection from './collection'
+import createCollection from './collection'
 import { load } from './collection/load'
 import { dispatchMutations } from './store'
 
-const defaultsPreload = (preloadedState, collections) => {
-  const defaults = { datavan: {} }
-  _.each(collections, (c, name) => {
-    defaults.datavan[name] = { byId: {}, fetchAts: {}, originals: {} }
-  })
-  return _.defaultsDeep(preloadedState, defaults)
-}
-
-function castCollection(collection, newById, oldById) {
+function castCollection(collection, newById, oldById = {}) {
   return _.mapValues(newById, (doc, _id) => {
     if (doc === oldById[_id] || !doc || typeof doc !== 'object') return doc
     return collection.cast(doc) || doc
@@ -25,19 +17,19 @@ function castCollections(collections, newDvState, oldDvState) {
     _.each(collections, (collection, collName) => {
       if (!collection.cast) return
       const newCollState = newDvState[collName]
-      const oldCollState = oldDvState[collName]
+      const oldCollState = oldDvState ? oldDvState[collName] : undefined
       if (newCollState === oldCollState || !newCollState) return
       const newById = newCollState.byId
-      const oldById = oldCollState && oldCollState.byId
-      if (newById === oldById) return
-      newCollState.byId = castCollection(collection, newById, oldById || {})
+      const oldById = oldCollState ? oldCollState.byId : undefined
+      if (newById === oldById || !newById) return
+      newCollState.byId = castCollection(collection, newById, oldById)
     })
   }
 }
 
 export const datavanReducer = (state = {}) => state
 
-export function createVanReducer(vanConf) {
+export function createVanReducer({ collections }) {
   return (oldVanState = {}, action) => {
     if (action.type === DATAVAN_MUTATE) {
       action.vanReduced = true
@@ -48,18 +40,21 @@ export function createVanReducer(vanConf) {
         return mutateUtil(state, m)
       }, oldVanState)
 
-      castCollections(vanConf.collections, newVanState, oldVanState)
+      castCollections(collections, newVanState, oldVanState)
 
       return newVanState
+      // } else if (loadActionTypes && _.includes(loadActionTypes, action.type)) {
+      //   castCollections(collections, oldVanState)
     }
     return oldVanState
   }
 }
 
 export default function datavanEnhancer(vanConf) {
+  const confCollections = vanConf.collections
   const vanReducer = createVanReducer(vanConf)
 
-  return _createStore => (reducer, preloadedState, enhancer) => {
+  return _createStore => (reducer, _preload, enhancer) => {
     let reducerIsDuplicated = false
     const mutateReducer = (oldState, action) => {
       const newState = reducer(oldState, action)
@@ -73,19 +68,25 @@ export default function datavanEnhancer(vanConf) {
       return newState
     }
 
-    const preload = defaultsPreload(preloadedState, vanConf.collections)
+    // move out preload.datavan data
+    const preloadDatavanData = (_preload && _preload.datavan) || {}
+    const preload = {
+      ..._preload,
+      datavan: _.mapValues(confCollections, () => ({ byId: {}, fetchAts: {}, originals: {} })),
+    }
 
     const store = _createStore(mutateReducer, preload, enhancer)
+
+    // vanConf is per enhancer, vanCtx is per store
+    const collections = _.mapValues(confCollections, (collectionConf, name) => createCollection(collectionConf, name, store))
+    const vanCtx = { ...vanConf, collections, mutates: [] }
 
     // injects
     const { getState, dispatch } = store
     const _getStore = () => store
     Object.assign(store, {
-      collections: vanConf.collections,
-      vanCtx: {
-        ...vanConf,
-        mutates: [],
-      },
+      collections,
+      vanCtx,
       getState() {
         const state = getState()
         state.datavan.get = _getStore
@@ -99,11 +100,12 @@ export default function datavanEnhancer(vanConf) {
 
     // init collections
     let isLoaded = false
-    _.each(vanConf.collections, (collection, name) => {
-      initCollection(collection, name, store)
-      if (collection.initState) {
-        // use load to normalize the initState or preloadedState
-        load(collection, collection.initState)
+    _.each(collections, (collection, name) => {
+      // use load to normalize the initState or preloadedState
+      if (load(collection, preloadDatavanData[name])) {
+        isLoaded = true
+      }
+      if (load(collection, collection.initState)) {
         isLoaded = true
       }
     })

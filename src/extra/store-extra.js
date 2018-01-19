@@ -2,19 +2,11 @@ import _ from 'lodash'
 
 import { reset } from '../collection/reset'
 import { load } from '../collection/load'
-import { getCollection } from '../store'
 import { _allPendings } from '../collection/getter'
 
-export function loadCollections(store, inData, option = {}) {
-  return _.mapValues(inData, (data, collectionName) => {
-    if (collectionName[0] === '_') return data
-
-    const collection = getCollection(store, collectionName)
-    if (collection) {
-      load(collection, data, option)
-      return data
-    }
-  })
+export function loadCollections(store, inData) {
+  if (!inData) return null
+  return _.mapValues(store.collections, (collection, name) => load(collection, inData[name]))
 }
 
 function throttle(collection, func, option) {
@@ -33,7 +25,6 @@ function throttle(collection, func, option) {
 
 export function resetStore(store, option = {}) {
   if (option.expired === undefined) option.expired = true
-  // console.log(`>>`, option)
   _.each(store.collections, coll => throttle(coll, reset, option))
 }
 

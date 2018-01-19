@@ -1,4 +1,4 @@
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import { TMP_ID_PREFIX } from '../constant'
 
@@ -25,17 +25,18 @@ const collectionPrototype = {
 
 export const _getAll = collection => collection.getState().byId
 
-export default function initCollection(collection, name, store) {
+export default function createCollection(collectionConf, name, store) {
   if (process.env.NODE_ENV !== 'production') {
-    if (collection.getFetchKey) console.warn(`Deprecated! For ${name} collection. Please use getQueryString() instead of getFetchKey()`)
+    if (collectionConf.getFetchKey) console.warn(`Deprecated! For ${name} collection. Please use getQueryString() instead of getFetchKey()`)
   }
 
-  _.defaults(collection, collectionPrototype)
-  return Object.assign(collection, {
+  return {
+    ...collectionPrototype,
+    ...collectionConf,
     name,
     store,
     _memory: {},
     _fetchingPromises: {},
     _byIdAts: {},
-  })
+  }
 }
