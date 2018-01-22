@@ -57,13 +57,6 @@ function wrapStore(args, func, mode) {
   return ret
 }
 
-export { getCollection, dispatchMutations }
-export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
-export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
-export { queryTester } from './collection/findInMemory'
-export { genId } from './collection'
-export { defaultGetQueryString } from './collection/fetcher'
-
 // collection
 export const getAll = (...args) => wrapCollect(args, _getAll)
 export const getOriginals = (...args) => wrapCollect(args, _getOriginals)
@@ -106,8 +99,16 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 export const setContext = (...args) => wrapStore(args, _setContext)
 export const getContext = (...args) => wrapStore(args, _getContext)
 
-// extension
+// plain export
+export { getCollection, dispatchMutations }
+export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
+export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
+export { queryTester } from './collection/findInMemory'
+export { genId } from './collection'
+export { defaultGetQueryString } from './collection/fetcher'
+
 export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extra/browser'
 export connectOnChange from './extra/connectOnChange'
 export withMethods from './extra/withMethods'
 export { compose } from 'redux'
+export searchObjects, { tokenizeKeywords } from './extra/searchObjects'

@@ -21,15 +21,23 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "roots": ["<rootDir>/src"],
-    "testPathIgnorePatterns": ["/node_modules/", "/bower_components/", "/lib/", "/tmp/"]
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/bower_components/",
+      "/lib/",
+      "/tmp/"
+    ]
   },
   "dependencies": {
     "fast-stable-stringify": "^1.0.0",
     "immutability-helper": "^2.6.4",
     "lodash": "^4.17.4",
     "mingo": "2.1.1",
-    "recompose": "^0.26.0"
+    "recompose": "^0.26.0",
+    "search-text-tokenizer": "^2.1.1"
   },
   "peerDependencies": {
     "react": "^15.0.0 || ^16.0.0",
@@ -78,7 +86,18 @@
     "type": "git",
     "url": "git+https://github.com/ericfong/datavan.git"
   },
-  "keywords": ["database", "collection", "react", "redux", "reactive", "ajax", "fetch", "http", "sync", "async"],
+  "keywords": [
+    "database",
+    "collection",
+    "react",
+    "redux",
+    "reactive",
+    "ajax",
+    "fetch",
+    "http",
+    "sync",
+    "async"
+  ],
   "author": "Eric Fong",
   "license": "MIT",
   "bugs": {
