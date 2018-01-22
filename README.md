@@ -134,8 +134,13 @@ const enhancer = datavanEnhancer({
       },
 
       // cast and convert doc fields. Return: casted doc
+      // NOTE since cast() will directly mutate state in reducer, less usage of cast(), less side-effects
+      // NOTE only cast to primitive types. DON'T cast to Date, Object, Array or values not triple equal after JSON.stringify()
       cast(doc) {
-        doc.count = parseInt(doc.count)
+        doc.count = parseInt(doc.count, 10)
+        // Can cast to Number as count === JSON.parse(JSON.stringify(count))
+        doc.arr = 'a,b'.split(',')
+        // Can cast to Number as arr !== JSON.parse(JSON.stringify(arr))
         return doc
       },
 
@@ -217,18 +222,17 @@ You can use any redux persist packages to save and load data
 
 ### connectOnChange
 
-connectOnChange can memoize map state function result and only re-run if specified collections or props changed
+connectOnChange can memoize map state function result and only re-run if specified props and accessed collections is changed. Accessed collections will be auto-detected.
 
 ```js
+connectOnChange(['array', 'of', 'props', 'keys'], mapStateFunction)
+
 const MyApp = connectOnChange(
-  {
-    // specify collections and props in string
-    collections: 'user_table, collectionA, collectionB',
-    props: 'name',
-  },
+  // array of props keys
+  ['name', 'role'],
   // map state function
-  (state, { name }) => {
-    return { user: findOne(state, 'user_table', { name }) }
+  (state, { name, role }) => {
+    return { user: findOne(state, 'user_table', { name, role }) }
   }
 )(PureComponent)
 ```
