@@ -12,7 +12,7 @@ test('basic', async () => {
     gender: findOne(state, 'users', { name }).gender,
   }))
 
-  const Comp = connectOnChange({ collections: 'users', props: 'name' }, func)(props => {
+  const Comp = connectOnChange(['name'], func)(props => {
     return (
       <div id="result">
         {props.gender}-{props.other}

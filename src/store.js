@@ -18,10 +18,16 @@ export function getStore(stateOrDispatch) {
 
 export const getCollection = (any, name) => {
   if (any && any.idField) return any
-  const { collections } = getStore(any)
+  const { collections, vanCtx } = getStore(any)
   if (process.env.NODE_ENV !== 'production' && !collections[name]) {
     console.error(`collection "${name}" not found`)
   }
+
+  // ref to connectOnChange.js
+  if (vanCtx.onChangeTables) {
+    vanCtx.onChangeTables.push(name)
+  }
+
   return collections[name]
 }
 

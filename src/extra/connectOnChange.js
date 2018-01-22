@@ -4,71 +4,56 @@ import { shallowEqual } from 'recompose'
 
 import { getStore } from '../store'
 
-const ALWAYS_EQUAL = 'ALWAYS_EQUAL'
-const ALWAYS_DIFF = 'ALWAYS_DIFF'
-
-const getKeys = arg => {
-  if (arg === '') return ALWAYS_EQUAL
-  if (typeof arg === 'string') return _.uniq(_.compact(arg.split(',').map(_.trim)))
-  return ALWAYS_DIFF
+const pickByKeys = (props, keys) => {
+  // const ALWAYS_DIFF = 'ALWAYS_DIFF'
+  if (!keys) return props
+  // const ALWAYS_EQUAL = 'ALWAYS_EQUAL'
+  if (keys.length === 0) return null
+  return _.pick(props, keys)
 }
 
-const pickByKeys = (props, keys, groupWarnIfNotFound) => {
-  if (keys === ALWAYS_EQUAL) return null
-  if (keys === ALWAYS_DIFF) return props
-  return _.reduce(
-    keys,
-    (ret, key) => {
-      if (process.env.NODE_ENV === 'development' && groupWarnIfNotFound && !props[key]) {
-        console.error(`${groupWarnIfNotFound} "${key}" not found`)
-      }
-      ret[key] = props[key]
-      return ret
-    },
-    {}
-  )
-}
-
-export default ({ collections: _collectionNames, props: _propsKeys }, mapStateFunc) => {
-  const collNames = getKeys(_collectionNames)
-  const propKeys = getKeys(_propsKeys)
-
-  const stateAlwaysDiff = collNames === ALWAYS_DIFF
-  const propsAlwaysDiff = propKeys === ALWAYS_DIFF
-  if (stateAlwaysDiff && propsAlwaysDiff) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Use connectOnChange without collections:string or props:string option. You need at least one of them.')
-    }
-    return mapStateFunc
+const getConf = conf => {
+  if (typeof conf === 'object' && !Array.isArray(conf)) {
+    if (process.env.NODE_ENV !== 'production') console.warn('Please use connectOnChange([array-of-collection-names], mapStateFunc)')
+    conf = conf.props && conf.props.split(',').map(_.trim)
   }
+  return conf ? _.uniq(_.compact(conf)) : null
+}
+
+export default function connectOnChange(conf, mapStateFunc) {
+  const propKeys = getConf(conf)
 
   return connect(() => {
     let currProps
     let currState
     let currResult
+    let onChangeTables
 
     // create and return memoizer func per component
     return (state, props) => {
-      let nextState
-      let isStateEqual
-      if (stateAlwaysDiff) {
-        nextState = state.datavan
-        isStateEqual = nextState === currState
-      } else {
-        nextState = _.mapValues(pickByKeys(state.datavan, collNames, 'collections'), 'byId')
-        isStateEqual = shallowEqual(nextState, currState)
-      }
+      // console.log('>>>', onChangeTables)
+      const nextState = _.mapValues(pickByKeys(state.datavan, onChangeTables), 'byId')
+      const isStateEqual = shallowEqual(nextState, currState)
 
       const nextProps = pickByKeys(props, propKeys)
       if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
-
       currState = nextState
       currProps = nextProps
+
       // real running of memoize
       const { vanCtx } = getStore(state)
       const _inConnectOnChange = vanCtx.inConnectOnChange
+      if (process.env.NODE_ENV !== 'production' && _inConnectOnChange) {
+        console.warn('vanCtx.inConnectOnChange set to true already! Duplicated connectOnChange()?')
+      }
+
       vanCtx.inConnectOnChange = true
+      vanCtx.onChangeTables = []
+
       currResult = mapStateFunc(state, props)
+
+      onChangeTables = _.uniq(vanCtx.onChangeTables)
+      vanCtx.onChangeTables = null
       vanCtx.inConnectOnChange = _inConnectOnChange
       return currResult
     }
