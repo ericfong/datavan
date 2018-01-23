@@ -1,4 +1,4 @@
-**datavan: redux with mongodb api and can sync with server**
+**datavan: wrap redux into mongodb api and can sync with server**
 
 ![https://img.shields.io/npm/v/datavan.svg](https://img.shields.io/npm/v/datavan.svg?style=flat-square)
 [![state](https://img.shields.io/badge/state-alpha-green.svg?style=flat-square)]()
