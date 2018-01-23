@@ -36,7 +36,7 @@ export function _calcOnChange(collection, funcName, firstArgStr = '') {
 }
 
 export function buildIndex(docs, fields, isUnique) {
-  fields = typeof fields === 'string' ? [fields] : fields
+  fields = Array.isArray(fields) ? fields : [fields]
   const field = fields[0]
   if (fields.length === 1) {
     return isUnique ? _.keyBy(docs, field) : _.groupBy(docs, field)

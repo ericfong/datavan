@@ -52,6 +52,10 @@ During find(), datavan will query your local-data first. If local-data is missin
 
 <!-- TOC END -->
 
+**Other Docs**
+
+* [searchObjects](https://github.com/ericfong/datavan/blob/master/src/extra/searchObjects.md)
+
 # Getting Started
 
 ```js
@@ -244,6 +248,8 @@ use withMethods to prevent re-create handler functions when props changed
 ```js
 withMethods({
   onClick(props, event) {
+    // props will be inject as the first argument
+    // you can also use this.state and this.setState()
     event.preventDefault()
     return mutate(props.dispatch, 'user_table', 'id-1', { x: { $set: 1 } })
   },
