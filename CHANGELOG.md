@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.7"></a>
+## [3.3.7](https://github.com/ericfong/datavan/compare/v3.3.6...v3.3.7) (2018-01-23)
+
+
+### Bug Fixes
+
+* doc and getIndex API ([225f460](https://github.com/ericfong/datavan/commit/225f460))
+* doc for cast, connectOnChange and calcOnChange ([3bb0426](https://github.com/ericfong/datavan/commit/3bb0426))
+* simplify connectOnChange API and auto detect collection access during map-state ([be7e741](https://github.com/ericfong/datavan/commit/be7e741))
+* unify load prelod and initState and loadCollections. Can re-cast all docs if specified loadActionTypes ([fe4a187](https://github.com/ericfong/datavan/commit/fe4a187))
+
+
+### Features
+
+* add back searchObjects ([a840c64](https://github.com/ericfong/datavan/commit/a840c64))
+
+
+
 <a name="3.3.6"></a>
 ## [3.3.6](https://github.com/ericfong/datavan/compare/v3.3.5...v3.3.6) (2018-01-18)
 
