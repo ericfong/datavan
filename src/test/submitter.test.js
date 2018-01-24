@@ -45,13 +45,13 @@ test('onSubmit', async () => {
 
   const removeDoc = insert(Users, { name: 'Remove' })
   await submit(Users)
-  expect(get(Users, removeDoc._id)).toBe(removeDoc)
+  expect(getAll(Users)[removeDoc._id]).toBe(removeDoc)
   // remove
   remove(Users, { name: 'Remove' })
   await submit(Users)
   // have a id set to undefined
   expect(_.size(getSubmits(Users))).toBe(3)
-  expect(get(Users, removeDoc._id)).toBe(undefined)
+  expect(getAll(Users)[removeDoc._id]).toBe(undefined)
 
   // onSubmit with feedback
 

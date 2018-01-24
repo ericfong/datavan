@@ -2,13 +2,23 @@
 
 import { TMP_ID_PREFIX } from '../constant'
 
-export const genId = () => `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`
+export const genTmpId = store => `${new Date().toISOString()}-${Math.random()}-${store.getState().datavan.system.byId.deviceName || 'tmp'}`
+
+export const genId = () => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('Deprecated! use genTmpId(store) instead of genId()')
+  }
+  return `${TMP_ID_PREFIX}${Date.now()}${Math.random()}`
+}
 
 const collectionPrototype = {
   idField: '_id',
   // gcTime: 60 * 1000,
   // cast: v => v,
-  genId,
+
+  genId() {
+    return genTmpId(this.store)
+  },
 
   getState() {
     return this.store.getState().datavan[this.name]

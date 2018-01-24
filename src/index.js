@@ -104,7 +104,7 @@ export { getCollection, dispatchMutations }
 export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'
-export { genId } from './collection'
+export { genId, genTmpId } from './collection'
 export { defaultGetQueryString } from './collection/fetcher'
 
 export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extra/browser'

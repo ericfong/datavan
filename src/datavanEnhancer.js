@@ -52,6 +52,10 @@ export function createVanReducer({ collections }) {
 
 export default function datavanEnhancer(vanConf) {
   const confCollections = vanConf.collections
+
+  // define system collection
+  confCollections.system = _.defaults(confCollections.system, {})
+
   const vanReducer = createVanReducer(vanConf)
 
   return _createStore => (reducer, _preload, enhancer) => {
