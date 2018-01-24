@@ -5,7 +5,24 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import { datavanReducer, datavanEnhancer, createVanReducer, getStorePending, loadCollections, mutate, getAll, get } from '..'
+import {
+  datavanReducer,
+  datavanEnhancer,
+  createVanReducer,
+  getStorePending,
+  loadCollections,
+  mutate,
+  getAll,
+  get,
+  genTmpId,
+  tmpIdRegExp,
+} from '..'
+
+test('genTmpId match tmpIdRegExp', async () => {
+  const vanConf = { collections: {} }
+  const store = createStore(combineReducers({ datavan: createVanReducer(vanConf) }), {}, datavanEnhancer(vanConf))
+  expect(genTmpId(store).match(tmpIdRegExp)[3]).toBe('tmp')
+})
 
 test('combineReducers', async () => {
   const preloadState = {

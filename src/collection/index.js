@@ -2,7 +2,12 @@
 
 import { TMP_ID_PREFIX } from '../constant'
 
-export const _genTmpId = store => `${new Date().toISOString()}-${Math.random()}-${store.getState().datavan.system.byId.deviceName || 'tmp'}`
+export const tmpIdRegExp = /^(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)\/(\d+)\/(.+)/
+
+export const _genTmpId = store =>
+  `${new Date().toISOString()}/${Math.random()
+    .toString()
+    .substr(2)}/${store.getState().datavan.system.byId.deviceName || 'tmp'}`
 
 export const genId = () => {
   if (process.env.NODE_ENV !== 'production') {
