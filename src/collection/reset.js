@@ -17,12 +17,12 @@ function calcUnset({ gcTime }, timestamps, ids, expired) {
 
 // reset both dirty and tidy docs
 export function reset(collection, { ids, expired = false, mutated = true } = {}) {
-  if (!collection.onFetch) return
-  const mut = {}
+  // if (!collection.onFetch) return
 
   const delByIds = calcUnset(collection, collection._byIdAts, ids, expired)
   collection._byIdAts = _.omit(collection._byIdAts, delByIds)
 
+  const mut = {}
   // if any change in byIds, clear all query cache
   if (delByIds.length > 0) {
     mut.fetchAts = { $set: {} }

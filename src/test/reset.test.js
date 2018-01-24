@@ -8,8 +8,8 @@ test('gc for collection without onFetch', async () => {
     gcTime: -1,
   })
   reset(users, { expired: true })
-  expect(getAll(users)).toEqual({ a: 'Hi' })
-  expect('a' in users._byIdAts).toBeTruthy()
+  expect(getAll(users)).toEqual({})
+  expect('a' in users._byIdAts).toBeFalsy()
 })
 
 test('only gc old docs but keep new docs', async () => {
