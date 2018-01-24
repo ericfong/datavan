@@ -2,7 +2,7 @@
 
 import { TMP_ID_PREFIX } from '../constant'
 
-export const genTmpId = store => `${new Date().toISOString()}-${Math.random()}-${store.getState().datavan.system.byId.deviceName || 'tmp'}`
+export const _genTmpId = store => `${new Date().toISOString()}-${Math.random()}-${store.getState().datavan.system.byId.deviceName || 'tmp'}`
 
 export const genId = () => {
   if (process.env.NODE_ENV !== 'production') {
@@ -17,7 +17,7 @@ const collectionPrototype = {
   // cast: v => v,
 
   genId() {
-    return genTmpId(this.store)
+    return _genTmpId(this.store)
   },
 
   getState() {

@@ -1,5 +1,5 @@
 import { getCollection, dispatchMutations, getStore } from './store'
-import { _getAll } from './collection'
+import { _getAll, _genTmpId } from './collection'
 import { reset as _reset, _invalidate, _garbageCollect } from './collection/reset'
 import { load as _load } from './collection/load'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
@@ -90,6 +90,7 @@ export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRIT
 export const run = (...args) => wrapCollect(args, _run)
 
 // store
+export const genTmpId = (...args) => wrapStore(args, _genTmpId)
 export const resetStore = (...args) => wrapStore(args, _resetStore, WRITE)
 export const invalidateStore = (...args) => wrapStore(args, _invalidateStore, WRITE)
 export const gcStore = (...args) => wrapStore(args, _gcStore, WRITE)
@@ -104,7 +105,7 @@ export { getCollection, dispatchMutations }
 export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'
-export { genId, genTmpId } from './collection'
+export { genId } from './collection'
 export { defaultGetQueryString } from './collection/fetcher'
 
 export plugBrowser, { getBrowserWidth, getBrowserHeight } from './extra/browser'
