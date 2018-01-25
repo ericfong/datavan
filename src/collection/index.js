@@ -21,6 +21,8 @@ const collectionPrototype = {
   // gcTime: 60 * 1000,
   // cast: v => v,
 
+  onInsert: v => v,
+
   genId() {
     return _genTmpId(this.store)
   },

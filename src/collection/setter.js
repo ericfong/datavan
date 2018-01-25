@@ -71,17 +71,17 @@ export function del(core, id) {
   _mutateAll(core, { $unset: [id] })
 }
 
-export function insert(core, docs) {
+export function insert(coll, docs) {
   const inputIsArray = Array.isArray(docs)
   const inserts = inputIsArray ? docs : [docs]
 
   const merge = {}
   const castedDocs = _.map(inserts, d => {
-    const castedDoc = withId(core, d)
-    merge[castedDoc[core.idField]] = castedDoc
+    const castedDoc = coll.onInsert(withId(coll, d))
+    merge[castedDoc[coll.idField]] = castedDoc
     return castedDoc
   })
-  _mutateAll(core, { $merge: merge })
+  _mutateAll(coll, { $merge: merge })
 
   return inputIsArray ? castedDocs : castedDocs[0]
 }
