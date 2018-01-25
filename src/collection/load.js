@@ -82,7 +82,6 @@ export function load(self, _data) {
   }
 
   self.addMutation(mutation)
-  // console.log(self.store.vanCtx.side, 'load', mutation.byId)
 
   // NOTE for server to pick-it back invalidate or reset data
   if (data.$invalidate) reset(self, { ids: data.$invalidate, mutated: false })

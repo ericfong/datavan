@@ -86,16 +86,16 @@ export default function datavanEnhancer(vanConf) {
 
     const store = _createStore(mutateReducer, preload, enhancer)
 
-    // vanConf is per enhancer, vanCtx is per store
-    const collections = _.mapValues(confCollections, (collectionConf, name) => createCollection(collectionConf, name, store))
-    const vanCtx = { ...vanConf, collections, mutates: [] }
+    const vanDb = _.mapValues(confCollections, (collectionConf, name) => createCollection(collectionConf, name, store))
 
     // injects
     const { getState, dispatch } = store
     const _getStore = () => store
     Object.assign(store, {
-      collections,
-      vanCtx,
+      vanDb,
+      vanMutates: [],
+      // vanConf is per enhancer, vanCtx is per store
+      vanCtx: { ...vanConf },
       getState() {
         const state = getState()
         state.datavan.get = _getStore
@@ -109,7 +109,7 @@ export default function datavanEnhancer(vanConf) {
 
     // init collections
     let isLoaded = false
-    _.each(collections, (collection, name) => {
+    _.each(vanDb, (collection, name) => {
       // use load to normalize the initState or preloadedState
       if (load(collection, preloadDatavanData[name])) {
         isLoaded = true

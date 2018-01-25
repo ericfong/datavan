@@ -5,18 +5,7 @@ import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import {
-  datavanReducer,
-  datavanEnhancer,
-  createVanReducer,
-  getStorePending,
-  loadCollections,
-  mutate,
-  getAll,
-  get,
-  genTmpId,
-  tmpIdRegExp,
-} from '..'
+import { datavanEnhancer, createVanReducer, getStorePending, loadCollections, mutate, getAll, get, genTmpId, tmpIdRegExp } from '..'
 
 test('genTmpId match tmpIdRegExp', async () => {
   const vanConf = { collections: {} }
@@ -85,14 +74,15 @@ test('combineReducers', async () => {
       memory: { byId: { theme: 'light' } },
     },
   }
+  const vanConf = { collections: { memory: {} } }
   const store = createStore(
     // combineReducers will remove all state that without keys
     combineReducers({
       other: state => state || null,
-      datavan: datavanReducer,
+      datavan: createVanReducer(vanConf),
     }),
     preloadState,
-    datavanEnhancer({ collections: { memory: {} } })
+    datavanEnhancer(vanConf)
   )
 
   expect(store.getState()).toMatchObject(preloadState)

@@ -101,7 +101,7 @@ export const setContext = (...args) => wrapStore(args, _setContext)
 export const getContext = (...args) => wrapStore(args, _getContext)
 
 // plain export
-export { getCollection, dispatchMutations }
+export { getCollection, dispatchMutations, getStore }
 export datavanEnhancer, { datavanReducer, createVanReducer } from './datavanEnhancer'
 export { TMP_ID_PREFIX, INVALIDATE_ALL, INVALIDATE_EXPIRED } from './constant'
 export { queryTester } from './collection/findInMemory'

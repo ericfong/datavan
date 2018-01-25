@@ -6,7 +6,7 @@ import { _allPendings } from '../collection/getter'
 
 export function loadCollections(store, inData) {
   if (!inData) return null
-  return _.mapValues(store.collections, (collection, name) => load(collection, inData[name]))
+  return _.mapValues(store.vanDb, (collection, name) => load(collection, inData[name]))
 }
 
 function throttle(collection, func, option) {
@@ -25,7 +25,7 @@ function throttle(collection, func, option) {
 
 export function resetStore(store, option = {}) {
   if (option.expired === undefined) option.expired = true
-  _.each(store.collections, coll => throttle(coll, reset, option))
+  _.each(store.vanDb, coll => throttle(coll, reset, option))
 }
 
 export function invalidateStore(store, option) {
@@ -43,8 +43,7 @@ export function gcStore(store, option = {}) {
 }
 
 export function getStorePending(store) {
-  const { collections } = store
-  const promises = _.compact(_.flatMap(collections, _allPendings))
+  const promises = _.compact(_.flatMap(store.vanDb, _allPendings))
   if (promises.length <= 0) return null
   // TODO timeout or have a limit for recursive wait for promise
   return Promise.all(promises).then(() => getStorePending(store))
@@ -67,9 +66,15 @@ export function serverPreload(store, renderCallback) {
 }
 
 export function getContext(store) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('getContext() is deprecated! Use getStore()')
+  }
   return store.vanCtx
 }
 
 export function setContext(store, newCtx) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('setContext() is deprecated! Use getStore()')
+  }
   return Object.assign(store.vanCtx, newCtx)
 }

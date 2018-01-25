@@ -18,8 +18,8 @@ export function getStore(stateOrDispatch) {
 
 export const getCollection = (any, name) => {
   if (any && any.idField) return any
-  const { collections, vanCtx } = getStore(any)
-  if (process.env.NODE_ENV !== 'production' && !collections[name]) {
+  const { vanDb, vanCtx } = getStore(any)
+  if (process.env.NODE_ENV !== 'production' && !vanDb[name]) {
     console.error(`collection "${name}" not found`)
   }
 
@@ -28,14 +28,13 @@ export const getCollection = (any, name) => {
     vanCtx.onChangeTables.push(name)
   }
 
-  return collections[name]
+  return vanDb[name]
 }
 
 export function dispatchMutations(store) {
-  const { vanCtx } = store
-  const { mutates } = vanCtx
-  if (mutates.length > 0) {
-    vanCtx.mutates = []
-    store.dispatch({ type: DATAVAN_MUTATE, mutates })
+  const { vanMutates } = store
+  if (vanMutates.length > 0) {
+    store.vanMutates = []
+    store.dispatch({ type: DATAVAN_MUTATE, mutates: vanMutates })
   }
 }

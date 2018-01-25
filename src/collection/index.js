@@ -30,7 +30,7 @@ const collectionPrototype = {
   },
 
   addMutation(mutation) {
-    this.store.vanCtx.mutates.push({ collection: this.name, mutation })
+    this.store.vanMutates.push({ collection: this.name, mutation })
   },
 
   getAll() {
