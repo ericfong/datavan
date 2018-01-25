@@ -1,6 +1,6 @@
-import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
+import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './constant'
 
-const GET_DATAVAN_ACTION = { type: GET_DATAVAN }
+const getDatavanAction = { type: GET_DATAVAN_ACTION }
 
 export function getStore(stateOrDispatch) {
   // stateOrDispatch = state
@@ -9,7 +9,7 @@ export function getStore(stateOrDispatch) {
 
   // stateOrDispatch = dispatch
   if (typeof stateOrDispatch === 'function') {
-    return stateOrDispatch(GET_DATAVAN_ACTION)
+    return stateOrDispatch(getDatavanAction)
   }
 
   // stateOrDispatch = store
@@ -35,6 +35,6 @@ export function dispatchMutations(store) {
   const { vanMutates } = store
   if (vanMutates.length > 0) {
     store.vanMutates = []
-    store.dispatch({ type: DATAVAN_MUTATE, mutates: vanMutates })
+    store.dispatch({ type: DATAVAN_MUTATE_ACTION, mutates: vanMutates })
   }
 }

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { GET_DATAVAN, DATAVAN_MUTATE } from './constant'
+import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './constant'
 import createCollection from './collection'
 import { load } from './collection/load'
 import { dispatchMutations } from './store'
@@ -29,7 +29,7 @@ function castCollections(collections, newDvState, oldDvState) {
 
 export function createVanReducer({ collections }) {
   return (oldVanState = {}, action) => {
-    if (action.type === DATAVAN_MUTATE) {
+    if (action.type === DATAVAN_MUTATE_ACTION) {
       action.vanReduced = true
       const { mutates } = action
 
@@ -60,7 +60,7 @@ export default function datavanEnhancer(vanConf) {
     let reducerIsDuplicated = false
     const mutateReducer = (oldState, action) => {
       const newState = reducer(oldState, action)
-      if (!reducerIsDuplicated && action.type === DATAVAN_MUTATE) {
+      if (!reducerIsDuplicated && action.type === DATAVAN_MUTATE_ACTION) {
         if (action.vanReduced) {
           reducerIsDuplicated = true
           return newState
@@ -95,7 +95,7 @@ export default function datavanEnhancer(vanConf) {
         return state
       },
       dispatch(action) {
-        if (action.type === GET_DATAVAN) return store
+        if (action.type === GET_DATAVAN_ACTION) return store
         return dispatch(action)
       },
     })

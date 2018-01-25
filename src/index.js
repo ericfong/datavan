@@ -79,6 +79,7 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 
 // plain export
 export { getCollection, dispatchMutations, getStore }
+export * from './constant'
 export datavanEnhancer, { createVanReducer } from './datavanEnhancer'
 export { queryTester } from './collection/findInMemory'
 export { tmpIdRegExp } from './collection'
