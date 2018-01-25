@@ -27,13 +27,6 @@ function castCollections(collections, newDvState, oldDvState) {
   }
 }
 
-export const datavanReducer = (state = {}) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('Deprecated! use createVanReducer(vanConf) instead of datavanReducer')
-  }
-  return state
-}
-
 export function createVanReducer({ collections }) {
   return (oldVanState = {}, action) => {
     if (action.type === DATAVAN_MUTATE) {

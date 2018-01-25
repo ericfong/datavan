@@ -22,24 +22,9 @@ function throttle(collection, func, option) {
     }
   }
 }
-
 export function resetStore(store, option = {}) {
   if (option.expired === undefined) option.expired = true
   _.each(store.vanDb, coll => throttle(coll, reset, option))
-}
-
-export function invalidateStore(store, option) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('invalidateStore() is deprecated! Use resetStore()')
-  }
-  resetStore(store, option)
-}
-
-export function gcStore(store, option = {}) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('invalidateStore() is deprecated! Use resetStore()')
-  }
-  resetStore(store, option)
 }
 
 export function getStorePending(store) {
@@ -63,18 +48,4 @@ export function serverPreload(store, renderCallback) {
 
   vanCtx.duringServerPreload = false
   return output
-}
-
-export function getContext(store) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('getContext() is deprecated! Use getStore()')
-  }
-  return store.vanCtx
-}
-
-export function setContext(store, newCtx) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('setContext() is deprecated! Use getStore()')
-  }
-  return Object.assign(store.vanCtx, newCtx)
 }

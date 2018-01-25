@@ -45,6 +45,11 @@ export function mutate(collection, path, mutation) {
   _mutateAll(collection, mut)
 }
 
+// shortcut of mutate with $merge?
+export function set(coll, id, value) {
+  _mutateAll(coll, { [id]: { $set: value } })
+}
+
 function withId(core, doc) {
   const { idField } = core
   if (!doc[idField]) {
@@ -52,25 +57,6 @@ function withId(core, doc) {
   }
   return doc
 }
-
-export function set(core, id, value) {
-  // deprecated!
-  if (typeof id === 'object') {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('set() a doc without id is deprecated! Please use insert()')
-    }
-    const castedDoc = withId(core, id)
-    _mutateAll(core, { [castedDoc[core.idField]]: { $set: castedDoc } })
-  } else {
-    _mutateAll(core, { [id]: { $set: value } })
-  }
-}
-
-export function del(core, id) {
-  // deprecated!
-  _mutateAll(core, { $unset: [id] })
-}
-
 export function insert(coll, docs) {
   const inputIsArray = Array.isArray(docs)
   const inserts = inputIsArray ? docs : [docs]
@@ -101,19 +87,4 @@ export function remove(core, query, option = {}) {
   const removedDocs = findInMemory(core, query, option)
   _mutateAll(core, { $unset: _.map(removedDocs, core.idField) })
   return removedDocs
-}
-
-export function _setAll(collection, change) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('setAll() a doc without id is deprecated! Please use mutate()')
-  }
-  const mutation = {}
-  _.each(change, (value, key) => {
-    if (key === '$unset') {
-      mutation.$unset = value
-      return
-    }
-    mutation[key] = { $set: value }
-  })
-  _mutateAll(collection, mutation)
 }

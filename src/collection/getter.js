@@ -2,11 +2,6 @@ import { _getAll } from '.'
 import { findInMemory } from './findInMemory'
 import { checkFetch, isPreloadSkip } from './fetcher'
 
-export function _getInMemory(collection, id) {
-  if (process.env.NODE_ENV !== 'production') console.warn('Deprecated! Please getAll(...)[id] instead of _getInMemory(..., id)')
-  return _getAll(collection)[id]
-}
-
 export function _get(collection, id, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
     checkFetch(collection, [id], option)
@@ -35,12 +30,6 @@ export function _findAsync(collection, query = {}, option = {}) {
 
 export function _findOne(core, query, option) {
   return _find(core, query, { ...option, limit: 1 })[0]
-}
-
-const _first = arr => arr[0]
-export function _getAsync(core, id, option = {}) {
-  if (process.env.NODE_ENV !== 'production') console.warn('Deprecated! Please findAsync(...).then(arr => arr[0]) instead of getAsync(...)')
-  return _findAsync(core, [id], option).then(_first)
 }
 
 export function _allPendings(core) {

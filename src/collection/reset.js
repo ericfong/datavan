@@ -1,7 +1,5 @@
 import _ from 'lodash'
 
-import { INVALIDATE_ALL, INVALIDATE_EXPIRED } from '../constant'
-
 // @auto-fold here
 function calcUnset({ gcTime }, timestamps, ids, expired) {
   if (expired && gcTime > 0) {
@@ -42,27 +40,4 @@ export function reset(collection, { ids, expired = false, mutated = true } = {})
     }
   }
   collection.addMutation(mut)
-}
-
-export function _invalidate(collection, ids = INVALIDATE_ALL) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('invalidate() is deprecated! Use reset(state, "table", { resetById: false, resetOriginals: false })')
-  }
-  reset(collection, {
-    ids,
-    expired: ids === INVALIDATE_EXPIRED,
-    mutated: false,
-  })
-}
-
-// garbageCollect only reset tidy docs
-export function _garbageCollect(collection, ids = INVALIDATE_EXPIRED) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('garbageCollect() is deprecated! Use reset(state, "table", { tidyOnly: 1 })')
-  }
-  reset(collection, {
-    ids,
-    expired: ids === INVALIDATE_EXPIRED,
-    mutated: true,
-  })
 }

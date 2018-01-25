@@ -87,7 +87,7 @@ export function checkFetch(self, query, option) {
   const fetchQuery = withoutTmpId(query, self.idField)
   if (notForce && fetchQuery === false) return false
 
-  const queryString = (self.getQueryString || self.getFetchKey || defaultGetQueryString)(fetchQuery, option)
+  const queryString = (self.getQueryString || defaultGetQueryString)(fetchQuery, option)
   if (notForce && queryString === false) return false
   option.queryString = queryString
 
