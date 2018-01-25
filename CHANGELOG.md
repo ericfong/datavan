@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.8"></a>
+## [3.3.8](https://github.com/ericfong/datavan/compare/v3.3.7...v3.3.8) (2018-01-25)
+
+
+### Bug Fixes
+
+* add deprecated warn for old datavanReducer ([c30d2e6](https://github.com/ericfong/datavan/commit/c30d2e6))
+* genTmpId should be wrapStore and it dep on system.deviceName setting ([050111b](https://github.com/ericfong/datavan/commit/050111b))
+* rename store.collections to store.vanDb and move out vanCtx.mutates to vanMutates ([ec080dd](https://github.com/ericfong/datavan/commit/ec080dd))
+* reset should delete all docs for table without onFetch in collection conf ([e073f2a](https://github.com/ericfong/datavan/commit/e073f2a))
+
+
+### Features
+
+* add default system collection which contain key and value pairs for deviceName ([32d02c4](https://github.com/ericfong/datavan/commit/32d02c4))
+* add onInsert handler ([ca9ad1f](https://github.com/ericfong/datavan/commit/ca9ad1f))
+* add tmpIdRegExp to match tmpId Str ([c38ab34](https://github.com/ericfong/datavan/commit/c38ab34))
+
+
+
 <a name="3.3.7"></a>
 ## [3.3.7](https://github.com/ericfong/datavan/compare/v3.3.6...v3.3.7) (2018-01-23)
 
