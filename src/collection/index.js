@@ -2,12 +2,13 @@
 
 import { TMP_ID_PREFIX } from '../constant'
 
-export const tmpIdRegExp = /^dv=(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)\/(\d+)\/(.+)/
+export const tmpIdRegExp = /^dv~(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)~(\d+)~(.+)/
 
+// NOTE make tmpId sortable by time, so we use ISO Date
 export const _genTmpId = store =>
-  `${TMP_ID_PREFIX}${new Date().toISOString()}/${Math.random()
+  `${TMP_ID_PREFIX}${new Date().toISOString()}~${Math.random()
     .toString()
-    .substr(2)}/${store.getState().datavan.system.byId.deviceName || 'tmp'}`
+    .substr(2)}~${store.getState().datavan.system.byId.deviceName || 'tmp'}`
 
 const collectionPrototype = {
   idField: '_id',
