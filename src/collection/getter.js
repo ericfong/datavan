@@ -1,24 +1,24 @@
 import { _getAll } from '.'
 import { findInMemory } from './findInMemory'
-import { checkFetch, isPreloadSkip } from './fetcher'
+import { findRemote, isPreloadSkip } from './fetcher'
 
 export function _get(collection, id, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    checkFetch(collection, [id], option)
+    findRemote(collection, [id], option)
   }
   return _getAll(collection)[id]
 }
 
 export function _find(collection, query = {}, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    checkFetch(collection, query, option)
+    findRemote(collection, query, option)
   }
   return findInMemory(collection, query, option)
 }
 
 export function _findAsync(collection, query = {}, option = {}) {
   if (collection.onFetch) {
-    return Promise.resolve(checkFetch(collection, query, option)).then(() => {
+    return Promise.resolve(findRemote(collection, query, option)).then(() => {
       // if (option.force && option.returnRaw) return raw
       // _preparedData no longer valid after fetch promise resolved
       delete option._preparedData

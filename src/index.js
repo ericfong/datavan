@@ -5,6 +5,7 @@ import { load as _load } from './collection/load'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
 import { _get, _find, _findAsync, _findOne, _getPending, _run } from './collection/getter'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
+import { findRemote as _findRemote } from './collection/fetcher'
 import {
   getOriginals as _getOriginals,
   getSubmits as _getSubmits,
@@ -52,6 +53,7 @@ export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
 export const get = (...args) => wrapCollect(args, _get)
 export const find = (...args) => wrapCollect(args, _find)
 export const findAsync = (...args) => wrapCollect(args, _findAsync)
+export const findRemote = (...args) => wrapCollect(args, _findRemote)
 export const findOne = (...args) => wrapCollect(args, _findOne)
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const getIndex = (...args) => wrapCollect(args, _getIndex)

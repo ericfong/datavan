@@ -78,24 +78,24 @@ function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
-export function checkFetch(self, query, option) {
+export function findRemote(coll, query, option) {
   const notForce = !option.force
 
-  prepareFindData(self, query, option)
+  prepareFindData(coll, query, option)
   if (notForce && option._allIdsHit) return false
 
-  const fetchQuery = withoutTmpId(query, self.idField)
+  const fetchQuery = withoutTmpId(query, coll.idField)
   if (notForce && fetchQuery === false) return false
 
-  const queryString = (self.getQueryString || defaultGetQueryString)(fetchQuery, option)
+  const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option)
   if (notForce && queryString === false) return false
   option.queryString = queryString
 
   if (notForce) {
-    const { fetchAts } = self.getState()
+    const { fetchAts } = coll.getState()
     const now = Date.now()
     // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
-    const { fetchMaxAge } = self
+    const { fetchMaxAge } = coll
     if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) {
       return false
     }
@@ -103,12 +103,12 @@ export function checkFetch(self, query, option) {
   }
 
   // want to return fetching promise for findAsync
-  const collection = self
-  const { onFetch } = collection
-  const p = Promise.resolve(onFetch(fetchQuery, option, collection)).then(res => {
-    load(collection, res)
+  const { onFetch } = coll
+  const p = Promise.resolve(onFetch(fetchQuery, option, coll)).then(res => {
+    load(coll, res)
     // flush dispatch mutates after load()
-    dispatchMutations(collection.store)
+    dispatchMutations(coll.store)
+    return res
   })
-  return markPromise(collection, queryString, p)
+  return markPromise(coll, queryString, p)
 }
