@@ -17,8 +17,12 @@ function mongoToLodash(sort) {
 function postFind(arr, option) {
   if (option) {
     if (option.sort) {
-      const [fields, orders] = mongoToLodash(option.sort)
-      arr = _.orderBy(arr, fields, orders)
+      if (Array.isArray(option.sort)) {
+        arr = _.orderBy(arr, ...option.sort)
+      } else {
+        const [fields, orders] = mongoToLodash(option.sort)
+        arr = _.orderBy(arr, fields, orders)
+      }
     }
     if (option.skip || option.limit) {
       arr = _.slice(arr, option.skip || 0, option.limit)
