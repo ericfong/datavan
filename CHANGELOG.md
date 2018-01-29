@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.4.0"></a>
+# [3.4.0](https://github.com/ericfong/datavan/compare/v3.3.8...v3.4.0) (2018-01-29)
+
+
+### Bug Fixes
+
+* constant and use back TMP_ID_PREFIX ([c778602](https://github.com/ericfong/datavan/commit/c778602))
+* fix test and add virtual collection test ([60dce62](https://github.com/ericfong/datavan/commit/60dce62))
+* remove deprecated functions ([c548c39](https://github.com/ericfong/datavan/commit/c548c39))
+* support lodash orderBy syntax ([aa973fe](https://github.com/ericfong/datavan/commit/aa973fe))
+* use dv~ instead of dv=, for tmp id prefix ([df0de58](https://github.com/ericfong/datavan/commit/df0de58))
+
+
+### BREAKING CHANGES
+
+* remove deprecated functions
+
+
+
 <a name="3.3.8"></a>
 ## [3.3.8](https://github.com/ericfong/datavan/compare/v3.3.7...v3.3.8) (2018-01-25)
 
