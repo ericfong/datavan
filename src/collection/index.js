@@ -10,7 +10,7 @@ export const _genTmpId = store =>
     .toString()
     .substr(2)}~${store.getState().datavan.system.byId.deviceName || 'tmp'}`
 
-const collectionPrototype = {
+export const collectionDefaults = {
   idField: '_id',
   // gcTime: 60 * 1000,
   // cast: v => v,
@@ -38,15 +38,3 @@ const collectionPrototype = {
 }
 
 export const _getAll = collection => collection.getState().byId
-
-export default function createCollection(collectionConf, name, store) {
-  return {
-    ...collectionPrototype,
-    ...collectionConf,
-    name,
-    store,
-    _memory: {},
-    _fetchingPromises: {},
-    _byIdAts: {},
-  }
-}

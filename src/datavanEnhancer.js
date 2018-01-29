@@ -2,7 +2,7 @@ import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
 import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './constant'
-import createCollection from './collection'
+import { collectionDefaults } from './collection'
 import { load } from './collection/load'
 import { dispatchMutations } from './store'
 
@@ -48,11 +48,21 @@ export function createVanReducer({ collections }) {
   }
 }
 
-export default function datavanEnhancer(vanConf) {
-  const confCollections = vanConf.collections
+const assignCollectionDefault = (coll, name) => {
+  coll = _.defaults(coll, collectionDefaults)
+  coll.name = name
+  return coll
+}
 
+export default function datavanEnhancer(vanConf) {
   // define system collection
-  confCollections.system = _.defaults(confCollections.system, {})
+  if (!_.get(vanConf, ['collections', 'system'])) {
+    _.set(vanConf, ['collections', 'system'], {})
+  }
+
+  // createCollection step 1: assign defaults
+  const confCollections = _.mapValues(vanConf.collections, assignCollectionDefault)
+  vanConf.collections = confCollections
 
   const vanReducer = createVanReducer(vanConf)
 
@@ -79,7 +89,17 @@ export default function datavanEnhancer(vanConf) {
 
     const store = _createStore(mutateReducer, preload, enhancer)
 
-    const vanDb = _.mapValues(confCollections, (collectionConf, name) => createCollection(collectionConf, name, store))
+    // createCollection step 2: assign store and per-store-variables
+    const vanDb = _.mapValues(confCollections, collectionConf => {
+      return {
+        ...collectionConf,
+        // per store variables
+        store,
+        _memory: {},
+        _fetchingPromises: {},
+        _byIdAts: {},
+      }
+    })
 
     // injects
     const { getState, dispatch } = store
