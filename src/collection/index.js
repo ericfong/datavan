@@ -13,9 +13,9 @@ export const _genTmpId = store =>
 export const collectionDefaults = {
   idField: '_id',
   // gcTime: 60 * 1000,
-  // cast: v => v,
+  // cast: () => {},
 
-  onInsert: v => v,
+  onInsert: () => {},
 
   genId() {
     return _genTmpId(this.store)
@@ -26,7 +26,7 @@ export const collectionDefaults = {
   },
 
   addMutation(mutation) {
-    this.store.vanMutates.push({ collection: this.name, mutation })
+    this.store.vanMutates.push({ coll: this, mutation })
   },
 
   getAll() {

@@ -24,7 +24,6 @@ const WRITE = 'WRITE'
 const ASYNC_WRITE = 'ASYNC_WRITE'
 function wrapCollect(args, func, mode) {
   const coll = args[0]
-  // it is collection if have cast function
   const newArgs = coll && coll.idField ? args : [getCollection(coll, args[1]), ...args.slice(2)]
   const ret = func(...newArgs)
   if (mode === WRITE) {

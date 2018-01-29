@@ -51,16 +51,16 @@ const loadAs = (inDoc, id, targets) => {
   return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
 }
 
-export function load(self, _data) {
+export function load(coll, _data) {
   if (!_data) return _data
-  const data = normalizeLoadData(self, _data)
+  const data = normalizeLoadData(coll, _data)
 
   // move tmp id to $submittedIds before loadAsMerge
-  if (data.$submittedIds) submitted(self, data.$submittedIds)
+  if (data.$submittedIds) submitted(coll, data.$submittedIds)
 
   // load byId, originals, fetchAts
-  const { byId, originals } = self.getState()
-  const { _byIdAts } = self
+  const { byId, originals } = coll.getState()
+  const { _byIdAts } = coll
   const now = Date.now()
   const mutation = {}
   mutation.byId = _loop(mutation.byId, data.byId, (inDoc, id) => {
@@ -81,11 +81,11 @@ export function load(self, _data) {
     }
   }
 
-  self.addMutation(mutation)
+  coll.addMutation(mutation)
 
   // NOTE for server to pick-it back invalidate or reset data
-  if (data.$invalidate) reset(self, { ids: data.$invalidate, mutated: false })
-  if (data.$reset) reset(self, data.$reset)
+  if (data.$invalidate) reset(coll, { ids: data.$invalidate, mutated: false })
+  if (data.$reset) reset(coll, data.$reset)
 
   // always return original _data, so that can access raw result
   return _data

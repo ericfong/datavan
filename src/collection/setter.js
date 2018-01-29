@@ -62,14 +62,15 @@ export function insert(coll, docs) {
   const inserts = inputIsArray ? docs : [docs]
 
   const merge = {}
-  const castedDocs = _.map(inserts, d => {
-    const castedDoc = coll.onInsert(withId(coll, d))
-    merge[castedDoc[coll.idField]] = castedDoc
-    return castedDoc
+  const insertedDocs = _.map(inserts, d => {
+    const doc = withId(coll, d)
+    coll.onInsert(doc)
+    merge[doc[coll.idField]] = doc
+    return doc
   })
   _mutateAll(coll, { $merge: merge })
 
-  return inputIsArray ? castedDocs : castedDocs[0]
+  return inputIsArray ? insertedDocs : insertedDocs[0]
 }
 
 export function update(core, query, updates, option = {}) {
