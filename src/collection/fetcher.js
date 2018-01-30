@@ -9,9 +9,10 @@ import { prepareFindData } from './findInMemory'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
-export function defaultGetQueryString(query, option) {
-  // if (Array.isArray(query) && query.length === 1) return query[0]
-  // return stringify([query, _.omitBy(option, (v, k) => k[0] === '_')])
+export function defaultGetQueryString(query, option, coll) {
+  // if (Array.isArray(query)) {
+  //   query = { [coll.idField]: { $in: query } }
+  // }
   const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
   return _.map(sortedKeys, k => `${k}=${JSON.stringify(opt[k])}`).join('&')
@@ -47,7 +48,7 @@ function markPromise(self, key, promise, overwrite) {
 const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmpIdPrefix)
 const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id, tmpIdPrefix))
 // @auto-fold here
-function withoutTmpId(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
+function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   if (Array.isArray(query)) {
     const ids = sortUniqFilter(query, tmpIdPrefix)
     if (ids.length === 0) {
@@ -84,10 +85,10 @@ export function findRemote(coll, query, option) {
   prepareFindData(coll, query, option)
   if (notForce && option._allIdsHit) return false
 
-  const fetchQuery = withoutTmpId(query, coll.idField)
+  const fetchQuery = prepareFetchQuery(query, coll.idField)
   if (notForce && fetchQuery === false) return false
 
-  const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option)
+  const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option, coll)
   if (notForce && queryString === false) return false
   option.queryString = queryString
 

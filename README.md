@@ -152,7 +152,7 @@ const enhancer = datavanEnhancer({
       genId: genId,
 
       // calculate and return fetchKey (to determine cache hit or miss) from fetchQuery (default: defaultGetQueryString from datavan)
-      getQueryString: () => '',
+      getQueryString: (query, option, collection) => '',
 
       // another way to setup initial data. With `{ byId: {}, originals: {}, fetchAts: {} }` object tables.
       initState: {

@@ -6,33 +6,34 @@ import { collectionDefaults } from './collection'
 import { load } from './collection/load'
 import { dispatchMutations } from './store'
 
-function _prepareCast(mutatedDocs, mutatedColls, coll, collName, mutation) {
-  // prepare cast by loop mutation.byId and mark [id] $toggle $merge
-  if (coll.cast && mutation && mutation.byId) {
-    _.each(mutation.byId, (v, id) => {
-      if (id[0] === '$') {
-        if (id === '$merge' || id === '$toggle') {
-          _.each(v, (subV, subK) => _.set(mutatedDocs, [collName, subK], true))
-        }
-      } else {
-        _.set(mutatedDocs, [collName, id], true)
+// prepare cast by loop mutation.byId and mark [id] $toggle $merge
+function getMutatingIds(byId) {
+  const mutIds = {}
+  _.each(byId, (v, id) => {
+    if (id[0] === '$') {
+      if (id === '$merge' || id === '$toggle') {
+        _.each(v, (subV, subId) => {
+          mutIds[subId] = true
+        })
       }
-    })
-    mutatedColls[collName] = coll
-  }
+    } else {
+      mutIds[id] = true
+    }
+  })
+  return mutIds
 }
 
-function _doCast(mutatedDocs, mutatedColls, newVanState, oldVanState) {
-  // cast mutated docs
-  _.each(mutatedDocs, (byId, collName) => {
-    const newCollById = newVanState[collName].byId
-    const oldCollById = oldVanState[collName].byId
+function castMutatingDocs(mutatingIds, vanDb, newVanState, oldVanState) {
+  _.each(mutatingIds, (collMutIds, collectionName) => {
+    const newCollById = newVanState[collectionName].byId
+    const oldCollById = oldVanState[collectionName].byId
     if (newCollById !== oldCollById) {
-      const coll = mutatedColls[collName]
-      _.each(byId, (isMutated, id) => {
+      const coll = vanDb[collectionName]
+      _.each(collMutIds, (isMutating, id) => {
         const newDoc = newCollById[id]
-        if (newDoc !== oldCollById[id] && newDoc && typeof newDoc === 'object') {
-          coll.cast(newDoc)
+        if (newDoc !== oldCollById[id] && newDoc) {
+          // && typeof newDoc === 'object'
+          newCollById[id] = coll.cast(newDoc) || newDoc
         }
       })
     }
@@ -43,21 +44,23 @@ export function createVanReducer() {
   return (oldVanState = {}, action) => {
     if (action.type === DATAVAN_MUTATE_ACTION) {
       action.vanReduced = true
-      const { mutates } = action
+      const { mutates, vanDb } = action
 
-      const mutatedDocs = {}
-      const mutatedColls = {}
+      const mutatingIds = {}
 
-      const newVanState = mutates.reduce((state, { coll, mutation }) => {
-        const collName = coll.name
-
-        _prepareCast(mutatedDocs, mutatedColls, coll, collName, mutation)
-
-        const m = { [collName]: mutation || { _t: { $set: () => {} } } }
-        return mutateUtil(state, m)
+      const newVanState = mutates.reduce((state, { collectionName, mutation }) => {
+        if (mutation) {
+          if (vanDb[collectionName].cast) {
+            mutatingIds[collectionName] = getMutatingIds(mutation.byId)
+          }
+        } else {
+          // mutation null means force update without any changes
+          mutation = { _t: { $set: () => {} } }
+        }
+        return mutateUtil(state, { [collectionName]: mutation })
       }, oldVanState)
 
-      _doCast(mutatedDocs, mutatedColls, newVanState, oldVanState)
+      castMutatingDocs(mutatingIds, vanDb, newVanState, oldVanState)
 
       return newVanState
     }

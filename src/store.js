@@ -32,9 +32,9 @@ export const getCollection = (any, name) => {
 }
 
 export function dispatchMutations(store) {
-  const { vanMutates } = store
+  const { vanMutates, vanDb } = store
   if (vanMutates.length > 0) {
     store.vanMutates = []
-    store.dispatch({ type: DATAVAN_MUTATE_ACTION, mutates: vanMutates })
+    store.dispatch({ type: DATAVAN_MUTATE_ACTION, mutates: vanMutates, vanDb })
   }
 }

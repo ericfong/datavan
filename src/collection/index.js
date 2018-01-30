@@ -26,7 +26,7 @@ export const collectionDefaults = {
   },
 
   addMutation(mutation) {
-    this.store.vanMutates.push({ coll: this, mutation })
+    this.store.vanMutates.push({ collectionName: this.name, mutation })
   },
 
   getAll() {
