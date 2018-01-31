@@ -10,9 +10,9 @@ import { prepareFindData } from './findInMemory'
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
 export function defaultGetQueryString(query, option, coll) {
-  // if (Array.isArray(query)) {
-  //   query = { [coll.idField]: { $in: query } }
-  // }
+  if (Array.isArray(query)) {
+    query = { [coll.idField]: { $in: query } }
+  }
   const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
   return _.map(sortedKeys, k => `${k}=${JSON.stringify(opt[k])}`).join('&')

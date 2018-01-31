@@ -26,8 +26,8 @@ test('save&load will not re-fetch by ids', async () => {
     b: { _id: 'b', name: 'B' },
     c: { _id: 'c', name: 'C' },
   })
-  // expect(_.keys(users.getState().fetchAts)).toEqual(['query={"_id":{"$in":["a","b","c"]}}', 'query={"name":"A"}'])
-  expect(_.keys(users.getState().fetchAts)).toEqual(['query=["a","b","c"]', 'query={"name":"A"}'])
+  expect(_.keys(users.getState().fetchAts)).toEqual(['query={"_id":{"$in":["a","b","c"]}}', 'query={"name":"A"}'])
+  // expect(_.keys(users.getState().fetchAts)).toEqual(['query=["a","b","c"]', 'query={"name":"A"}'])
   expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
 
   // reset
