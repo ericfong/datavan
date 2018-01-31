@@ -10,7 +10,7 @@ test('mutate', async () => {
   })
 
   // mutate to root
-  mutate(table, { a: { $set: 1 }, old: { $set: { _id: 'old', name: 'new' } } })
+  mutate(table, null, { a: { $set: 1 }, old: { $set: { _id: 'old', name: 'new' } } })
   expect(getAll(table)).toEqual({ a: 1, old: { _id: 'old', name: 'new' } })
 
   // mutate by string
@@ -32,31 +32,6 @@ test('insert/create/set, originals will be persist', async () => {
   const persistedState = JSON.parse(JSON.stringify(state))
   expect(_.keys(persistedState.originals)).toEqual(['a'])
 })
-
-// test('setAll', async () => {
-//   const table = createCollection({
-//     onFetch: _.noop,
-//     initState: { byId: { old: { _id: 'old', name: 'old' } } },
-//   })
-//   expect(getAll(table)).toEqual({ old: { _id: 'old', name: 'old' } })
-//
-//   // first set
-//   setAll(table, { a: 1, old: { _id: 'old', name: 'new' } })
-//   expect(getAll(table)).toEqual({ a: 1, old: { _id: 'old', name: 'new' } })
-//   expect(getOriginals(table)).toEqual({
-//     a: null,
-//     old: { _id: 'old', name: 'old' },
-//   })
-//
-//   // set again
-//   setAll(table, { a: 2, old: { _id: 'old', name: 'new2' } })
-//   expect(getAll(table)).toEqual({ a: 2, old: { _id: 'old', name: 'new2' } })
-//   // originals will keep as first change
-//   expect(getOriginals(table)).toEqual({
-//     a: null,
-//     old: { _id: 'old', name: 'old' },
-//   })
-// })
 
 test('insert & find', async () => {
   const collection = createCollection({})
