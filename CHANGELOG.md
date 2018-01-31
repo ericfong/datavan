@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.4.4"></a>
+## [3.4.4](https://github.com/ericfong/datavan/compare/v3.4.3...v3.4.4) (2018-01-31)
+
+
+### Bug Fixes
+
+* add back getSetter ([8ee7365](https://github.com/ericfong/datavan/commit/8ee7365))
+
+
+
 <a name="3.4.3"></a>
 ## [3.4.3](https://github.com/ericfong/datavan/compare/v3.4.1...v3.4.3) (2018-01-31)
 
