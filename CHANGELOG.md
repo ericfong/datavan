@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.4.2"></a>
+## [3.4.2](https://github.com/ericfong/datavan/compare/v3.4.1...v3.4.2) (2018-01-31)
+
+
+### Bug Fixes
+
+* defaultGetQueryString should convert to normal query to make API easy to write ([8bfb8f6](https://github.com/ericfong/datavan/commit/8bfb8f6))
+* enhance cast logic ([b48f68c](https://github.com/ericfong/datavan/commit/b48f68c))
+
+
+
 <a name="3.4.1"></a>
 ## [3.4.1](https://github.com/ericfong/datavan/compare/v3.4.0...v3.4.1) (2018-01-29)
 
