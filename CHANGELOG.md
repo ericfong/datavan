@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.4.5"></a>
+## [3.4.5](https://github.com/ericfong/datavan/compare/v3.4.4...v3.4.5) (2018-02-10)
+
+
+### Bug Fixes
+
+* submit, if has $submittedIds, consider as clean submit-data by itself ([47ab805](https://github.com/ericfong/datavan/commit/47ab805))
+
+
+
 <a name="3.4.4"></a>
 ## [3.4.4](https://github.com/ericfong/datavan/compare/v3.4.3...v3.4.4) (2018-01-31)
 
