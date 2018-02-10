@@ -17,7 +17,7 @@ function _loop(mut = {}, inDocs, func) {
 }
 
 // @auto-fold here
-function submitted(self, idTable, option) {
+function submitted(self, idTable) {
   const { byId } = self.getState()
   const { _byIdAts } = self
   const $unset = []
@@ -30,7 +30,7 @@ function submitted(self, idTable, option) {
     }
     $unset.push(oldId)
   })
-  self.addMutation({ byId: { $unset, $merge: byIdMerge }, originals: { $unset } }, option)
+  self.addMutation({ byId: { $unset, $merge: byIdMerge }, originals: { $unset } })
 }
 
 const toById = (data, idField) => _.mapKeys(data, (doc, i) => (doc && doc[idField]) || i)

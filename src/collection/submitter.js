@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { load, normalizeLoadData } from '../collection/load'
+import { load, normalizeLoadData } from './load'
 import { dispatchMutations } from '../store'
 
 export function getOriginals(collection) {
@@ -26,17 +26,21 @@ export function submit(collection, _submit) {
   const submittedDocs = getSubmits(collection)
   const p = _submit ? _submit(submittedDocs, collection) : collection.onSubmit(submittedDocs, collection)
   return Promise.resolve(p).then(
-    rawRes => {
-      if (rawRes) {
-        // !rawRes means DON'T consider as submitted
-        const data = normalizeLoadData(collection, rawRes)
-        // clean submittedDocs from originals to prevent submit again TODO check NOT mutated during HTTP POST
-        data.$submittedIds = { ...cleanSubmitted(submittedDocs), ...data.$submittedIds }
-        load(collection, data)
+    res => {
+      if (res) {
+        if (res.$submittedIds) {
+          load(collection, res)
+        } else {
+          const data = normalizeLoadData(collection, res)
+          // clean submittedDocs from originals to prevent submit again
+          // TODO check NOT mutated during HTTP POST
+          data.$submittedIds = { ...cleanSubmitted(submittedDocs), ...data.$submittedIds }
+          load(collection, res)
+        }
         // flush dispatch mutates after load()
         dispatchMutations(collection.store)
       }
-      return rawRes
+      return res
     },
     err => {
       // ECONNREFUSED = Cannot reach server
