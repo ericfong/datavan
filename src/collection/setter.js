@@ -33,8 +33,6 @@ function _mutateAll(collection, byIdMutations) {
 
 const wrapDeepByPath = (steps, value) => steps.reduceRight((ret, step) => ({ [step]: ret }), value)
 
-// const GROUP_MUTATE_KEYS = ['$merge', '$toggle', '$unset']
-
 export function mutate(collection, path, mutation) {
   let mut
   if (typeof path === 'string') {
@@ -42,9 +40,7 @@ export function mutate(collection, path, mutation) {
   } else if (Array.isArray(path)) {
     mut = wrapDeepByPath(path, mutation)
   } else {
-    // TODO check path should be null
-    // TODO check mutation should only contain GROUP_MUTATE_KEYS
-    mut = mutation
+    mut = path
   }
   _mutateAll(collection, mut)
 }
