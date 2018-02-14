@@ -9,7 +9,7 @@ function bindPropsToFunc(func, self) {
 const withMethods = spec => BaseComponent => {
   const factory = createFactory(BaseComponent)
 
-  if (process.env.NODE_ENV !== 'production' && spec.render) {
+  if (process.env.NODE_ENV !== 'production' && spec && spec.render) {
     console.error('withMethods() does not support the render method; its behavior is to pass all props and state to the base component.')
   }
 
@@ -18,16 +18,18 @@ const withMethods = spec => BaseComponent => {
       super(props, context)
       this.state = {}
 
-      const methods = {}
-      Object.keys(spec).forEach(key => {
-        const func = spec[key]
-        if (key !== 'constructor' && typeof func === 'function') {
-          methods[key] = bindPropsToFunc(func, this)
-        }
-      })
-      this.methods = methods
+      if (spec) {
+        const methods = {}
+        Object.keys(spec).forEach(key => {
+          const func = spec[key]
+          if (key !== 'constructor' && typeof func === 'function') {
+            methods[key] = bindPropsToFunc(func, this)
+          }
+        })
+        this.methods = methods
 
-      if (spec.constructor) spec.constructor.call(this, props, context)
+        if (spec.constructor) spec.constructor.call(this, props, context)
+      }
     }
 
     render() {
