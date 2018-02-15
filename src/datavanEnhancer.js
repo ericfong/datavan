@@ -7,8 +7,7 @@ import { load } from './collection/load'
 import { dispatchMutations } from './store'
 
 // prepare cast by loop mutation.byId and mark [id] $toggle $merge
-function getMutatingIds(byId) {
-  const mutIds = {}
+function loopMutatingIdTable(mutIds = {}, byId) {
   _.each(byId, (v, id) => {
     if (id[0] === '$') {
       if (id === '$merge' || id === '$toggle') {
@@ -23,13 +22,13 @@ function getMutatingIds(byId) {
   return mutIds
 }
 
-function castMutatingDocs(mutatingIds, vanDb, newVanState, oldVanState) {
-  _.each(mutatingIds, (collMutIds, collectionName) => {
+function castMutatingDocs(mutatingIdTable, vanDb, newVanState, oldVanState) {
+  _.each(mutatingIdTable, (idTable, collectionName) => {
     const newCollById = newVanState[collectionName].byId
     const oldCollById = oldVanState[collectionName].byId
     if (newCollById !== oldCollById) {
       const coll = vanDb[collectionName]
-      _.each(collMutIds, (isMutating, id) => {
+      _.each(idTable, (isMutating, id) => {
         const newDoc = newCollById[id]
         if (newDoc !== oldCollById[id] && newDoc) {
           // && typeof newDoc === 'object'
@@ -46,21 +45,16 @@ export function createVanReducer() {
       action.vanReduced = true
       const { mutates, vanDb } = action
 
-      const mutatingIds = {}
+      const mutatingIdTable = {}
 
       const newVanState = mutates.reduce((state, { collectionName, mutation }) => {
-        if (mutation) {
-          if (vanDb[collectionName].cast) {
-            mutatingIds[collectionName] = getMutatingIds(mutation.byId)
-          }
-        } else {
-          // mutation null means force update without any changes
-          mutation = { _t: { $set: () => {} } }
+        if (mutation.byId && vanDb[collectionName].cast) {
+          mutatingIdTable[collectionName] = loopMutatingIdTable(mutatingIdTable[collectionName], mutation.byId)
         }
         return mutateUtil(state, { [collectionName]: mutation })
       }, oldVanState)
 
-      castMutatingDocs(mutatingIds, vanDb, newVanState, oldVanState)
+      castMutatingDocs(mutatingIdTable, vanDb, newVanState, oldVanState)
 
       return newVanState
     }
