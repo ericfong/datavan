@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.0"></a>
+# [3.5.0](https://github.com/ericfong/datavan/compare/v3.4.5...v3.5.0) (2018-02-15)
+
+
+### Bug Fixes
+
+* allow mutateAll using mutate only ([26124ba](https://github.com/ericfong/datavan/commit/26124ba))
+* cannot mutate with null mutation ([7bd8482](https://github.com/ericfong/datavan/commit/7bd8482))
+* test ([dbe0376](https://github.com/ericfong/datavan/commit/dbe0376))
+* withMethods can handle null spec ([426062f](https://github.com/ericfong/datavan/commit/426062f))
+
+
+### Features
+
+* add fetchingAt state ([1c18d49](https://github.com/ericfong/datavan/commit/1c18d49))
+
+
+
 <a name="3.4.5"></a>
 ## [3.4.5](https://github.com/ericfong/datavan/compare/v3.4.4...v3.4.5) (2018-02-10)
 
