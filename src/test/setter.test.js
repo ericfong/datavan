@@ -10,7 +10,7 @@ test('mutate', async () => {
   })
 
   // mutate to root
-  mutate(table, null, { a: { $set: 1 }, old: { $set: { _id: 'old', name: 'new' } } })
+  mutate(table, { a: { $set: 1 }, old: { $set: { _id: 'old', name: 'new' } } })
   expect(getAll(table)).toEqual({ a: 1, old: { _id: 'old', name: 'new' } })
 
   // mutate by string
