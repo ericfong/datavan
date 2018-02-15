@@ -19,29 +19,33 @@ export function defaultGetQueryString(query, option, coll) {
 }
 
 // @auto-fold here
-function markPromise(self, key, promise, overwrite) {
+function markPromiseFinally(self, key, promise) {
   const { _fetchingPromises } = self
-  if (!overwrite) {
-    const oldPromise = _fetchingPromises[key]
-    if (oldPromise) return oldPromise
+  if (_fetchingPromises[key] === promise) {
+    delete _fetchingPromises[key]
+    if (Object.keys(_fetchingPromises).length === 0) {
+      self.addMutation({ $merge: { fetchingAt: undefined } })
+    }
   }
+}
+function markPromise(self, key, promise) {
+  const { _fetchingPromises } = self
+  // if (!overwrite) {
+  const oldPromise = _fetchingPromises[key]
+  if (oldPromise) return oldPromise
+  // }
 
   promise
     .then(ret => {
-      if (_fetchingPromises[key] === promise) {
-        delete _fetchingPromises[key]
-        self.addMutation(null) // force render to update isFetching
-      }
+      markPromiseFinally(self, key, promise)
       return ret
     })
     .catch(err => {
-      if (_fetchingPromises[key] === promise) {
-        delete _fetchingPromises[key]
-        self.addMutation(null) // force render to update isFetching
-      }
+      markPromiseFinally(self, key, promise)
       return Promise.reject(err)
     })
   _fetchingPromises[key] = promise
+  self.addMutation({ $merge: { fetchingAt: Date.now() } })
   return promise
 }
 
