@@ -68,14 +68,14 @@ export const remove = (...args) => wrapCollect(args, _remove, WRITE)
 
 export const submit = (...args) => wrapCollect(args, _submit, ASYNC_WRITE)
 export const getSubmittedIds = (...args) => wrapCollect(args, _getSubmittedIds)
-export const getPending = (...args) => wrapCollect(args, _getPending, ASYNC_WRITE)
+export const getPending = (...args) => wrapCollect(args, _getPending)
 export const run = (...args) => wrapCollect(args, _run)
 
 // store
 export const genTmpId = (...args) => wrapStore(args, _genTmpId)
 export const resetStore = (...args) => wrapStore(args, _resetStore, WRITE)
 export const loadCollections = (...args) => wrapStore(args, _loadCollections, WRITE)
-export const getStorePending = (...args) => wrapStore(args, _getStorePending, ASYNC_WRITE)
+export const getStorePending = (...args) => wrapStore(args, _getStorePending)
 export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 
 // plain export

@@ -22,6 +22,7 @@ export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
   }
 }
 
+// maybe deprecate submit and onSubmit, favor use to POST themself and use getSubmittedIds to create $submittedIds
 export function submit(collection, _submit) {
   const submittedDocs = getSubmits(collection)
   const p = _submit ? _submit(submittedDocs, collection) : collection.onSubmit(submittedDocs, collection)
@@ -34,8 +35,8 @@ export function submit(collection, _submit) {
           const data = normalizeLoadData(collection, res)
           // clean submittedDocs from originals to prevent submit again
           // TODO check NOT mutated during HTTP POST
-          data.$submittedIds = { ...cleanSubmitted(submittedDocs), ...data.$submittedIds }
-          load(collection, res)
+          data.$submittedIds = cleanSubmitted(submittedDocs)
+          load(collection, data)
         }
         // flush dispatch mutates after load()
         dispatchMutations(collection.store)
