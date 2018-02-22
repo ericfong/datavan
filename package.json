@@ -17,7 +17,7 @@
   "browser": "./lib/es6/index.js",
   "module": "./lib/es6/index.js",
   "engines": {
-    "node": ">= 9.0.0"
+    "node": ">= 8.9.4"
   },
   "jest": {
     "testEnvironment": "node",
