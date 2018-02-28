@@ -34,18 +34,24 @@ During find(), datavan will query your local-data first. If local-data is missin
   * [find](#find)
   * [findAsync](#findasync)
   * [findOne](#findone)
+  * [findInMemory](#findinmemory)
+  * [findRemote](#findremote)
   * [get](#get)
   * [getAll, getOriginals, getSubmits](#getall-getoriginals-getsubmits)
   * [insert](#insert)
   * [update](#update)
   * [remove](#remove)
   * [mutate](#mutate)
+  * [set](#set)
   * [reset](#reset)
-  * [submit](#submit)
   * [load](#load)
+  * [submit](#submit)
   * [getCollection](#getcollection)
   * [resetStore](#resetstore)
 * [Extra](#extra)
+  * [genTmpId](#gentmpid)
+  * [getState to get latest fetching time](#getstate-to-get-latest-fetching-time)
+  * [getPending, getStorePending to wait for fetching](#getpending-getstorepending-to-wait-for-fetching)
   * [loadCollections](#loadcollections)
   * [get and listen to browser size](#get-and-listen-to-browser-size)
   * [Server Rendering](#server-rendering)
@@ -304,6 +310,14 @@ like find() but return a single document
 doc = findOne(stateOrDispatch, 'user_table', query, [option])
 ```
 
+### findInMemory
+
+like find() but only find in local memory
+
+### findRemote
+
+internally used by find(), findAsync() to call onFetch and return a raw result in promise. Without call findInMemory() after onFetch to normalise onFetch result.
+
 ### get
 
 ```js
@@ -366,6 +380,10 @@ mutate(stateOrDispatch, 'user_table', ['id-123', 'name'], { $set: 'Mary' })
 mutate(stateOrDispatch, 'user_table', { $merge: { docId1: doc1, docId2: doc2 } })
 ```
 
+### set
+
+shortcut of [mutate](#mutate) which always use `{ $set: value }`
+
 ### reset
 
 reset local change and re-fetch in future get/find
@@ -383,14 +401,6 @@ reset(stateOrDispatch, 'user_table', { expired: true, mutated: false })
 
 // reset by ids array, ids will be ignored if expired=true
 reset(stateOrDispatch, 'user_table', { ids: ['id-1'], mutated: false })
-```
-
-### submit
-
-submit collection with onSubmitFunc. If onSubmitFunc is missing, will use collection's onSubmit
-
-```js
-await submit(stateOrDispatch, 'user_table', [onSubmitFunc])
 ```
 
 ### load
@@ -421,6 +431,8 @@ load(stateOrDispatch, {
   },
   // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
   fetchAts: {},
+  // submitted tmp and stored id mapping
+  $submittedIds: { tmpId: storedId },
 })
 
 // Or Table of docs (byId)
@@ -430,6 +442,14 @@ load(stateOrDispatch, {
 ```
 
 * load() data will consider as fill data from backend and trigger re-render
+
+### submit
+
+submit collection with onSubmitFunc. If onSubmitFunc is missing, will use collection's onSubmit
+
+```js
+await submit(stateOrDispatch, 'user_table', [onSubmitFunc])
+```
 
 ### getCollection
 
@@ -450,13 +470,26 @@ resetStore(store, { expired: true | false, ids: ['idStr'], mutated: true | false
 
 # Extra
 
-### get latest fetching time
+### genTmpId
+
+```js
+const newTmpId = genTmpId(store)
+```
+
+### getState to get latest fetching time
 
 You can use
 
 ```js
 const fetchingAt = getCollection(store, 'collection_name').getState().fetchingAt
 // return msec elapsed since January 1, 1970 00:00:00 UTC
+```
+
+### getPending, getStorePending to wait for fetching
+
+```js
+await getPending(store, 'collection_name')
+await getStorePending(store)
 ```
 
 ### loadCollections
@@ -469,7 +502,7 @@ resetStore(store, { user_table: [...], other_table: [...] })
 
 ### get and listen to browser size
 
-get width & height and listen to browser resize automatically
+get width & height and listen to browser resize automatically. You are better use css to build responsive layout.
 
 ```js
 const browserWidth = getBrowserWidth(state, collectionName, (widthKey = 'browserWidth'))

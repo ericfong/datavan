@@ -83,7 +83,7 @@ function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
-export function findRemote(coll, query, option) {
+export function findRemote(coll, query = {}, option = {}) {
   const notForce = !option.force
 
   prepareFindData(coll, query, option)

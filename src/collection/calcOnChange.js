@@ -24,13 +24,6 @@ function memorize(collection, memoryKey, func) {
   return ret
 }
 
-// export function _groupBy(collection, field) {
-//   return memorize(collection, `groupBy-${field}`, byId => _.groupBy(byId, field))
-// }
-// export function _keyBy(collection, field) {
-//   return memorize(collection, `groupBy-${field}`, byId => _.keyBy(byId, field))
-// }
-
 export function _calcOnChange(collection, funcName, firstArgStr = '') {
   return memorize(collection, `run-${funcName}-${firstArgStr}`, byId => collection[funcName](byId, firstArgStr))
 }
