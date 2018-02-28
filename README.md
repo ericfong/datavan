@@ -417,10 +417,10 @@ load(stateOrDispatch, collection, data, option)
 
 ```js
 // Array of docs
-load(stateOrDispatch, [{ _id: 'user-1', name: 'John' }])
+load(stateOrDispatch, collection, [{ _id: 'user-1', name: 'John' }])
 
 // Or a object with at least one of `{ byId: {}, originals: {}, fetchAts: {} }`
-load(stateOrDispatch, {
+load(stateOrDispatch, collection, {
   // byId is table of docs
   byId: {
     'user-1': { _id: 'user-1', name: 'John' },
@@ -436,7 +436,7 @@ load(stateOrDispatch, {
 })
 
 // Or Table of docs (byId)
-load(stateOrDispatch, {
+load(stateOrDispatch, collection, {
   'user-1': { _id: 'user-1', name: 'John' },
 })
 ```
@@ -449,6 +449,32 @@ submit collection with onSubmitFunc. If onSubmitFunc is missing, will use collec
 
 ```js
 await submit(stateOrDispatch, 'user_table', [onSubmitFunc])
+```
+
+### recall
+
+call a function (anonymous or collection-defined) only-if store data or argument changed. If no changes, cached result will be used.
+
+```js
+// recall anonymous function
+const result = recall(state, 'user_table', (byId, arg1, arg2) => _.groupBy(byId, arg1), 'arg1-value', 'arg2-value')
+
+// OR recall collection-defined function
+createStore(
+  reducer,
+  state,
+  datavanEnhancer({
+    collections: {
+      user_table: {
+        groupBy: (byId, arg1) => _.groupBy(byId, arg1),
+      },
+    },
+  })
+)
+const result = recall(state, 'user_table', 'groupBy', 'arg1-value')
+
+// OR recall pre-defined `buildIndex` function
+const result = recall(state, 'user_table', 'buildIndex', [fields], isUnique)
 ```
 
 ### getCollection

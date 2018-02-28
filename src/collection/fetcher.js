@@ -1,6 +1,5 @@
 import _ from 'lodash'
-// https://github.com/nickyout/fast-stable-stringify/issues/8#issuecomment-329455969
-// import stringify from 'fast-stable-stringify'
+import stringify from 'fast-stable-stringify'
 
 import { TMP_ID_PREFIX } from '../constant'
 import { load } from '../collection/load'
@@ -15,7 +14,7 @@ export function defaultGetQueryString(query, option, coll) {
   }
   const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
-  return _.map(sortedKeys, k => `${k}=${JSON.stringify(opt[k])}`).join('&')
+  return _.map(sortedKeys, k => `${k}=${stringify(opt[k])}`).join('&')
 }
 
 // @auto-fold here

@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import createCollection from './util/createCollection'
 import { getQueryIds } from '../collection/findInMemory'
-import { getPending, findAsync, insert, update, getAll, find, get, run, TMP_ID_PREFIX as TMP, reset } from '..'
+import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, reset } from '..'
 import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -13,13 +13,6 @@ function onFetchById(query, idField, func) {
   const ids = getQueryIds(query, idField)
   return Promise.all(_.map(ids, func)).then(values => _.zipObject(ids, values))
 }
-
-test('run', async () => {
-  const myFunc = jest.fn()
-  const collection = createCollection({ myFunc })
-  run(collection, 'myFunc', 1, 2)
-  expect(myFunc).lastCalledWith(collection, 1, 2)
-})
 
 test('find in original', async () => {
   const users = createCollection({ onFetch: onFetchEcho })
@@ -58,7 +51,8 @@ test('onFetch with $invalidate', async () => {
       timeoutResolve({
         byId: { 'id-123': undefined },
         $invalidate: ['id-123'],
-      })),
+      })
+    ),
   })
   find(users2, ['id-123'])
   await getPending(users2)
@@ -137,10 +131,14 @@ test('basic', async () => {
         if (ids) {
           ++calledGet
           // console.log('onFetch get', ids, calledGet)
-          return Promise.resolve(_.compact(_.map(ids, id => {
-            if (id === 'not_exists') return null
-            return { _id: id, name: `${id} name` }
-          })))
+          return Promise.resolve(
+            _.compact(
+              _.map(ids, id => {
+                if (id === 'not_exists') return null
+                return { _id: id, name: `${id} name` }
+              })
+            )
+          )
         }
       }
       ++calledFind

@@ -12,7 +12,7 @@ import {
   submit as _submit,
   getSubmittedIds as _getSubmittedIds,
 } from './collection/submitter'
-import { _calcOnChange, _getIndex } from './collection/calcOnChange'
+import _recall, { _calcOnChange, _getIndex } from './collection/recall'
 import {
   getStorePending as _getStorePending,
   serverPreload as _serverPreload,
@@ -57,6 +57,7 @@ export const getAll = (...args) => wrapCollect(args, _getAll)
 export const getOriginals = (...args) => wrapCollect(args, _getOriginals)
 export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
 
+export const recall = (...args) => wrapCollect(args, _recall)
 export const getIndex = (...args) => wrapCollect(args, _getIndex)
 export const calcOnChange = (...args) => wrapCollect(args, _calcOnChange)
 export const run = (...args) => wrapCollect(args, _run)

@@ -1,15 +1,15 @@
 import _ from 'lodash'
 import { createStore } from 'redux'
 
-import { datavanEnhancer, calcOnChange, getAll, find, mutate } from '../..'
-import { buildIndex } from '../calcOnChange'
+import { datavanEnhancer, recall, getAll, find, mutate } from '../..'
+import { buildIndex } from '../recall'
 
 test('virtual-collection', async () => {
   const collections = {
     orders: {
       getState() {
         return {
-          byId: calcOnChange(this.store, 'orderItems', 'calcOrders'),
+          byId: recall(this.store, 'orderItems', 'calcOrders'),
           fetchAts: {},
           originals: {},
         }
