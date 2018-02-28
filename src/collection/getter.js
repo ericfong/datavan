@@ -42,5 +42,8 @@ export function _getPending(collection) {
 }
 
 export function _run(collection, funcName, ...args) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('run() is deprecated! Use getCollection() instead')
+  }
   return collection[funcName](collection, ...args)
 }

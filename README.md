@@ -450,6 +450,15 @@ resetStore(store, { expired: true | false, ids: ['idStr'], mutated: true | false
 
 # Extra
 
+### get latest fetching time
+
+You can use
+
+```js
+const fetchingAt = getCollection(store, 'collection_name').getState().fetchingAt
+// return msec elapsed since January 1, 1970 00:00:00 UTC
+```
+
 ### loadCollections
 
 like [`load`](#load) but load multiple collection data in one dispatch cycle

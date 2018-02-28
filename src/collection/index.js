@@ -28,13 +28,6 @@ export const collectionDefaults = {
   addMutation(mutation) {
     this.store.vanMutates.push({ collectionName: this.name, mutation })
   },
-
-  getAll() {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Deprecated! use getAll() instead of collection.getAll()')
-    }
-    return this.getState().byId
-  },
 }
 
 export const _getAll = collection => collection.getState().byId
