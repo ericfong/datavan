@@ -1,11 +1,49 @@
-// import _ from 'lodash'
+import _ from 'lodash'
 import React from 'react'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import { findOne, datavanEnhancer, connectOnChange } from '..'
+import { findOne, datavanEnhancer, connectOnChange, recall, get, mutate } from '..'
+
+test('work with virtual collection and recall', async () => {
+  const collections = {
+    item_table: {
+      initState: [{ list: 'l1', _id: 'a', name: 'a' }, { list: 'l1', _id: 'b', name: 'b' }, { list: 'l2', _id: 'c' }],
+      groupByList: byId => {
+        // console.log('>> ???>', _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items })))
+        return _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items }))
+      },
+    },
+    list_table: {
+      getState() {
+        return { byId: recall(this.store, 'item_table', 'groupByList'), fetchAts: {}, originals: {} }
+      },
+    },
+  }
+  const Comp = connectOnChange(['list'], (state, { list }) => {
+    if (list && list._id) {
+      list = get(state, 'list_table', list._id)
+    }
+    return { list }
+  })(props => {
+    return <div id="result">{_.map(_.get(props.list, 'items'), 'name').join()}</div>
+  })
+  const store = createStore(s => s, {}, datavanEnhancer({ collections }))
+  const App = () => (
+    <Provider store={store}>
+      <Comp list={{ _id: 'l1' }} />
+    </Provider>
+  )
+  const wrap = mount(<App />)
+
+  expect(wrap.find('#result').text()).toBe('a,b')
+
+  mutate(store, 'item_table', 'b', { $merge: { name: 'B' } })
+
+  expect(wrap.find('#result').text()).toBe('a,B')
+})
 
 test('basic', async () => {
   const func = jest.fn((state, { name }) => ({

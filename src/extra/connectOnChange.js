@@ -31,11 +31,11 @@ export default function connectOnChange(conf, mapStateFunc) {
 
     // create and return memoizer func per component
     return (state, props) => {
-      // console.log('>>>', onChangeTables)
       const nextState = _.mapValues(pickByKeys(state.datavan, onChangeTables), 'byId')
       const isStateEqual = shallowEqual(nextState, currState)
 
       const nextProps = pickByKeys(props, propKeys)
+      // console.log('>>>', onChangeTables, isStateEqual, shallowEqual(nextProps, currProps))
       if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
       currState = nextState
       currProps = nextProps
