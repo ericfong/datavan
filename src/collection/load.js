@@ -88,5 +88,5 @@ export function load(coll, _data) {
   if (data.$reset) reset(coll, data.$reset)
 
   // always return original _data, so that can access raw result
-  return _data
+  return data
 }
