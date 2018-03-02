@@ -14,7 +14,7 @@ function mongoToLodash(sort) {
   return [fields, orders]
 }
 
-function postFind(arr, option) {
+function postFind(collection, arr, option) {
   if (option) {
     if (option.sort) {
       if (Array.isArray(option.sort)) {
@@ -27,9 +27,12 @@ function postFind(arr, option) {
     if (option.skip || option.limit) {
       arr = _.slice(arr, option.skip || 0, option.limit)
     }
+
     // convert to other object
     if (option.keyBy) {
-      arr = _.keyBy(arr, option.keyBy)
+      if (option.keyBy !== collection.idField) {
+        arr = _.keyBy(arr, option.keyBy)
+      }
       if (option.keyByValue) arr = _.mapValues(arr, obj => _.get(obj, option.keyByValue))
     } else if (option.groupBy) {
       arr = _.groupBy(arr, option.groupBy)
@@ -104,11 +107,14 @@ export function findInMemory(collection, query, option = {}) {
   if (!Array.isArray(query)) {
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
+    const doFilter = (_docs = docs, _query = query) => {
+      return (option.keyBy === collection.idField ? _.pickBy : _.filter)(_docs, queryTester(_query))
+    }
+
     if (option.filterHook) {
-      const doFilter = (newDocs, newQuery) => _.filter(newDocs || docs, queryTester(newQuery || query))
       docs = option.filterHook(doFilter, docs, query, option, collection)
     } else {
-      docs = _.filter(docs, queryTester(query))
+      docs = doFilter(docs, query)
     }
 
     if (process.env.NODE_ENV === 'development' && !collection.store.vanCtx.inConnectOnChange) {
@@ -119,5 +125,5 @@ export function findInMemory(collection, query, option = {}) {
     }
   }
 
-  return postFind(docs, option)
+  return postFind(collection, docs, option)
 }
