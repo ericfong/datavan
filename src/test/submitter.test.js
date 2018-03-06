@@ -1,13 +1,6 @@
 import _ from 'lodash'
 import createCollection from './util/createCollection'
-import { getSubmits, submit, findOne, getPending, insert, update, remove, get, getAll } from '..'
-import { echoSubmit } from './util/echo'
-
-// import { printTimes } from '../datavanEnhancer'
-//
-// afterAll(printTimes)
-
-const getOne = lastSubmit => lastSubmit[_.last(Object.keys(lastSubmit))]
+import { getSubmits, findOne, getPending, insert, update, remove, get, getAll } from '..'
 
 function onFetch(query, option, collection) {
   if (Array.isArray(query)) {
@@ -15,58 +8,6 @@ function onFetch(query, option, collection) {
   }
   return Promise.resolve([{ id: 'u2', name: `${collection.name} Eric` }])
 }
-
-test('onSubmit', async () => {
-  let lastSubmit
-  let doSubmit = changes => {
-    lastSubmit = changes
-    return false
-  }
-  const Users = createCollection({
-    name: 'users',
-    onFetch,
-    onSubmit: (changes, self) => doSubmit(changes, self),
-  })
-
-  insert(Users, { name: 'Apple' })
-  await submit(Users)
-  expect(_.size(lastSubmit)).toBe(1)
-  expect(getOne(lastSubmit)).toMatchObject({ name: 'Apple' })
-
-  insert(Users, { name: 'Car' })
-  await submit(Users)
-  expect(_.size(lastSubmit)).toBe(2)
-  expect(getOne(lastSubmit)).toMatchObject({ name: 'Car' })
-
-  update(Users, { name: 'Car' }, { $merge: { name: 'Car 2' } })
-  await submit(Users)
-  expect(_.size(lastSubmit)).toBe(2)
-  expect(getOne(lastSubmit)).toMatchObject({ name: 'Car 2' })
-
-  const removeDoc = insert(Users, { name: 'Remove' })
-  await submit(Users)
-  expect(getAll(Users)[removeDoc._id]).toBe(removeDoc)
-  // remove
-  remove(Users, { name: 'Remove' })
-  await submit(Users)
-  // have a id set to undefined
-  expect(_.size(getSubmits(Users))).toBe(3)
-  expect(getAll(Users)[removeDoc._id]).toBe(undefined)
-
-  // onSubmit with feedback
-
-  doSubmit = (docs, self) => {
-    lastSubmit = docs
-    return echoSubmit(docs, self)
-  }
-  update(Users, { name: 'Car 2' }, { $merge: { name: 'Car 3' } })
-  await submit(Users)
-  // all changes submitted
-  expect(_.map(lastSubmit, 'name')).toEqual(['Apple', 'Car 3', undefined])
-  expect(_.size(lastSubmit)).toBe(3)
-  expect(_.map(getAll(Users), 'name').sort()).toEqual(['Apple', 'Car 3'])
-  expect(_.isEmpty(getSubmits(Users))).toBe(true)
-})
 
 test('basic', async () => {
   const Users = createCollection({
@@ -89,4 +30,8 @@ test('basic', async () => {
   get(Users, 'u1')
   await getPending(Users)
   expect(_.map(getAll(Users), 'name')).toEqual(expect.arrayContaining(['users Eric', 'John', 'Apple', 'Car 2']))
+
+  // remove
+  remove(Users, { name: 'Apple' })
+  expect(_.map(getSubmits(Users), 'name')).toEqual([undefined, 'Car 2'])
 })

@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import createCollection from './util/createCollection'
 import { getQueryIds } from '../collection/findInMemory'
-import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, reset } from '..'
+import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, reset, findInMemory } from '..'
 import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
 
 // import { printTimes } from '../datavanEnhancer'
@@ -109,15 +109,10 @@ test('consider getFetchKey', async () => {
   expect(users.onFetch).toHaveBeenCalledTimes(1)
 })
 
-test('fetch: false', async () => {
+test('findInMemory', async () => {
   const Users = createCollection({ onFetch: jest.fn(onFetchEcho) })
-  find(Users, ['db-1'], { fetch: false })
+  findInMemory(Users, ['db-1'])
   expect(Users.onFetch).toHaveBeenCalledTimes(0)
-  find(Users, ['db-1'])
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
-  reset(Users, { mutated: false })
-  find(Users, ['db-1'], { fetch: false })
-  expect(Users.onFetch).toHaveBeenCalledTimes(1)
 })
 
 test('basic', async () => {

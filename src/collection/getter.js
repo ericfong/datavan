@@ -5,6 +5,8 @@ import { findRemote, isPreloadSkip } from './fetcher'
 export function _get(collection, id, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
     findRemote(collection, [id], option)
+  } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
+    console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
   return _getAll(collection)[id]
 }
@@ -12,6 +14,8 @@ export function _get(collection, id, option = {}) {
 export function _find(collection, query = {}, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
     findRemote(collection, query, option)
+  } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
+    console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
   return findInMemory(collection, query, option)
 }

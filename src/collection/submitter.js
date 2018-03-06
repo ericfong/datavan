@@ -15,6 +15,11 @@ export function getSubmits(collection) {
 const cleanSubmitted = tmps => _.mapValues(tmps, () => null)
 
 export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      'getSubmittedIds() is deprecated! Please get $submittedIds by { ..._.mapValues(tmps, () => null), ..._.mapValues(_.keyBy(storeds, oldIdKey), idField) }'
+    )
+  }
   // tmp id to stored id table
   return {
     ...cleanSubmitted(tmps),
@@ -24,6 +29,9 @@ export function getSubmittedIds(self, tmps, storeds, oldIdKey) {
 
 // maybe deprecate submit and onSubmit, favor use to POST themself and use getSubmittedIds to create $submittedIds
 export function submit(collection, _submit) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('submit() is deprecated! Please use browser fetch or your own way to submit changes to server')
+  }
   const submittedDocs = getSubmits(collection)
   const p = _submit ? _submit(submittedDocs, collection) : collection.onSubmit(submittedDocs, collection)
   return Promise.resolve(p).then(
@@ -34,7 +42,6 @@ export function submit(collection, _submit) {
         } else {
           const data = normalizeLoadData(collection, res)
           // clean submittedDocs from originals to prevent submit again
-          // TODO check NOT mutated during HTTP POST
           data.$submittedIds = cleanSubmitted(submittedDocs)
           load(collection, data)
         }

@@ -25,6 +25,7 @@ function postFind(collection, arr, option) {
       }
     }
     if (option.skip || option.limit) {
+      // FIXME [direct-remote-result]
       arr = _.slice(arr, option.skip || 0, option.limit)
     }
 
@@ -33,12 +34,26 @@ function postFind(collection, arr, option) {
       if (option.keyBy !== collection.idField) {
         arr = _.keyBy(arr, option.keyBy)
       }
-      if (option.keyByValue) arr = _.mapValues(arr, obj => _.get(obj, option.keyByValue))
+      if (option.keyByValue) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('find option "keyByValue" is deprecated! Please use _.mapValues(find(query), obj => _.get(obj, "keyByValue"))')
+        }
+        arr = _.mapValues(arr, obj => _.get(obj, option.keyByValue))
+      }
     } else if (option.groupBy) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "groupBy" is deprecated! Please use _.groupBy(find(query), "group-by-field")')
+      }
       arr = _.groupBy(arr, option.groupBy)
     } else if (option.map) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "map" is deprecated! Please use _.map(find(query), "map-field")')
+      }
       arr = _.map(arr, option.map)
     } else if (option.distinct) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "distinct" is deprecated! Please use _.uniq(_.map(find(query), "distinct-field"))')
+      }
       arr = _.uniq(_.map(arr, option.distinct))
     }
     // NOTE no need to support fields in memory
@@ -112,6 +127,7 @@ export function findInMemory(collection, query, option = {}) {
     }
 
     if (option.filterHook) {
+      // FIXME [direct-remote-result] Should put $search into option
       docs = option.filterHook(doFilter, docs, query, option, collection)
     } else {
       docs = doFilter(docs, query)

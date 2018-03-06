@@ -95,6 +95,8 @@ export function findRemote(coll, query = {}, option = {}) {
   if (notForce && queryString === false) return false
   option.queryString = queryString
 
+  // FIXME [direct-remote-result] cache in here?
+
   if (notForce) {
     const { fetchAts } = coll.getState()
     const now = Date.now()
