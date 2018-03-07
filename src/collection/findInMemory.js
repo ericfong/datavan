@@ -68,18 +68,19 @@ export const queryTester = query => {
 }
 
 // @auto-fold here
-function filterDataByIds(self, data, ids, option) {
-  const { fetchMaxAge } = self
+function pickDataByIds(self, data, ids, option) {
+  const { fetchMaxAge, _byIdAts } = self
+  const expire = fetchMaxAge > 0 ? Date.now() - fetchMaxAge : 0
   let _allIdsHit = true
   const ret = ids.reduce((result, id) => {
     if (id in data) {
-      result.push(data[id])
+      result[id] = data[id]
     }
-    if (!(fetchMaxAge > 0 ? self._byIdAts[id] > Date.now() - fetchMaxAge : self._byIdAts[id])) {
+    if (!(_byIdAts[id] > expire)) {
       _allIdsHit = false
     }
     return result
-  }, [])
+  }, {})
   option._allIdsHit = _allIdsHit
   return ret
 }
@@ -105,7 +106,7 @@ export function prepareFindData(self, query, option) {
   const ids = getQueryIds(query, self.idField)
   let prepared
   if (ids) {
-    prepared = filterDataByIds(self, data, ids, option)
+    prepared = pickDataByIds(self, data, ids, option)
   } else {
     prepared = data
   }
@@ -118,8 +119,13 @@ export function findInMemory(collection, query, option = {}) {
   // prevent re-use option
   delete option._preparedData
 
-  // query is object instead of id-array  (id-array should be done by prepareFindData)
-  if (!Array.isArray(query)) {
+  if (Array.isArray(query)) {
+    // query is array of ids
+    if (!Array.isArray(docs) && option.keyBy !== collection.idField) {
+      docs = _.values(docs)
+    }
+  } else {
+    // query is mingo query
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
     const doFilter = (_docs = docs, _query = query) => {
