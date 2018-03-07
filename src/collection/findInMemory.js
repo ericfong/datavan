@@ -61,10 +61,27 @@ function postFind(collection, arr, option) {
   return arr
 }
 
-export const queryTester = query => {
-  if (Object.keys(query).length === 0) return () => true
+const getMingoTester = query => {
   const mingoQuery = new Mingo.Query(query)
   return doc => doc && mingoQuery.test(doc)
+}
+
+export const queryTester = query => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('queryTester() is deprecating! Please use filter() and pickBy()')
+  }
+  if (!query || Object.keys(query).length === 0) return () => true
+  return getMingoTester(query)
+}
+
+export const filter = (docs, query) => {
+  if (_.isEmpty(query)) return docs
+  return _.filter(docs, getMingoTester(query))
+}
+
+export const pickBy = (docs, query) => {
+  if (_.isEmpty(query)) return docs
+  return _.pickBy(docs, getMingoTester(query))
 }
 
 // @auto-fold here
@@ -87,7 +104,7 @@ function pickDataByIds(self, data, ids, option) {
 
 // @auto-fold here
 export function getQueryIds(query, idField) {
-  if (Array.isArray(query)) return query
+  if (!query || Array.isArray(query)) return query
   const idQuery = query[idField]
   if (idQuery) {
     if (Array.isArray(idQuery.$in)) return idQuery.$in
@@ -119,17 +136,12 @@ export function findInMemory(collection, query, option = {}) {
   // prevent re-use option
   delete option._preparedData
 
-  if (Array.isArray(query)) {
-    // query is array of ids
-    if (!Array.isArray(docs) && option.keyBy !== collection.idField) {
-      docs = _.values(docs)
-    }
-  } else {
+  if (!Array.isArray(query)) {
     // query is mingo query
     const start = process.env.NODE_ENV === 'development' && Date.now()
 
     const doFilter = (_docs = docs, _query = query) => {
-      return (option.keyBy === collection.idField ? _.pickBy : _.filter)(_docs, queryTester(_query))
+      return (option.keyBy === collection.idField ? pickBy : filter)(_docs, _query)
     }
 
     if (option.filterHook) {
@@ -147,5 +159,11 @@ export function findInMemory(collection, query, option = {}) {
     }
   }
 
-  return postFind(collection, docs, option)
+  docs = postFind(collection, docs, option)
+
+  if (!option.keyBy && !Array.isArray(docs)) {
+    docs = _.values(docs)
+  }
+
+  return docs
 }

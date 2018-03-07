@@ -36,10 +36,6 @@ export function _findOne(core, query, option) {
   return _find(core, query, { ...option, limit: 1 })[0]
 }
 
-export function _allPendings(core) {
-  return Object.values(core._fetchingPromises)
-}
-
 export function _getPending(collection) {
   const promises = Object.values(collection._fetchingPromises)
   return promises.length <= 0 ? null : Promise.all(promises)

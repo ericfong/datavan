@@ -1,6 +1,6 @@
 import { createStore } from 'redux'
 
-import { datavanEnhancer, findInMemory } from '..'
+import { datavanEnhancer, findInMemory } from '../..'
 
 const ctx = {
   collections: {
@@ -18,6 +18,12 @@ const ctx = {
     },
   },
 }
+
+test('query = null or undefined', async () => {
+  const store = createStore(s => s || {}, null, datavanEnhancer(ctx))
+  findInMemory(store, 'data')
+  findInMemory(store, 'data', null)
+})
 
 test('keyBy', async () => {
   const store = createStore(s => s || {}, null, datavanEnhancer(ctx))

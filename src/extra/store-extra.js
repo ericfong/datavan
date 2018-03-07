@@ -2,7 +2,6 @@ import _ from 'lodash'
 
 import { reset } from '../collection/reset'
 import { load } from '../collection/load'
-import { _allPendings } from '../collection/getter'
 
 export function loadCollections(store, inData) {
   if (!inData) return null
@@ -28,7 +27,7 @@ export function resetStore(store, option = {}) {
 }
 
 export function getStorePending(store) {
-  const promises = _.compact(_.flatMap(store.vanDb, _allPendings))
+  const promises = _.compact(_.flatMap(store.vanDb, coll => Object.values(coll._fetchingPromises)))
   if (promises.length <= 0) return null
   // TODO timeout or have a limit for recursive wait for promise
   return Promise.all(promises).then(() => getStorePending(store))
