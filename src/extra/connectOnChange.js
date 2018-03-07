@@ -21,6 +21,8 @@ const getConf = conf => {
 }
 
 export default function connectOnChange(conf, mapStateFunc) {
+  if (!conf) return connect()
+
   const propKeys = getConf(conf)
 
   return connect(() => {
