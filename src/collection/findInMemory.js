@@ -25,7 +25,9 @@ function postFind(collection, arr, option) {
       }
     }
     if (option.skip || option.limit) {
-      // FIXME [direct-remote-result]
+      // if (process.env.NODE_ENV !== 'production') {
+      //   console.warn('find option "skip" and "limit" is deprecating! Please use directFetch')
+      // }
       arr = _.slice(arr, option.skip || 0, option.limit)
     }
 
@@ -145,7 +147,9 @@ export function findInMemory(collection, query, option = {}) {
     }
 
     if (option.filterHook) {
-      // FIXME [direct-remote-result] Should put $search into option
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "filterHook" is deprecating! Please use directFetch')
+      }
       docs = option.filterHook(doFilter, docs, query, option, collection)
     } else {
       docs = doFilter(docs, query)

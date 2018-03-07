@@ -113,6 +113,7 @@ export default function datavanEnhancer(vanConf) {
         _memory: {},
         _fetchingPromises: {},
         _byIdAts: {},
+        _directFetchs: {},
       }
     })
 

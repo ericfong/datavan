@@ -83,19 +83,25 @@ function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
 }
 
 export function findRemote(coll, query = {}, option = {}) {
+  const { directFetch } = option
   const notForce = !option.force
 
-  prepareFindData(coll, query, option)
-  if (notForce && option._allIdsHit) return false
+  if (notForce && !directFetch) {
+    prepareFindData(coll, query, option)
+    if (option._allIdsHit) return false
+  }
 
   const fetchQuery = prepareFetchQuery(query, coll.idField)
   if (notForce && fetchQuery === false) return false
-
   const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option, coll)
   if (notForce && queryString === false) return false
   option.queryString = queryString
 
-  // FIXME [direct-remote-result] cache in here?
+  // NOTE experiential directFetch
+  if (notForce && directFetch) {
+    const res = coll._directFetchs[queryString]
+    if (res) return res
+  }
 
   if (notForce) {
     const { fetchAts } = coll.getState()
@@ -111,6 +117,11 @@ export function findRemote(coll, query = {}, option = {}) {
   // want to return fetching promise for findAsync
   const { onFetch } = coll
   const p = Promise.resolve(onFetch(fetchQuery, option, coll)).then(res => {
+    // NOTE experiential directFetch
+    if (directFetch) {
+      coll._directFetchs[queryString] = res
+    }
+
     load(coll, res)
     // flush dispatch mutates after load()
     dispatchMutations(coll.store)
