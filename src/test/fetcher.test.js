@@ -29,16 +29,18 @@ test('fetchMaxAge', async () => {
     onFetch,
     initState: {
       byId: { a: { name: 'A' } },
-      fetchAts: { 'query={}': Date.now() },
+      fetchAts: { [`query=${encodeURIComponent('{}')}`]: Date.now() },
     },
     fetchMaxAge: 100,
   })
 
   onFetch.mockClear()
-  expect(onFetch).toHaveBeenCalledTimes(0)
 
+  // all id is hit
   find(users, ['a'])
   expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // hit initState.fetchAts
   find(users, {})
   expect(onFetch).toHaveBeenCalledTimes(0)
 

@@ -14,7 +14,7 @@ export function defaultGetQueryString(query, option, coll) {
   }
   const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
-  return _.map(sortedKeys, k => `${k}=${stringify(opt[k])}`).join('&')
+  return _.map(sortedKeys, k => `${encodeURIComponent(k)}=${encodeURIComponent(stringify(opt[k]))}`).join('&')
 }
 
 // @auto-fold here
@@ -110,6 +110,7 @@ export function findRemote(coll, query = {}, option = {}) {
     const now = Date.now()
     // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
     const { fetchMaxAge } = coll
+    // console.log('>>>', queryString, fetchAts, fetchAts[queryString])
     if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) {
       return false
     }
