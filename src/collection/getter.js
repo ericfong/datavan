@@ -23,7 +23,7 @@ export function _find(collection, query = {}, option = {}) {
 export function _findAsync(collection, query = {}, option = {}) {
   if (collection.onFetch) {
     return Promise.resolve(findRemote(collection, query, option)).then(res => {
-      if (option.directFetch) {
+      if (option.inResponse) {
         option._preparedData = res
       } else {
         // _preparedData no longer valid after fetch promise resolved

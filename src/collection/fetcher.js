@@ -52,6 +52,8 @@ const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmp
 const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id, tmpIdPrefix))
 // @auto-fold here
 function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
+  if (!query) return query
+
   if (Array.isArray(query)) {
     const ids = sortUniqFilter(query, tmpIdPrefix)
     if (ids.length === 0) {
@@ -83,10 +85,10 @@ function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
 }
 
 export function findRemote(coll, query = {}, option = {}) {
-  const { directFetch } = option
+  const { inResponse } = option
   const notForce = !option.force
 
-  if (notForce && !directFetch) {
+  if (notForce && !inResponse) {
     prepareFindData(coll, query, option)
     if (option._allIdsHit) return false
   }
@@ -97,9 +99,9 @@ export function findRemote(coll, query = {}, option = {}) {
   if (notForce && queryString === false) return false
   option.queryString = queryString
 
-  // NOTE experiential directFetch
-  if (notForce && directFetch) {
-    const res = coll._directFetchs[queryString]
+  // NOTE experiential inResponse
+  if (notForce && inResponse) {
+    const res = coll._inResponses[queryString]
     if (res) return res
   }
 
@@ -117,9 +119,9 @@ export function findRemote(coll, query = {}, option = {}) {
   // want to return fetching promise for findAsync
   const { onFetch } = coll
   const p = Promise.resolve(onFetch(fetchQuery, option, coll)).then(res => {
-    // NOTE experiential directFetch
-    if (directFetch) {
-      coll._directFetchs[queryString] = res
+    // NOTE experiential inResponse
+    if (inResponse) {
+      coll._inResponses[queryString] = res
     }
 
     load(coll, res)

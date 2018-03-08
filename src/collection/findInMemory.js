@@ -26,7 +26,7 @@ function postFind(collection, arr, option) {
     }
     if (option.skip || option.limit) {
       // if (process.env.NODE_ENV !== 'production') {
-      //   console.warn('find option "skip" and "limit" is deprecating! Please use directFetch')
+      //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
       // }
       arr = _.slice(arr, option.skip || 0, option.limit)
     }
@@ -120,6 +120,9 @@ export function prepareFindData(self, query, option) {
 
   if (option.inOriginal) {
     data = _.omitBy({ ...data, ...self.getState().originals }, v => v === null)
+  } else if (option.inResponse && option.queryString) {
+    const res = self._inResponses[option.queryString]
+    if (res) data = res.byId || res
   }
 
   const ids = getQueryIds(query, self.idField)
@@ -148,7 +151,7 @@ export function findInMemory(collection, query, option = {}) {
 
     if (option.filterHook) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('find option "filterHook" is deprecating! Please use directFetch')
+        console.warn('find option "filterHook" is deprecating! Please use inResponse')
       }
       docs = option.filterHook(doFilter, docs, query, option, collection)
     } else {

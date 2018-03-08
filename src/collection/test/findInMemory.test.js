@@ -18,15 +18,16 @@ const ctx = {
     },
   },
 }
+const createTestStore = () => createStore(s => s || {}, null, datavanEnhancer(ctx))
 
 test('query = null or undefined', async () => {
-  const store = createStore(s => s || {}, null, datavanEnhancer(ctx))
+  const store = createTestStore()
   findInMemory(store, 'data')
   findInMemory(store, 'data', null)
 })
 
 test('keyBy', async () => {
-  const store = createStore(s => s || {}, null, datavanEnhancer(ctx))
+  const store = createTestStore()
   expect(findInMemory(store, 'data', {}, { keyBy: 'key' })).toEqual({
     'x-key': { key: 'x-key', value: 'x-val' },
     'y-key': { key: 'y-key', value: 'y-val' },
