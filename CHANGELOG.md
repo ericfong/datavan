@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.2"></a>
+## [3.5.2](https://github.com/ericfong/datavan/compare/v3.5.1...v3.5.2) (2018-03-08)
+
+
+### Bug Fixes
+
+* add null conf handling to connectOnChange ([47815ed](https://github.com/ericfong/datavan/commit/47815ed))
+* mark deprecating ([56cd256](https://github.com/ericfong/datavan/commit/56cd256))
+* rename directFetch to inResponse and test on find inResponse ([9c6b91c](https://github.com/ericfong/datavan/commit/9c6b91c))
+* speed by find for empty query ([3b78ae0](https://github.com/ericfong/datavan/commit/3b78ae0))
+* use encodeURIComponent to wrap querystring key and value ([bb71566](https://github.com/ericfong/datavan/commit/bb71566))
+
+
+### Features
+
+* add experiential directFetch option to find ([09143e5](https://github.com/ericfong/datavan/commit/09143e5))
+
+
+
 <a name="3.5.1"></a>
 ## [3.5.1](https://github.com/ericfong/datavan/compare/v3.5.0...v3.5.1) (2018-02-28)
 
