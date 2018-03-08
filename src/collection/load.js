@@ -16,7 +16,6 @@ function _loop(mut = {}, inDocs, func) {
   return mut
 }
 
-// @auto-fold here
 function submitted(self, idTable) {
   const { byId } = self.getState()
   const { _byIdAts } = self
@@ -24,8 +23,9 @@ function submitted(self, idTable) {
   const byIdMerge = {}
   _.each(idTable, (newId, oldId) => {
     // move oldId to newId
-    if (newId) {
+    if (oldId in byId && newId) {
       byIdMerge[newId] = byId[oldId]
+      _byIdAts[newId] = _byIdAts[oldId]
       delete _byIdAts[oldId]
     }
     $unset.push(oldId)
