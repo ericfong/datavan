@@ -12,7 +12,7 @@ export function defaultGetQueryString(query, option, coll) {
   if (Array.isArray(query)) {
     query = { [coll.idField]: { $in: query } }
   }
-  const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
+  const opt = { ..._.omitBy(_.omit(option, 'inResponse'), (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
   return _.map(sortedKeys, k => `${encodeURIComponent(k)}=${encodeURIComponent(stringify(opt[k]))}`).join('&')
 }
