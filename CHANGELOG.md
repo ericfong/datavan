@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.3"></a>
+## [3.5.3](https://github.com/ericfong/datavan/compare/v3.5.2...v3.5.3) (2018-03-09)
+
+
+### Bug Fixes
+
+* add test to load same $submittedIds again ([34adb4c](https://github.com/ericfong/datavan/commit/34adb4c))
+* don't move submitted docs if docs is not exists ([9edac83](https://github.com/ericfong/datavan/commit/9edac83))
+* ensure fetchingAt is set to getState() instantaneously ([6fa7f2b](https://github.com/ericfong/datavan/commit/6fa7f2b))
+* refactor and separate code for isAllIdHit() ([26cf6cd](https://github.com/ericfong/datavan/commit/26cf6cd))
+* refactor funcs to collection/index and prepare to remove submitter totally ([919b343](https://github.com/ericfong/datavan/commit/919b343))
+* shortcut empty query ([cb1ad11](https://github.com/ericfong/datavan/commit/cb1ad11))
+
+
+
 <a name="3.5.2"></a>
 ## [3.5.2](https://github.com/ericfong/datavan/compare/v3.5.1...v3.5.2) (2018-03-08)
 
