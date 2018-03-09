@@ -87,7 +87,7 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 export { getCollection, dispatchMutations, getStore }
 export * from './constant'
 export datavanEnhancer, { createVanReducer } from './datavanEnhancer'
-export { queryTester, filter, pickBy } from './collection/findInMemory'
+export { queryTester, pickBy } from './collection/findInMemory'
 export { tmpIdRegExp } from './collection'
 export { defaultGetQueryString } from './collection/fetcher'
 

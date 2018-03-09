@@ -24,12 +24,6 @@ function postFind(collection, arr, option) {
         arr = _.orderBy(arr, fields, orders)
       }
     }
-    if (option.skip || option.limit) {
-      // if (process.env.NODE_ENV !== 'production') {
-      //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
-      // }
-      arr = _.slice(arr, option.skip || 0, option.limit)
-    }
 
     // convert to other object
     if (option.keyBy) {
@@ -63,27 +57,17 @@ function postFind(collection, arr, option) {
   return arr
 }
 
-const getMingoTester = query => {
+export const queryTester = query => {
   const mingoQuery = new Mingo.Query(query)
   return doc => doc && mingoQuery.test(doc)
 }
 
-export const queryTester = query => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('queryTester() is deprecating! Please use filter() and pickBy()')
-  }
-  if (!query || Object.keys(query).length === 0) return () => true
-  return getMingoTester(query)
-}
-
-export const filter = (docs, query) => {
-  if (_.isEmpty(query)) return docs
-  return _.filter(docs, getMingoTester(query))
-}
-
 export const pickBy = (docs, query) => {
   if (_.isEmpty(query)) return docs
-  return _.pickBy(docs, getMingoTester(query))
+  if (typeof query === 'string' || Array.isArray(query)) {
+    return _.pick(docs, query)
+  }
+  return _.pickBy(docs, queryTester(query))
 }
 
 // @auto-fold here
@@ -104,7 +88,6 @@ function pickDataByIds(self, data, ids, option) {
   return ret
 }
 
-// @auto-fold here
 export function getQueryIds(query, idField) {
   if (!query || Array.isArray(query)) return query
   const idQuery = query[idField]
@@ -126,28 +109,24 @@ export function prepareFindData(self, query, option) {
   }
 
   const ids = getQueryIds(query, self.idField)
-  let prepared
   if (ids) {
-    prepared = pickDataByIds(self, data, ids, option)
-  } else {
-    prepared = data
+    data = pickDataByIds(self, data, ids, option)
   }
-  option._preparedData = prepared
-  return prepared
+
+  option._preparedData = data
+  return data
 }
 
 export function findInMemory(collection, query, option = {}) {
+  const hasQuery = !_.isEmpty(query)
+
   let docs = prepareFindData(collection, query, option)
   // prevent re-use option
   delete option._preparedData
 
-  if (!Array.isArray(query)) {
+  if (hasQuery && !Array.isArray(query)) {
     // query is mingo query
-    const start = process.env.NODE_ENV === 'development' && Date.now()
-
-    const doFilter = (_docs = docs, _query = query) => {
-      return (option.keyBy === collection.idField ? pickBy : filter)(_docs, _query)
-    }
+    const doFilter = (_docs = docs, _query = query) => _.pickBy(_docs, queryTester(_query))
 
     if (option.filterHook) {
       if (process.env.NODE_ENV !== 'production') {
@@ -157,13 +136,6 @@ export function findInMemory(collection, query, option = {}) {
     } else {
       docs = doFilter(docs, query)
     }
-
-    if (process.env.NODE_ENV === 'development' && !collection.store.vanCtx.inConnectOnChange) {
-      const duration = Date.now() - start
-      if (duration > 60) {
-        console.warn(`Slow(${duration}ms) Find Query! Please use connectOnChange to cache your connect logic`)
-      }
-    }
   }
 
   docs = postFind(collection, docs, option)
@@ -171,6 +143,11 @@ export function findInMemory(collection, query, option = {}) {
   if (!option.keyBy && !Array.isArray(docs)) {
     docs = _.values(docs)
   }
-
+  if (option.skip || option.limit) {
+    // if (process.env.NODE_ENV !== 'production') {
+    //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
+    // }
+    docs = _.slice(docs, option.skip || 0, option.limit)
+  }
   return docs
 }
