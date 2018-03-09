@@ -22,13 +22,7 @@ export function find(collection, query = {}, option = {}) {
 
 export function findAsync(collection, query = {}, option = {}) {
   if (collection.onFetch) {
-    return Promise.resolve(findRemote(collection, query, option)).then(res => {
-      if (option.inResponse) {
-        option._preparedData = res
-      } else {
-        // _preparedData no longer valid after fetch promise resolved
-        delete option._preparedData
-      }
+    return Promise.resolve(findRemote(collection, query, option)).then(() => {
       return findInMemory(collection, query, option)
     })
   }

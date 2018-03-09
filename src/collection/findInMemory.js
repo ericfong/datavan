@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { getAll } from '.'
-
 // @auto-fold here
 function mongoToLodash(sort) {
   const fields = []
@@ -70,24 +68,6 @@ export const pickBy = (docs, query) => {
   return _.pickBy(docs, queryTester(query))
 }
 
-// @auto-fold here
-function pickDataByIds(self, data, ids, option) {
-  const { fetchMaxAge, _byIdAts } = self
-  const expire = fetchMaxAge > 0 ? Date.now() - fetchMaxAge : 0
-  let _allIdsHit = true
-  const ret = ids.reduce((result, id) => {
-    if (id in data) {
-      result[id] = data[id]
-    }
-    if (!(_byIdAts[id] > expire)) {
-      _allIdsHit = false
-    }
-    return result
-  }, {})
-  option._allIdsHit = _allIdsHit
-  return ret
-}
-
 export function getQueryIds(query, idField) {
   if (!query || Array.isArray(query)) return query
   const idQuery = query[idField]
@@ -97,57 +77,41 @@ export function getQueryIds(query, idField) {
   }
 }
 
-export function prepareFindData(self, query, option) {
-  if (option._preparedData) return option._preparedData
-  let data = getAll(self)
+export function findInMemory(self, query, option = {}) {
+  const state = self.getState()
+  let { byId } = state
+  const { originals } = state
 
   if (option.inOriginal) {
-    data = _.omitBy({ ...data, ...self.getState().originals }, v => v === null)
+    byId = _.omitBy({ ...byId, ...originals }, v => v === null)
   } else if (option.inResponse && option.queryString) {
     const res = self._inResponses[option.queryString]
-    if (res) data = res.byId || res
+    if (res) byId = res.byId || res
   }
 
-  const ids = getQueryIds(query, self.idField)
-  if (ids) {
-    data = pickDataByIds(self, data, ids, option)
+  // query is mingo query
+  const doFilter = (_docs = byId, _query = query) => pickBy(_docs, _query)
+  if (option.filterHook) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('find option "filterHook" is deprecating! Please use inResponse')
+    }
+    byId = option.filterHook(doFilter, byId, query, option, self)
+  } else {
+    byId = doFilter(byId, query)
   }
 
-  option._preparedData = data
-  return data
-}
+  byId = postFind(self, byId, option)
 
-export function findInMemory(collection, query, option = {}) {
-  const hasQuery = !_.isEmpty(query)
-
-  let docs = prepareFindData(collection, query, option)
-  // prevent re-use option
-  delete option._preparedData
-
-  if (hasQuery && !Array.isArray(query)) {
-    // query is mingo query
-    const doFilter = (_docs = docs, _query = query) => _.pickBy(_docs, queryTester(_query))
-
-    if (option.filterHook) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('find option "filterHook" is deprecating! Please use inResponse')
-      }
-      docs = option.filterHook(doFilter, docs, query, option, collection)
-    } else {
-      docs = doFilter(docs, query)
+  if (!option.keyBy) {
+    if (!Array.isArray(byId)) {
+      byId = _.values(byId)
+    }
+    if (option.skip || option.limit) {
+      // if (process.env.NODE_ENV !== 'production') {
+      //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
+      // }
+      byId = _.slice(byId, option.skip || 0, option.limit)
     }
   }
-
-  docs = postFind(collection, docs, option)
-
-  if (!option.keyBy && !Array.isArray(docs)) {
-    docs = _.values(docs)
-  }
-  if (option.skip || option.limit) {
-    // if (process.env.NODE_ENV !== 'production') {
-    //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
-    // }
-    docs = _.slice(docs, option.skip || 0, option.limit)
-  }
-  return docs
+  return byId
 }

@@ -4,7 +4,7 @@ import stringify from 'fast-stable-stringify'
 import { TMP_ID_PREFIX } from '../constant'
 import { load } from '../collection/load'
 import { dispatchMutations } from '../store'
-import { prepareFindData } from './findInMemory'
+import { getQueryIds } from './findInMemory'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -84,14 +84,19 @@ function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
   return fetchQuery
 }
 
+function isAllIdHit(self, query) {
+  const ids = getQueryIds(query, self.idField)
+  if (!ids) return false
+  const { fetchMaxAge, _byIdAts } = self
+  const expire = fetchMaxAge > 0 ? Date.now() - fetchMaxAge : 0
+  return _.every(ids, id => _byIdAts[id] > expire)
+}
+
 export function findRemote(coll, query = {}, option = {}) {
   const { inResponse } = option
   const notForce = !option.force
 
-  if (notForce && !inResponse) {
-    prepareFindData(coll, query, option)
-    if (option._allIdsHit) return false
-  }
+  if (notForce && !inResponse && isAllIdHit(coll, query)) return false
 
   const fetchQuery = prepareFetchQuery(query, coll.idField)
   if (notForce && fetchQuery === false) return false
