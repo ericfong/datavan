@@ -35,7 +35,7 @@ function wrapCollect(args, func, mode) {
 }
 function wrapStore(args, func, mode) {
   const [_store, ...rest] = args
-  const store = _store && _store.dispatch ? _store : getStore(_store)
+  const store = _store && (_store.dispatch ? _store : getStore(_store))
   const ret = func(store, ...rest)
   if (mode === WRITE) {
     dispatchMutations(store)

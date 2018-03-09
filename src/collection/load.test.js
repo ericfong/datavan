@@ -2,13 +2,27 @@ import _ from 'lodash'
 import { createStore } from 'redux'
 import delay from 'delay'
 
-import { load, datavanEnhancer, getAll, get, find, insert, loadCollections, getPending } from '..'
-import createCollection from './util/createCollection'
-import onFetchEcho from './util/onFetchEcho'
+import { load, datavanEnhancer, getAll, get, find, insert, loadCollections, getPending, genTmpId } from '..'
+import createCollection from '../test/util/createCollection'
+import onFetchEcho from '../test/util/onFetchEcho'
 
-// import { printTimes } from '../datavanEnhancer'
-//
-// afterAll(printTimes)
+test('load same $submittedIds again', async () => {
+  const collection = createCollection()
+  const tmpId = genTmpId()
+
+  load(collection, { [tmpId]: { _id: tmpId, name: 'tmp' } })
+  expect(getAll(collection)).toEqual({ [tmpId]: { _id: tmpId, name: 'tmp' } })
+
+  const storedId = 'storedId'
+  const byId = { [storedId]: { _id: storedId, tmpId, name: 'tmp' } }
+  const $submittedIds = { [tmpId]: storedId }
+  load(collection, { byId, $submittedIds })
+  expect(getAll(collection)).toEqual({ [storedId]: { _id: storedId, tmpId, name: 'tmp' } })
+
+  // load again won't overwrite storedId doc by null
+  load(collection, { byId, $submittedIds })
+  expect(getAll(collection)).toEqual({ [storedId]: { _id: storedId, tmpId, name: 'tmp' } })
+})
 
 test('save&load will not re-fetch by ids', async () => {
   // get serverUsers state
