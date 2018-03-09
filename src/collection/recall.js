@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { _getAll } from '.'
+import { getAll } from '.'
 
 function memorize(collection, memoryKey, func) {
   let { _memory } = collection
   const { _memoryById } = collection
 
   // reset cache or not
-  const byId = _getAll(collection)
+  const byId = getAll(collection)
   const shouldReset = byId !== _memoryById
   collection._memoryById = byId
   if (shouldReset) _memory = collection._memory = {}

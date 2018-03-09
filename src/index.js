@@ -1,17 +1,18 @@
 import { getCollection, dispatchMutations, getStore } from './store'
-import { _getAll, _genTmpId } from './collection'
+import {
+  getAll as _getAll,
+  genTmpId as _genTmpId,
+  getOriginals as _getOriginals,
+  getSubmits as _getSubmits,
+  getPending as _getPending,
+} from './collection'
 import { reset as _reset } from './collection/reset'
 import { load as _load } from './collection/load'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
-import { _get, _find, _findAsync, _findOne, _getPending, _run } from './collection/getter'
+import { get as _get, find as _find, findAsync as _findAsync, findOne as _findOne } from './collection/find'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { findRemote as _findRemote } from './collection/fetcher'
-import {
-  getOriginals as _getOriginals,
-  getSubmits as _getSubmits,
-  submit as _submit,
-  getSubmittedIds as _getSubmittedIds,
-} from './collection/submitter'
+import { submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import _recall, { _calcOnChange, _getIndex } from './collection/recall'
 import {
   getStorePending as _getStorePending,
@@ -60,7 +61,6 @@ export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
 export const recall = (...args) => wrapCollect(args, _recall)
 export const getIndex = (...args) => wrapCollect(args, _getIndex)
 export const calcOnChange = (...args) => wrapCollect(args, _calcOnChange)
-export const run = (...args) => wrapCollect(args, _run)
 
 export const insert = (...args) => wrapCollect(args, _insert, WRITE)
 export const update = (...args) => wrapCollect(args, _update, WRITE)

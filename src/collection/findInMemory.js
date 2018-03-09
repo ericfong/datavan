@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
-import { _getAll } from '.'
+import { getAll } from '.'
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -116,7 +116,7 @@ export function getQueryIds(query, idField) {
 
 export function prepareFindData(self, query, option) {
   if (option._preparedData) return option._preparedData
-  let data = _getAll(self)
+  let data = getAll(self)
 
   if (option.inOriginal) {
     data = _.omitBy({ ...data, ...self.getState().originals }, v => v === null)

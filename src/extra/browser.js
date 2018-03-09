@@ -1,5 +1,5 @@
 import { load } from '../collection/load'
-import { _get } from '../collection/getter'
+import { get } from '../collection/find'
 import { dispatchMutations, getCollection } from '../store'
 
 function ensureListener(self, listenerKey, addListenerFunc) {
@@ -33,12 +33,12 @@ export function getBrowserWidth(state, collectionName, widthKey = 'browserWidth'
   const coll = getCollection(state, collectionName)
   coll._browserWidthKey = widthKey
   ensureListener(coll, '_browserOnResize', addOnResize)
-  return _get(coll, widthKey)
+  return get(coll, widthKey)
 }
 
 export function getBrowserHeight(state, collectionName, heightKey = 'browserHeight') {
   const coll = getCollection(state, collectionName)
   coll._browserHeightKey = heightKey
   ensureListener(coll, '_browserOnResize', addOnResize)
-  return _get(coll, heightKey)
+  return get(coll, heightKey)
 }

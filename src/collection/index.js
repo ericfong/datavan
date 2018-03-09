@@ -1,13 +1,11 @@
-// import _ from 'lodash'
+import _ from 'lodash'
 
 import { TMP_ID_PREFIX } from '../constant'
 
 export const tmpIdRegExp = /^dv~(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)~([.\d]+)~(.+)/
-
 const getDeviceName = store => (store && store.getState().datavan.system.byId.deviceName) || 'tmp'
-
 // NOTE make tmpId sortable by time, so we use ISO Date
-export const _genTmpId = store => `${TMP_ID_PREFIX}${new Date().toISOString()}~${Math.random()}~${getDeviceName(store)}`
+export const genTmpId = store => `${TMP_ID_PREFIX}${new Date().toISOString()}~${Math.random()}~${getDeviceName(store)}`
 
 export const collectionDefaults = {
   idField: '_id',
@@ -17,7 +15,7 @@ export const collectionDefaults = {
   onInsert: () => {},
 
   genId() {
-    return _genTmpId(this.store)
+    return genTmpId(this.store)
   },
 
   getState() {
@@ -29,4 +27,16 @@ export const collectionDefaults = {
   },
 }
 
-export const _getAll = collection => collection.getState().byId
+export const getAll = self => self.getState().byId
+
+export const getOriginals = self => self.getState().originals
+
+export const getSubmits = self => {
+  const { byId, originals } = self.getState()
+  return _.mapValues(originals, (v, k) => byId[k])
+}
+
+export function getPending(self) {
+  const promises = Object.values(self._fetchingPromises)
+  return promises.length <= 0 ? null : Promise.all(promises)
+}

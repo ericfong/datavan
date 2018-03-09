@@ -1,16 +1,8 @@
 import _ from 'lodash'
 
+import { getSubmits } from './index'
 import { load, normalizeLoadData } from './load'
 import { dispatchMutations } from '../store'
-
-export function getOriginals(collection) {
-  return collection.getState().originals
-}
-
-export function getSubmits(collection) {
-  const { byId, originals } = collection.getState()
-  return _.mapValues(originals, (v, k) => byId[k])
-}
 
 const cleanSubmitted = tmps => _.mapValues(tmps, () => null)
 
