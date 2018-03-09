@@ -44,7 +44,10 @@ function markPromise(self, key, promise) {
       return Promise.reject(err)
     })
   _fetchingPromises[key] = promise
-  self.addMutation({ $merge: { fetchingAt: Date.now() } })
+  // ensure fetchingAt is set to getState() instantaneously
+  const fetchingAt = Date.now()
+  self.getState().fetchingAt = fetchingAt
+  self.addMutation({ $merge: { fetchingAt } })
   return promise
 }
 
