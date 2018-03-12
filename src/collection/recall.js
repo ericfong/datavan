@@ -1,17 +1,19 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { getAll } from '.'
+const tryCache = (obj, key, value) => {
+  const ret = obj[key] !== value
+  obj[key] = value
+  return ret
+}
 
-function memorize(collection, memoryKey, func) {
-  let { _memory } = collection
-  const { _memoryById } = collection
-
+function memorize(coll, memoryKey, func) {
   // reset cache or not
-  const byId = getAll(collection)
-  const shouldReset = byId !== _memoryById
-  collection._memoryById = byId
-  if (shouldReset) _memory = collection._memory = {}
+  const state = coll.getState()
+  const shouldReset = tryCache(coll, '_memoryById', state)
+
+  if (shouldReset) coll._memory = {}
+  const _memory = coll._memory
 
   // HIT
   if (memoryKey in _memory) {
@@ -19,7 +21,7 @@ function memorize(collection, memoryKey, func) {
   }
 
   // MISS
-  const ret = func(byId)
+  const ret = func(state)
 
   _memory[memoryKey] = ret
   return ret
@@ -29,7 +31,7 @@ export function _calcOnChange(collection, funcName, firstArgStr = '') {
   if (process.env.NODE_ENV !== 'production') {
     console.warn('calcOnChange() is deprecated! Please use recall() instead')
   }
-  return memorize(collection, `run-${funcName}-${firstArgStr}`, byId => collection[funcName](byId, firstArgStr))
+  return memorize(collection, `run-${funcName}-${firstArgStr}`, state => collection[funcName](state.byId, firstArgStr))
 }
 
 export function buildIndex(docs, fields, isUnique) {
@@ -47,7 +49,7 @@ export function _getIndex(collection, fields, isUnique) {
   if (process.env.NODE_ENV !== 'production') {
     console.warn('getIndex() is deprecated! Please use recall(collection, func, ...args) instead')
   }
-  return memorize(collection, `index-${fields}-${isUnique}`, byId => buildIndex(byId, fields, isUnique))
+  return memorize(collection, `index-${fields}-${isUnique}`, state => buildIndex(state.byId, fields, isUnique))
 }
 
 const getFunc = (collection, func) => {
@@ -63,5 +65,5 @@ export default function recall(collection, func, ...args) {
     fn = buildIndex
   }
   const funcName = fn.name || ''
-  return memorize(collection, `${funcName}-${stringify(args)}`, byId => fn(byId, ...args))
+  return memorize(collection, `${funcName}-${stringify(args)}`, state => fn(state.byId, ...args))
 }

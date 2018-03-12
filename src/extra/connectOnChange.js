@@ -12,18 +12,13 @@ const pickByKeys = (props, keys) => {
   return _.pick(props, keys)
 }
 
-const getConf = conf => {
-  if (typeof conf === 'object' && !Array.isArray(conf)) {
-    if (process.env.NODE_ENV !== 'production') console.warn('Please use connectOnChange([array-of-collection-names], mapStateFunc)')
-    conf = conf.props && conf.props.split(',').map(_.trim)
-  }
-  return conf ? _.uniq(_.compact(conf)) : null
-}
-
 export default function connectOnChange(conf, mapStateFunc) {
   if (!conf) return connect()
 
-  const propKeys = getConf(conf)
+  if (process.env.NODE_ENV !== 'production' && !Array.isArray(conf)) {
+    console.warn('Please use connectOnChange([array-of-collection-names], mapStateFunc)')
+  }
+  const propKeys = conf ? _.uniq(_.compact(conf)) : null
 
   return connect(() => {
     let currProps
@@ -33,7 +28,7 @@ export default function connectOnChange(conf, mapStateFunc) {
 
     // create and return memoizer func per component
     return (state, props) => {
-      const nextState = _.mapValues(pickByKeys(state.datavan, onChangeTables), 'byId')
+      const nextState = pickByKeys(state.datavan, onChangeTables)
       const isStateEqual = shallowEqual(nextState, currState)
 
       const nextProps = pickByKeys(props, propKeys)
