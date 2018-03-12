@@ -7,8 +7,8 @@ export const queryTester = query => {
 }
 
 export const pickBy = (byId, query) => {
-  if (_.isEmpty(query)) return byId
   if (typeof query === 'string' || Array.isArray(query)) return _.pick(byId, query)
+  if (_.isEmpty(query)) return byId
   return _.pickBy(byId, queryTester(query))
 }
 

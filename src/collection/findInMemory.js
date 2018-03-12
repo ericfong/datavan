@@ -80,9 +80,9 @@ export function findInMemory(self, query, option = {}) {
       byId = _.values(byId)
     }
     if (option.skip || option.limit) {
-      // if (process.env.NODE_ENV !== 'production') {
-      //   console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
-      // }
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "skip" and "limit" is deprecating! Please use inResponse')
+      }
       byId = _.slice(byId, option.skip || 0, option.limit)
     }
   }

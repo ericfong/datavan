@@ -46,6 +46,7 @@ During find(), datavan will query your local-data first. If local-data is missin
   * [reset](#reset)
   * [load](#load)
   * [submit](#submit)
+  * [recall](#recall)
   * [getCollection](#getcollection)
   * [resetStore](#resetstore)
 * [Extra](#extra)
@@ -274,8 +275,6 @@ find(state, collection, query, [option])
 * state: redux state or dispatch function or store object
 * collection: collection name
 * query: Array<id> | query-object (mongodb like query object, we use [mingo](https://www.npmjs.com/package/mingo) to filter documents)
-* option support 'sort','limit','skip'. Like mongo/monk api
-* option support 'keyBy','keyByValue','groupBy','map','distinct'. Use lodash to implement
 
 ```js
 arr = find(
@@ -283,13 +282,7 @@ arr = find(
   'user_table',
   { name: 'john' },
   {
-    sort: { createdAt: -1 },
-    limit: 10,
-    skip: 20,
-    // one of keyBy, groupBy, map
-    keyBy: 'username',
-    groupBy: 'shortId',
-    map: 'name', // like pluck
+    // inResponse: true,  // find within the result from onFetch response
   }
 )
 ```
