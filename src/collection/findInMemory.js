@@ -1,5 +1,6 @@
 import _ from 'lodash'
-import Mingo from 'mingo'
+
+import { queryData, pickBy } from './query'
 
 // @auto-fold here
 function mongoToLodash(sort) {
@@ -15,6 +16,9 @@ function mongoToLodash(sort) {
 function postFind(collection, arr, option) {
   if (option) {
     if (option.sort) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "sort" is deprecated! Please use _.orderBy(find(query), ...)) to sort')
+      }
       if (Array.isArray(option.sort)) {
         arr = _.orderBy(arr, ...option.sort)
       } else {
@@ -55,39 +59,8 @@ function postFind(collection, arr, option) {
   return arr
 }
 
-export const queryTester = query => {
-  const mingoQuery = new Mingo.Query(query)
-  return doc => doc && mingoQuery.test(doc)
-}
-
-export const pickBy = (docs, query) => {
-  if (_.isEmpty(query)) return docs
-  if (typeof query === 'string' || Array.isArray(query)) {
-    return _.pick(docs, query)
-  }
-  return _.pickBy(docs, queryTester(query))
-}
-
-export function getQueryIds(query, idField) {
-  if (!query || Array.isArray(query)) return query
-  const idQuery = query[idField]
-  if (idQuery) {
-    if (Array.isArray(idQuery.$in)) return idQuery.$in
-    if (typeof idQuery === 'string') return [idQuery]
-  }
-}
-
 export function findInMemory(self, query, option = {}) {
-  const state = self.getState()
-  let { byId } = state
-  const { originals } = state
-
-  if (option.inOriginal) {
-    byId = _.omitBy({ ...byId, ...originals }, v => v === null)
-  } else if (option.inResponse && option.queryString) {
-    const res = self._inResponses[option.queryString]
-    if (res) byId = res.byId || res
-  }
+  let byId = queryData(self, option)
 
   // query is mingo query
   const doFilter = (_docs = byId, _query = query) => pickBy(_docs, _query)

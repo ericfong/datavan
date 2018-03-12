@@ -8,7 +8,7 @@ import { render } from 'enzyme'
 
 import './util/enzyme-setup'
 import { datavanEnhancer, serverPreload, findOne } from '..'
-import { getQueryIds } from '../collection/findInMemory'
+import { getQueryIds } from '../collection/fetcher'
 
 test('server preload', async () => {
   const collections = {

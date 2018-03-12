@@ -8,6 +8,7 @@ import {
 } from './collection'
 import { reset as _reset } from './collection/reset'
 import { load as _load } from './collection/load'
+// import { findInMemory as _findInMemory } from './collection/query'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
 import { get as _get, find as _find, findAsync as _findAsync, findOne as _findOne } from './collection/find'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
@@ -87,7 +88,7 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 export { getCollection, dispatchMutations, getStore }
 export * from './constant'
 export datavanEnhancer, { createVanReducer } from './datavanEnhancer'
-export { queryTester, pickBy } from './collection/findInMemory'
+export { queryTester, pickBy } from './collection/query'
 export { tmpIdRegExp } from './collection'
 export { defaultGetQueryString } from './collection/fetcher'
 export { buildIndex } from './collection/recall'

@@ -4,7 +4,6 @@ import stringify from 'fast-stable-stringify'
 import { TMP_ID_PREFIX } from '../constant'
 import { load } from '../collection/load'
 import { dispatchMutations } from '../store'
-import { getQueryIds } from './findInMemory'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -85,6 +84,15 @@ function prepareFetchQuery(query, idField, tmpIdPrefix = TMP_ID_PREFIX) {
     }
   }
   return fetchQuery
+}
+
+export const getQueryIds = (query, idField) => {
+  if (!query || Array.isArray(query)) return query
+  const idQuery = query[idField]
+  if (idQuery) {
+    if (Array.isArray(idQuery.$in)) return idQuery.$in
+    if (typeof idQuery === 'string') return [idQuery]
+  }
 }
 
 function isAllIdHit(self, query) {

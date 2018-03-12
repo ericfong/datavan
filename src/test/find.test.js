@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import createCollection from './util/createCollection'
-import { getQueryIds } from '../collection/findInMemory'
+import { getQueryIds } from '../collection/fetcher'
 import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, reset, findInMemory } from '..'
 import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
 

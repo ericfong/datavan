@@ -1,5 +1,6 @@
 import { getAll } from '.'
 import { findInMemory } from './findInMemory'
+import { pickInMemory } from './query'
 import { findRemote, isPreloadSkip } from './fetcher'
 
 export function get(collection, id, option = {}) {
@@ -30,5 +31,21 @@ export function findAsync(collection, query = {}, option = {}) {
 }
 
 export function findOne(core, query, option) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('findOne is deprecated! Please use find()[0]')
+  }
   return find(core, query, { ...option, limit: 1 })[0]
+}
+
+export const pick = (coll, query, option = {}) => {
+  if (coll.onFetch && !isPreloadSkip(coll, option)) {
+    findRemote(coll, query, option)
+  }
+  return pickInMemory(coll, query, option)
+}
+
+export const pickAsync = (coll, query, option = {}) => {
+  return Promise.resolve(coll.onFetch && findRemote(coll, query, option)).then(() => {
+    return pickInMemory(coll, query, option)
+  })
 }
