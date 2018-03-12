@@ -90,6 +90,7 @@ export datavanEnhancer, { createVanReducer } from './datavanEnhancer'
 export { queryTester, pickBy } from './collection/findInMemory'
 export { tmpIdRegExp } from './collection'
 export { defaultGetQueryString } from './collection/fetcher'
+export { buildIndex } from './collection/recall'
 
 export { getBrowserWidth, getBrowserHeight } from './extra/browser'
 export connectOnChange from './extra/connectOnChange'

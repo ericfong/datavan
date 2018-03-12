@@ -459,6 +459,10 @@ call a function (anonymous or collection-defined) only-if store data or argument
 // recall anonymous function
 const result = recall(state, 'user_table', (byId, arg1, arg2) => _.groupBy(byId, arg1), 'arg1-value', 'arg2-value')
 
+// OR recall pre-defined `buildIndex` function, which is recursive _,groupBy multiple fields.
+import { buildIndex } from 'datavan'
+const result = recall(state, 'user_table', buildIndex, [fields], isUnique)
+
 // OR recall collection-defined function
 createStore(
   reducer,
@@ -472,9 +476,6 @@ createStore(
   })
 )
 const result = recall(state, 'user_table', 'groupBy', 'arg1-value')
-
-// OR recall pre-defined `buildIndex` function
-const result = recall(state, 'user_table', 'buildIndex', [fields], isUnique)
 ```
 
 ### getCollection

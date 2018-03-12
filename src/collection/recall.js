@@ -61,6 +61,11 @@ const getFunc = (collection, func) => {
 export default function recall(collection, func, ...args) {
   let fn = getFunc(collection, func)
   if (!fn) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        'recall default `buildIndex`is deprecated! Please import/require buildIndex from datavan and recall(collection, buildIndex, ...args)'
+      )
+    }
     args.unshift(func)
     fn = buildIndex
   }
