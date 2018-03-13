@@ -25,7 +25,7 @@ export const getCollection = (any, name) => {
 
   // ref to connectOnChange.js
   if (vanCtx.onChangeTables) {
-    vanCtx.onChangeTables.push(name)
+    vanCtx.onChangeTables[name] = true
   }
 
   return vanDb[name]
