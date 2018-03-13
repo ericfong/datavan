@@ -24,6 +24,10 @@ export default function connectOnChange(propKeys, mapStateFunc, connectOption = 
 
         const nextProps = _.pick(props, propKeys)
         if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
+        // console.log('>>>', onChangeTables, {
+        //   stateDiff: !isStateEqual && [nextState, currState],
+        //   propsDiff: !shallowEqual(nextProps, currProps) && [nextProps, currProps],
+        // })
         currState = nextState
         currProps = nextProps
 

@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 
 import './util/enzyme-setup'
-import { findOne, datavanEnhancer, connectOnChange, recall, get, mutate } from '..'
+import { find, datavanEnhancer, connectOnChange, recall, get, mutate } from '..'
 
 test('work with virtual collection and recall', async () => {
   const collections = {
@@ -47,7 +47,7 @@ test('work with virtual collection and recall', async () => {
 
 test('basic', async () => {
   const func = jest.fn((state, { name }) => ({
-    gender: findOne(state, 'users', { name }).gender,
+    gender: find(state, 'users', { name })[0].gender,
   }))
 
   const Comp = connectOnChange(['name'], func)(props => {
@@ -73,20 +73,22 @@ test('basic', async () => {
   )
   const wrap = mount(<App />)
 
-  expect(func).toHaveBeenCalledTimes(1)
+  // first time determine onChangeTables
+  // second time really compare
+  expect(func).toHaveBeenCalledTimes(2)
   expect(wrap.find('#result').text()).toBe('M-')
 
   // dispatch will NOT trigger func run
   store.dispatch({ type: 'change' })
-  expect(func).toHaveBeenCalledTimes(1)
+  expect(func).toHaveBeenCalledTimes(2)
 
   // set props name will trigger
   wrap.setProps({ name: 'Eva' })
-  expect(func).toHaveBeenCalledTimes(2)
+  expect(func).toHaveBeenCalledTimes(3)
   expect(wrap.find('#result').text()).toBe('F-')
 
   // set props other will NOT trigger, but still render
   wrap.setProps({ name: 'Eva', other: 'New' })
-  expect(func).toHaveBeenCalledTimes(2)
+  expect(func).toHaveBeenCalledTimes(3)
   expect(wrap.find('#result').text()).toBe('F-New')
 })
