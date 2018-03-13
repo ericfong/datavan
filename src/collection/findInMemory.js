@@ -60,7 +60,7 @@ function postFind(collection, arr, option) {
 }
 
 export function findInMemory(self, query, option = {}) {
-  let byId = queryData(self, option)
+  let byId = queryData(self, query, option)
 
   // query is mingo query
   const doFilter = (_docs = byId, _query = query) => pickBy(_docs, _query)

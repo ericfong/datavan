@@ -1,9 +1,14 @@
 import _ from 'lodash'
 import Mingo from 'mingo'
 
+const has$$ = (v, k) => _.startsWith(k, '$$')
+
+// NOTE query key with $$ prefix are omitted in query but send to fetcher
+export const newMingoQuery = query => new Mingo.Query(_.omitBy(query, has$$))
+
 export const queryTester = query => {
-  const mingoQuery = new Mingo.Query(query)
-  return doc => doc && mingoQuery.test(doc)
+  const mingoQuery = newMingoQuery(query)
+  return doc => mingoQuery.test(doc)
 }
 
 export const pickBy = (byId, query) => {
@@ -12,10 +17,11 @@ export const pickBy = (byId, query) => {
   return _.pickBy(byId, queryTester(query))
 }
 
-export const queryData = (coll, option) => {
+export const queryData = (coll, query, option) => {
   const state = coll.getState()
   let { byId, originals } = state
-  if (option.inResponse && option.queryString) {
+  const inResponse = option.queryString && ('inResponse' in option ? option.inResponse : _.some(query, has$$))
+  if (inResponse) {
     const res = coll._inResponses[option.queryString]
     if (res) {
       byId = res.byId || res
@@ -28,4 +34,4 @@ export const queryData = (coll, option) => {
   return byId
 }
 
-export const pickInMemory = (coll, query, option = {}) => pickBy(queryData(coll, option), query)
+export const pickInMemory = (coll, query, option = {}) => pickBy(queryData(coll, query, option), query)
