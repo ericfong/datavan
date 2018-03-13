@@ -103,7 +103,7 @@ function isAllIdHit(self, query) {
   return _.every(ids, id => _byIdAts[id] > expire)
 }
 
-export function findRemote(coll, query = {}, option = {}) {
+export function checkFetch(coll, query = {}, option = {}) {
   const { inResponse } = option
   const notForce = !option.force
 
@@ -147,4 +147,11 @@ export function findRemote(coll, query = {}, option = {}) {
     return res
   })
   return markPromise(coll, queryString, p)
+}
+
+export const findRemote = (...args) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('findRemote is deprecated! It is renamed to checkFetch')
+  }
+  return checkFetch(...args)
 }

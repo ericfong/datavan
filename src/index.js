@@ -10,7 +10,14 @@ import { reset as _reset } from './collection/reset'
 import { load as _load } from './collection/load'
 // import { findInMemory as _findInMemory } from './collection/query'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
-import { get as _get, find as _find, findAsync as _findAsync, findOne as _findOne } from './collection/find'
+import {
+  get as _get,
+  find as _find,
+  findAsync as _findAsync,
+  findOne as _findOne,
+  pick as _pick,
+  pickAsync as _pickAsync,
+} from './collection/find'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { findRemote as _findRemote } from './collection/fetcher'
 import { submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
@@ -53,6 +60,8 @@ export const findAsync = (...args) => wrapCollect(args, _findAsync)
 export const findOne = (...args) => wrapCollect(args, _findOne)
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const findRemote = (...args) => wrapCollect(args, _findRemote)
+export const pick = (...args) => wrapCollect(args, _pick)
+export const pickAsync = (...args) => wrapCollect(args, _pickAsync)
 export const get = (...args) => wrapCollect(args, _get)
 
 export const getAll = (...args) => wrapCollect(args, _getAll)

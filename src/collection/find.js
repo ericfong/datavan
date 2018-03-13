@@ -1,11 +1,11 @@
 import { getAll } from '.'
 import { findInMemory } from './findInMemory'
 import { pickInMemory } from './query'
-import { findRemote, isPreloadSkip } from './fetcher'
+import { checkFetch, isPreloadSkip } from './fetcher'
 
 export function get(collection, id, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    findRemote(collection, [id], option)
+    checkFetch(collection, [id], option)
   } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
     console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
@@ -14,7 +14,7 @@ export function get(collection, id, option = {}) {
 
 export function find(collection, query = {}, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    findRemote(collection, query, option)
+    checkFetch(collection, query, option)
   } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
     console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
@@ -23,7 +23,7 @@ export function find(collection, query = {}, option = {}) {
 
 export function findAsync(collection, query = {}, option = {}) {
   if (collection.onFetch) {
-    return Promise.resolve(findRemote(collection, query, option)).then(() => {
+    return Promise.resolve(checkFetch(collection, query, option)).then(() => {
       return findInMemory(collection, query, option)
     })
   }
@@ -39,13 +39,13 @@ export function findOne(core, query, option) {
 
 export const pick = (coll, query, option = {}) => {
   if (coll.onFetch && !isPreloadSkip(coll, option)) {
-    findRemote(coll, query, option)
+    checkFetch(coll, query, option)
   }
   return pickInMemory(coll, query, option)
 }
 
 export const pickAsync = (coll, query, option = {}) => {
-  return Promise.resolve(coll.onFetch && findRemote(coll, query, option)).then(() => {
+  return Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(() => {
     return pickInMemory(coll, query, option)
   })
 }

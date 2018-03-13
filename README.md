@@ -35,7 +35,7 @@ During find(), datavan will query your local-data first. If local-data is missin
   * [findAsync](#findasync)
   * [findOne](#findone)
   * [findInMemory](#findinmemory)
-  * [findRemote](#findremote)
+  * [checkFetch](#checkfetch)
   * [get](#get)
   * [getAll, getOriginals, getSubmits](#getall-getoriginals-getsubmits)
   * [insert](#insert)
@@ -307,7 +307,7 @@ doc = findOne(stateOrDispatch, 'user_table', query, [option])
 
 like find() but only find in local memory
 
-### findRemote
+### checkFetch
 
 internally used by find(), findAsync() to call onFetch and return a raw result in promise. Without call findInMemory() after onFetch to normalise onFetch result.
 
