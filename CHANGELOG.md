@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.4"></a>
+## [3.5.4](https://github.com/ericfong/datavan/compare/v3.5.3...v3.5.4) (2018-03-13)
+
+
+### Bug Fixes
+
+* connectOnChange for virtual collection and default redux connect pure as false ([3db648c](https://github.com/ericfong/datavan/commit/3db648c))
+* deprecate recall default function ([5314333](https://github.com/ericfong/datavan/commit/5314333))
+* ensure find '' and [] return empty array ([8cade44](https://github.com/ericfong/datavan/commit/8cade44))
+* refactor query function to query.js ([2c1a3d3](https://github.com/ericfong/datavan/commit/2c1a3d3))
+* use whole state to check cache instead of byId only ([c115517](https://github.com/ericfong/datavan/commit/c115517))
+
+
+### Features
+
+* omit $$ for query (use with inResponse) ([01d0971](https://github.com/ericfong/datavan/commit/01d0971))
+
+
+
 <a name="3.5.3"></a>
 ## [3.5.3](https://github.com/ericfong/datavan/compare/v3.5.2...v3.5.3) (2018-03-09)
 
