@@ -449,21 +449,16 @@ await submit(stateOrDispatch, 'user_table', [onSubmitFunc])
 call a function (anonymous or collection-defined) only-if store data or argument changed. If no changes, cached result will be used.
 
 ```js
-// recall anonymous function
-const result = recall(state, 'user_table', (byId, arg1, arg2) => _.groupBy(byId, arg1), 'arg1-value', 'arg2-value')
-
-// OR recall pre-defined `buildIndex` function, which is recursive _,groupBy multiple fields.
-import { buildIndex } from 'datavan'
-const result = recall(state, 'user_table', buildIndex, [fields], isUnique)
-
-// OR recall collection-defined function
+// recall collection-defined function
 createStore(
   reducer,
   state,
   datavanEnhancer({
     collections: {
       user_table: {
-        groupBy: (byId, arg1) => _.groupBy(byId, arg1),
+        groupBy(byId, arg1) {
+          return _.groupBy(byId, arg1)
+        },
       },
     },
   })
