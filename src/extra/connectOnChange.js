@@ -1,14 +1,15 @@
 import _ from 'lodash'
+import { compose } from 'redux'
 import { connect } from 'react-redux'
-import { shallowEqual } from 'recompose'
+import { shallowEqual, pure } from 'recompose'
 
 import { getStore } from '../store'
 
-export default function connectOnChange(propKeys, mapStateFunc, connectOption = {}) {
+export default function connectOnChange(propKeys, mapStateFunc) {
   if (!mapStateFunc) return connect()
   propKeys = _.uniq(_.compact(propKeys))
 
-  return connect(
+  const connected = connect(
     () => {
       let currProps
       let currState
@@ -51,14 +52,21 @@ export default function connectOnChange(propKeys, mapStateFunc, connectOption = 
     null,
     null,
     {
-      // NOTE after react-redux@5.0.0, default as pure which will not work with react-router for deep-component
-      // need to change redux-state or props when history.location change
-      // OR mark as NOT-pure
-      // mark as NOT-pure as default. Because datavan also have some state that not write into redux-state.
-      // also mark as NOT-pure which make mapState nearly always run
-      pure: false,
+      /*
+      NOTE after react-redux@5.0.0, default as pure, in which mapStateFunc will only be run if redux-state or props are changed
 
-      ...connectOption,
+      For deep-component which want to listen to react-router location changes
+      Because react-router history won't trigger redux-state change, mapStateFunc will not be run even location changed
+
+      Need to config history to trigger change to redux-state or props when
+      OR mark as NOT-pure
+
+      mark as NOT-pure as default. Because datavan also have some state that not write into redux-state.
+      which make mapState nearly always run
+      */
+      pure: false,
     }
   )
+
+  return compose(connected, pure)
 }
