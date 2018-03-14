@@ -17,17 +17,18 @@ export const pickBy = (byId, query) => {
   return _.pickBy(byId, queryTester(query))
 }
 
+export const isInResponseQuery = query => _.some(query, has$$)
+
 export const queryData = (coll, query, option) => {
   const state = coll.getState()
   let { byId, originals } = state
-  const inResponse = option.queryString && ('inResponse' in option ? option.inResponse : _.some(query, has$$))
-  if (inResponse) {
-    const res = coll._inResponses[option.queryString]
-    if (res) {
-      byId = res.byId || res
-      originals = res.byId ? res.originals : null
-    }
+
+  if (option.queryString && isInResponseQuery(query)) {
+    const ids = coll._inResponses[option.queryString]
+    byId = _.pick(byId, ids)
+    originals = _.pick(originals, ids)
   }
+
   if (option.inOriginal) {
     byId = _.omitBy({ ...byId, ...originals }, v => v === null)
   }

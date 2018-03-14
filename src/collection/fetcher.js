@@ -4,6 +4,7 @@ import stringify from 'fast-stable-stringify'
 import { TMP_ID_PREFIX } from '../constant'
 import { load } from '../collection/load'
 import { dispatchMutations } from '../store'
+import { isInResponseQuery } from './query'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -11,7 +12,7 @@ export function defaultGetQueryString(query, option, coll) {
   if (Array.isArray(query)) {
     query = { [coll.idField]: { $in: query } }
   }
-  const opt = { ..._.omitBy(_.omit(option, 'inResponse'), (v, k) => k[0] === '_'), query }
+  const opt = { ..._.omitBy(option, (v, k) => k[0] === '_'), query }
   const sortedKeys = _.keys(opt).sort()
   return _.map(sortedKeys, k => `${encodeURIComponent(k)}=${encodeURIComponent(stringify(opt[k]))}`).join('&')
 }
@@ -103,9 +104,9 @@ function isAllIdHit(self, query) {
   return _.every(ids, id => _byIdAts[id] > expire)
 }
 
-export function checkFetch(coll, query = {}, option = {}) {
-  const { inResponse } = option
+export function checkFetch(coll, query, option = {}) {
   const notForce = !option.force
+  const inResponse = isInResponseQuery(query)
 
   if (notForce && !inResponse && isAllIdHit(coll, query)) return false
 
@@ -114,12 +115,6 @@ export function checkFetch(coll, query = {}, option = {}) {
   const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option, coll)
   if (notForce && queryString === false) return false
   option.queryString = queryString
-
-  // NOTE experiential inResponse
-  if (notForce && inResponse) {
-    const res = coll._inResponses[queryString]
-    if (res) return res
-  }
 
   if (notForce) {
     const { fetchAts } = coll.getState()
@@ -136,12 +131,13 @@ export function checkFetch(coll, query = {}, option = {}) {
   // want to return fetching promise for findAsync
   const { onFetch } = coll
   const p = Promise.resolve(onFetch(fetchQuery, option, coll)).then(res => {
-    // NOTE experiential inResponse
     if (inResponse) {
-      coll._inResponses[queryString] = res
+      const _res = (res && res.byId) || res
+      coll._inResponses[queryString] = Array.isArray(_res) ? _.map(_res, coll.idField) : _.keys(_res)
     }
 
     load(coll, res)
+
     // flush dispatch mutates after load()
     dispatchMutations(coll.store)
     return res
