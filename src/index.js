@@ -19,7 +19,7 @@ import {
   pickAsync as _pickAsync,
 } from './collection/find'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
-import { findRemote as _findRemote } from './collection/fetcher'
+import { findRemote as _findRemote, checkFetch as _checkFetch } from './collection/fetcher'
 import { submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
 import _recall, { _calcOnChange, _getIndex } from './collection/recall'
 import {
@@ -60,6 +60,7 @@ export const findAsync = (...args) => wrapCollect(args, _findAsync)
 export const findOne = (...args) => wrapCollect(args, _findOne)
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
 export const findRemote = (...args) => wrapCollect(args, _findRemote)
+export const checkFetch = (...args) => wrapCollect(args, _checkFetch)
 export const pick = (...args) => wrapCollect(args, _pick)
 export const pickAsync = (...args) => wrapCollect(args, _pickAsync)
 export const get = (...args) => wrapCollect(args, _get)
