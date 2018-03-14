@@ -11,7 +11,7 @@
     "test": "NODE_PATH=src jest"
   },
   "name": "datavan",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "description": "Define your collections layer over redux state, with mixins to fetch, submit changes to your server",
   "main": "./lib/index.js",
   "browser": "./lib/es6/index.js",

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.5"></a>
+## [3.5.5](https://github.com/ericfong/datavan/compare/v3.5.4...v3.5.5) (2018-03-14)
+
+
+### Bug Fixes
+
+* add pure hoc to connectOnChange ([d906ee1](https://github.com/ericfong/datavan/commit/d906ee1))
+* inResponses for list and byId type query and sorting ([95af303](https://github.com/ericfong/datavan/commit/95af303))
+* recall prefer collection-defined function and with collection as scope ([1c2f33b](https://github.com/ericfong/datavan/commit/1c2f33b))
+
+
+
 <a name="3.5.4"></a>
 ## [3.5.4](https://github.com/ericfong/datavan/compare/v3.5.3...v3.5.4) (2018-03-13)
 
