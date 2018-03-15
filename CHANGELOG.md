@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.6"></a>
+## [3.5.6](https://github.com/ericfong/datavan/compare/v3.5.5...v3.5.6) (2018-03-15)
+
+
+### Bug Fixes
+
+* deprecate find option keyBy ([c4a71ae](https://github.com/ericfong/datavan/commit/c4a71ae))
+* doc ([aa15c9c](https://github.com/ericfong/datavan/commit/aa15c9c))
+* mutate argument detection ([2beabd1](https://github.com/ericfong/datavan/commit/2beabd1))
+* prevent using deprecated functions in test ([98e414b](https://github.com/ericfong/datavan/commit/98e414b))
+* refactor testes ([a23c15d](https://github.com/ericfong/datavan/commit/a23c15d))
+* remove hacking and use back regular connect (react-router should be passed down as props or sync with redux-state) ([80aa4cf](https://github.com/ericfong/datavan/commit/80aa4cf))
+
+
+
 <a name="3.5.5"></a>
 ## [3.5.5](https://github.com/ericfong/datavan/compare/v3.5.4...v3.5.5) (2018-03-14)
 
