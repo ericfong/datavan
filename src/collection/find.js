@@ -6,7 +6,8 @@ import { checkFetch, isPreloadSkip } from './fetcher'
 export function get(collection, id, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
     checkFetch(collection, [id], option)
-  } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
+  }
+  if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
     console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
   return getAll(collection)[id]
@@ -15,7 +16,8 @@ export function get(collection, id, option = {}) {
 export function find(collection, query = {}, option = {}) {
   if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
     checkFetch(collection, query, option)
-  } else if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
+  }
+  if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
     console.warn('find option.fetch === false is deprecating! Please use findInMemory')
   }
   return findInMemory(collection, query, option)

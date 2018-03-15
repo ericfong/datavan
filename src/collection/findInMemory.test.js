@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { createStore } from 'redux'
 
 import { datavanEnhancer, findInMemory } from '..'
@@ -30,7 +31,7 @@ test('query = null or undefined', async () => {
 
 test('keyBy', async () => {
   const store = createTestStore()
-  expect(findInMemory(store, 'data', {}, { keyBy: 'key' })).toEqual({
+  expect(_.keyBy(findInMemory(store, 'data', {}), 'key')).toEqual({
     'x-key': { key: 'x-key', value: 'x-val' },
     'y-key': { key: 'y-key', value: 'y-val' },
   })

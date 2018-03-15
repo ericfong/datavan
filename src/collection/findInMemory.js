@@ -29,6 +29,9 @@ function postFind(collection, arr, option) {
 
     // convert to other object
     if (option.keyBy) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('find option "keyBy" is deprecated! Please use _.keyBy(find(query), "keyBy")) or function pick')
+      }
       if (option.keyBy !== collection.idField) {
         arr = _.keyBy(arr, option.keyBy)
       }
