@@ -7,7 +7,7 @@ import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 
 import './util/enzyme-setup'
-import { datavanEnhancer, serverPreload, findOne } from '..'
+import { datavanEnhancer, serverPreload, find } from '..'
 import { getQueryIds } from '../collection/fetcher'
 
 test('server preload', async () => {
@@ -24,14 +24,14 @@ test('server preload', async () => {
   const store = createStore(s => s || {}, null, datavanEnhancer({ collections }))
 
   const UserComp = connect((state, props) => ({
-    user: findOne(state, 'users', { _id: props.userId }, { serverPreload: true }),
+    user: find(state, 'users', { _id: props.userId }, { serverPreload: true })[0],
   }))(props => {
     const user = props.user || {}
     return <span>{user.name}</span>
   })
 
   const FriendComp = connect(state => ({
-    user: findOne(state, 'users', { _id: 'u2' }, { serverPreload: true }),
+    user: find(state, 'users', { _id: 'u2' }, { serverPreload: true })[0],
   }))(props => {
     const user = props.user || {}
     return (

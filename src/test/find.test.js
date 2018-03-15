@@ -147,9 +147,9 @@ test('basic', async () => {
   expect(get(Users, 'u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
-  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }])
+  expect(find(Users, {})).toEqual([{ _id: 'u1', name: 'u1 name' }])
   await getPending(Users)
-  expect(find(Users, {}, { sort: { _id: 1 } })).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
+  expect(find(Users, {})).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
   get(Users, 'u1')
