@@ -68,14 +68,14 @@ During find(), datavan will query your local-data first. If local-data is missin
 ```js
 import { createStore } from 'redux'
 import { Provider, connect } from 'react-redux'
-import { datavanEnhancer, findOne, connectOnChange } from 'datavan'
+import { datavanEnhancer, find, connectOnChange } from 'datavan'
 
 const PureComponent = props => <div>{props.user.name}</div>
 
 // normal redux connect
 const MyApp = connect(
   (state, { name }) => {
-    const user = findOne(state, 'user_table' /* collection */, { name } /* mongo query syntax */)
+    const user = find(state, 'user_table' /* collection */, { name } /* mongo query syntax */)[0]
     // first call result will be undefined
     // after HTTP response, connect will be re-run
     // second result will get user object
@@ -243,7 +243,7 @@ const MyApp = connectOnChange(
   ['name', 'role'],
   // map state function
   (state, { name, role }) => {
-    return { user: findOne(state, 'user_table', { name, role }) }
+    return { user: find(state, 'user_table', { name, role })[0] }
   }
 )(PureComponent)
 ```
@@ -265,7 +265,7 @@ withMethods({
 
 # API
 
-### find
+### find, pick
 
 ```js
 find(state, collection, query, [option])
@@ -277,31 +277,23 @@ find(state, collection, query, [option])
 * query: Array<id> | query-object (mongodb like query object, we use [mingo](https://www.npmjs.com/package/mingo) to filter documents)
 
 ```js
-arr = find(
-  state,
-  'user_table',
-  { name: 'john' },
-  {
-    // inResponse: true,  // find within the result from onFetch response
-  }
-)
+arr = find(state, 'user_table', { name: 'john' })
+
+// query starts with $$ which trigger find within the result from onFetch response
+arr = find(state, 'user_table', { name: 'john', $$limit: 10, $$sort: ... })
+
+userById = pick(state, 'user_table', { name: 'john' })
 ```
 
-### findAsync
+### findAsync, pickAsync
 
 ```js
 findAsync(stateOrDispatch, collection, query, [option])
+
+byId = pickAsync(stateOrDispatch, collection, query, [option])
 ```
 
 Async function that always fetch and find data from server
-
-### findOne
-
-like find() but return a single document
-
-```js
-doc = findOne(stateOrDispatch, 'user_table', query, [option])
-```
 
 ### findInMemory
 
@@ -541,7 +533,7 @@ const collections = {
 // connect react component
 const MyApp = connect((state, { username }) => {
   return {
-    user: findOne(state, 'users', { username }, { serverPreload: true }),
+    user: find(state, 'users', { username }, { serverPreload: true })[0],
   }
 })(PureComponent)
 
