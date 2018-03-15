@@ -4,7 +4,7 @@ import { createStore, combineReducers } from 'redux'
 import { Provider, connect } from 'react-redux'
 import { mount } from 'enzyme'
 
-import './util/enzyme-setup'
+import './enzyme-setup'
 import { datavanEnhancer, createVanReducer, getStorePending, loadCollections, mutate, getAll, get, genTmpId, tmpIdRegExp } from '..'
 
 test('genTmpId match tmpIdRegExp', async () => {

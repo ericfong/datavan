@@ -1,9 +1,8 @@
 import delay from 'delay'
 import { createStore } from 'redux'
 
-import createCollection from './util/createCollection'
+import { createCollection, onFetchEcho, echoValue } from '../test/util'
 import { find, datavanEnhancer, findAsync } from '..'
-import onFetchEcho, { echoValue } from './util/onFetchEcho'
 
 test('findAsync', async () => {
   const onFetch = jest.fn(onFetchEcho)

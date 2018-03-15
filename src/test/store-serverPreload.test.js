@@ -6,7 +6,7 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import { render } from 'enzyme'
 
-import './util/enzyme-setup'
+import './enzyme-setup'
 import { datavanEnhancer, serverPreload, find } from '..'
 import { getQueryIds } from '../collection/fetcher'
 

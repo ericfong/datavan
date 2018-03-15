@@ -1,9 +1,8 @@
 import _ from 'lodash'
 
-import createCollection from './util/createCollection'
+import { createCollection, onFetchEcho, timeoutResolve } from '../test/util'
 import { getQueryIds } from '../collection/fetcher'
-import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, reset, findInMemory } from '..'
-import onFetchEcho, { timeoutResolve } from './util/onFetchEcho'
+import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, findInMemory } from '..'
 
 // import { printTimes } from '../datavanEnhancer'
 //

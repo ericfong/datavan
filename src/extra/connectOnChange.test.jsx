@@ -4,7 +4,7 @@ import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 
-import './util/enzyme-setup'
+import '../test/enzyme-setup'
 import { find, datavanEnhancer, connectOnChange, recall, get, mutate } from '..'
 
 test('work with virtual collection and recall', async () => {

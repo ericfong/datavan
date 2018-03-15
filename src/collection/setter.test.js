@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { insert, set, getAll, find, mutate } from '..'
-import createCollection from './util/createCollection'
+import { createCollection } from '../test/util'
 
 test('mutate', async () => {
   const table = createCollection({

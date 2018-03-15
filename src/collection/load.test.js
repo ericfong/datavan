@@ -3,8 +3,7 @@ import { createStore } from 'redux'
 import delay from 'delay'
 
 import { load, datavanEnhancer, getAll, get, find, insert, loadCollections, getPending, genTmpId } from '..'
-import createCollection from '../test/util/createCollection'
-import onFetchEcho from '../test/util/onFetchEcho'
+import { createCollection, onFetchEcho } from '../test/util'
 
 test('load same $submittedIds again', async () => {
   const collection = createCollection()

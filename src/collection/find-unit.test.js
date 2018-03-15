@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import createCollection from '../../test/util/createCollection'
+import { createCollection } from '../test/util'
 import { getAll, find, getPending } from '../..'
 
 test('find inResponse', async () => {

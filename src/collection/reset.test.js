@@ -1,6 +1,5 @@
-import createCollection from './util/createCollection'
 import { getAll, reset, get, findAsync } from '..'
-import { echoValue } from './util/onFetchEcho'
+import { createCollection, echoValue } from '../test/util'
 
 test('gc for collection without onFetch', async () => {
   const users = createCollection({
