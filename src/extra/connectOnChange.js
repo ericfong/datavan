@@ -1,7 +1,6 @@
 import _ from 'lodash'
-import { compose } from 'redux'
 import { connect } from 'react-redux'
-import { shallowEqual, pure } from 'recompose'
+import { shallowEqual } from 'recompose'
 
 import { getStore } from '../store'
 
@@ -9,64 +8,52 @@ export default function connectOnChange(propKeys, mapStateFunc) {
   if (!mapStateFunc) return connect()
   propKeys = _.uniq(_.compact(propKeys))
 
-  const connected = connect(
-    () => {
-      let currProps
-      let currState
-      let currResult
-      let onChangeTables
+  /*
+  NOTE after react-redux@5.0.0, connect default as pure, in which mapStateFunc will only be run if redux-state or props are changed
 
-      // create and return memoizer func per component
-      return (state, props) => {
-        const { vanCtx, vanDb } = getStore(state)
+  For deep-component which want to listen to react-router location changes
+  Because react-router history won't trigger redux-state change, mapStateFunc will not be run even location changed
 
-        const nextState = _.mapValues(onChangeTables, (v, collName) => vanDb[collName].getState())
-        const isStateEqual = shallowEqual(nextState, currState)
+  So, pass location.query as props or sync router state into redux-state
+  And all datavan's source-of-truth state should be inside redux-state
+  */
+  return connect(() => {
+    let currProps
+    let currState
+    let currResult
+    let onChangeTables
 
-        const nextProps = _.pick(props, propKeys)
-        if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
-        // console.log('>>>', onChangeTables, {
-        //   stateDiff: !isStateEqual && [nextState, currState],
-        //   propsDiff: !shallowEqual(nextProps, currProps) && [nextProps, currProps],
-        // })
-        currState = nextState
-        currProps = nextProps
+    // create and return memoizer func per component
+    return (state, props) => {
+      const { vanCtx, vanDb } = getStore(state)
 
-        // real running of memoize
-        const _inConnectOnChange = vanCtx.inConnectOnChange
-        if (process.env.NODE_ENV !== 'production' && _inConnectOnChange) {
-          console.warn('vanCtx.inConnectOnChange set to true already! Duplicated connectOnChange()?')
-        }
+      const nextState = _.mapValues(onChangeTables, (v, collName) => vanDb[collName].getState())
+      const isStateEqual = shallowEqual(nextState, currState)
 
-        vanCtx.inConnectOnChange = true
-        vanCtx.onChangeTables = {}
+      const nextProps = _.pick(props, propKeys)
+      if (isStateEqual && shallowEqual(nextProps, currProps)) return currResult
+      // console.log('>>>', onChangeTables, {
+      //   stateDiff: !isStateEqual && [nextState, currState],
+      //   propsDiff: !shallowEqual(nextProps, currProps) && [nextProps, currProps],
+      // })
+      currState = nextState
+      currProps = nextProps
 
-        currResult = mapStateFunc(state, props)
-
-        onChangeTables = vanCtx.onChangeTables
-        vanCtx.onChangeTables = null
-        vanCtx.inConnectOnChange = _inConnectOnChange
-        return currResult
+      // real running of memoize
+      const _inConnectOnChange = vanCtx.inConnectOnChange
+      if (process.env.NODE_ENV !== 'production' && _inConnectOnChange) {
+        console.warn('vanCtx.inConnectOnChange set to true already! Duplicated connectOnChange()?')
       }
-    },
-    null,
-    null,
-    {
-      /*
-      NOTE after react-redux@5.0.0, default as pure, in which mapStateFunc will only be run if redux-state or props are changed
 
-      For deep-component which want to listen to react-router location changes
-      Because react-router history won't trigger redux-state change, mapStateFunc will not be run even location changed
+      vanCtx.inConnectOnChange = true
+      vanCtx.onChangeTables = {}
 
-      Need to config history to trigger change to redux-state or props when
-      OR mark as NOT-pure
+      currResult = mapStateFunc(state, props)
 
-      mark as NOT-pure as default. Because datavan also have some state that not write into redux-state.
-      which make mapState nearly always run
-      */
-      pure: false,
+      onChangeTables = vanCtx.onChangeTables
+      vanCtx.onChangeTables = null
+      vanCtx.inConnectOnChange = _inConnectOnChange
+      return currResult
     }
-  )
-
-  return compose(connected, pure)
+  })
 }
