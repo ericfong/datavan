@@ -35,11 +35,15 @@ const wrapDeepByPath = (steps, value) => steps.reduceRight((ret, step) => ({ [st
 
 export function mutate(collection, path, mutation) {
   let mut
-  if (typeof path === 'string') {
-    mut = { [path]: mutation }
-  } else if (Array.isArray(path)) {
-    mut = wrapDeepByPath(path, mutation)
+  if (mutation) {
+    // has path
+    if (Array.isArray(path)) {
+      mut = wrapDeepByPath(path, mutation)
+    } else {
+      mut = { [path]: mutation }
+    }
   } else {
+    // mutateAll
     mut = path
   }
   _mutateAll(collection, mut)
