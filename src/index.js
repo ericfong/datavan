@@ -10,6 +10,7 @@ import { reset as _reset } from './collection/reset'
 import { load as _load } from './collection/load'
 // import { findInMemory as _findInMemory } from './collection/query'
 import { findInMemory as _findInMemory } from './collection/findInMemory'
+import { pickInMemory as _pickInMemory } from './collection/query'
 import {
   get as _get,
   find as _find,
@@ -63,6 +64,7 @@ export const findRemote = (...args) => wrapCollect(args, _findRemote)
 export const checkFetch = (...args) => wrapCollect(args, _checkFetch)
 export const pick = (...args) => wrapCollect(args, _pick)
 export const pickAsync = (...args) => wrapCollect(args, _pickAsync)
+export const pickInMemory = (...args) => wrapCollect(args, _pickInMemory)
 export const get = (...args) => wrapCollect(args, _get)
 
 export const getAll = (...args) => wrapCollect(args, _getAll)
