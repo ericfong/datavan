@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-// @auto-fold here
-function calcUnset({ gcTime }, timestamps, ids, expired) {
+// reset both dirty and tidy docs
+const _calcUnset = ({ gcTime }, timestamps, ids, expired) => {
   if (expired && gcTime > 0) {
     const unset = []
     const expiredAt = Date.now() - gcTime
@@ -12,12 +12,8 @@ function calcUnset({ gcTime }, timestamps, ids, expired) {
   }
   return ids || Object.keys(timestamps)
 }
-
-// reset both dirty and tidy docs
 export function reset(collection, { ids, expired = false, mutated = true } = {}) {
-  // if (!collection.onFetch) return
-
-  const delByIds = calcUnset(collection, collection._byIdAts, ids, expired)
+  const delByIds = _calcUnset(collection, collection._byIdAts, ids, expired)
   collection._byIdAts = _.omit(collection._byIdAts, delByIds)
 
   const mut = {}

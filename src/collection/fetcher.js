@@ -1,10 +1,9 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { TMP_ID_PREFIX } from '../constant'
+import { TMP_ID_PREFIX, isInResponseQuery } from '../definition'
 import { load } from '../collection/load'
 import { dispatchMutations } from '../store'
-import { isInResponseQuery } from './query'
 
 export const isPreloadSkip = (self, option) => !option.serverPreload && self.store && self.store.vanCtx.duringServerPreload
 
@@ -143,11 +142,4 @@ export function checkFetch(coll, query, option = {}) {
     return res
   })
   return markPromise(coll, queryString, p)
-}
-
-export const findRemote = (...args) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('findRemote is deprecated! It is renamed to checkFetch')
-  }
-  return checkFetch(...args)
 }

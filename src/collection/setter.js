@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { findInMemory } from './findInMemory'
+import { findInMemory } from './find'
 
 function _mutateAll(collection, byIdMutations) {
   const mutation = { byId: byIdMutations }
@@ -31,14 +31,12 @@ function _mutateAll(collection, byIdMutations) {
   collection.addMutation(mutation)
 }
 
-const wrapDeepByPath = (steps, value) => steps.reduceRight((ret, step) => ({ [step]: ret }), value)
-
 export function mutate(collection, path, mutation) {
   let mut
   if (mutation) {
     // has path
     if (Array.isArray(path)) {
-      mut = wrapDeepByPath(path, mutation)
+      mut = path.reduceRight((ret, step) => ({ [step]: ret }), mutation)
     } else {
       mut = { [path]: mutation }
     }

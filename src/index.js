@@ -1,28 +1,25 @@
 import { getCollection, dispatchMutations, getStore } from './store'
 import {
-  getAll as _getAll,
   genTmpId as _genTmpId,
+  getAll as _getAll,
   getOriginals as _getOriginals,
   getSubmits as _getSubmits,
   getPending as _getPending,
 } from './collection'
-import { reset as _reset } from './collection/reset'
-import { load as _load } from './collection/load'
-// import { findInMemory as _findInMemory } from './collection/query'
-import { findInMemory as _findInMemory } from './collection/findInMemory'
-import { pickInMemory as _pickInMemory } from './collection/query'
 import {
+  pickInMemory as _pickInMemory,
+  findInMemory as _findInMemory,
   get as _get,
   find as _find,
   findAsync as _findAsync,
-  findOne as _findOne,
   pick as _pick,
   pickAsync as _pickAsync,
 } from './collection/find'
+import { load as _load } from './collection/load'
+import { reset as _reset } from './collection/reset'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
-import { findRemote as _findRemote, checkFetch as _checkFetch } from './collection/fetcher'
-import { submit as _submit, getSubmittedIds as _getSubmittedIds } from './collection/submitter'
-import _recall, { _calcOnChange, _getIndex } from './collection/recall'
+import { checkFetch as _checkFetch } from './collection/fetcher'
+import _recall from './collection/recall'
 import {
   getStorePending as _getStorePending,
   serverPreload as _serverPreload,
@@ -58,22 +55,18 @@ function wrapStore(args, func, mode) {
 // collection
 export const find = (...args) => wrapCollect(args, _find)
 export const findAsync = (...args) => wrapCollect(args, _findAsync)
-export const findOne = (...args) => wrapCollect(args, _findOne)
 export const findInMemory = (...args) => wrapCollect(args, _findInMemory)
-export const findRemote = (...args) => wrapCollect(args, _findRemote)
-export const checkFetch = (...args) => wrapCollect(args, _checkFetch)
 export const pick = (...args) => wrapCollect(args, _pick)
 export const pickAsync = (...args) => wrapCollect(args, _pickAsync)
 export const pickInMemory = (...args) => wrapCollect(args, _pickInMemory)
+
 export const get = (...args) => wrapCollect(args, _get)
+export const checkFetch = (...args) => wrapCollect(args, _checkFetch)
 
 export const getAll = (...args) => wrapCollect(args, _getAll)
 export const getOriginals = (...args) => wrapCollect(args, _getOriginals)
 export const getSubmits = (...args) => wrapCollect(args, _getSubmits)
-
 export const recall = (...args) => wrapCollect(args, _recall)
-export const getIndex = (...args) => wrapCollect(args, _getIndex)
-export const calcOnChange = (...args) => wrapCollect(args, _calcOnChange)
 
 export const insert = (...args) => wrapCollect(args, _insert, WRITE)
 export const update = (...args) => wrapCollect(args, _update, WRITE)
@@ -83,9 +76,6 @@ export const set = (...args) => wrapCollect(args, _set, WRITE)
 
 export const reset = (...args) => wrapCollect(args, _reset, WRITE)
 export const load = (...args) => wrapCollect(args, _load, WRITE)
-
-export const submit = (...args) => wrapCollect(args, _submit, ASYNC_WRITE)
-export const getSubmittedIds = (...args) => wrapCollect(args, _getSubmittedIds)
 
 // Extra
 export const genTmpId = (...args) => wrapStore(args, _genTmpId)
@@ -98,10 +88,9 @@ export const serverPreload = (...args) => wrapStore(args, _serverPreload)
 
 // plain export
 export { getCollection, dispatchMutations, getStore }
-export * from './constant'
+export * from './definition'
 export datavanEnhancer, { createVanReducer } from './datavanEnhancer'
-export { queryTester, pickBy } from './collection/query'
-export { tmpIdRegExp } from './collection'
+export { mingoQuery, mingoTester, pickBy, queryData } from './collection/find'
 export { defaultGetQueryString } from './collection/fetcher'
 export { buildIndex } from './collection/recall'
 
@@ -110,4 +99,3 @@ export connectOnChange from './extra/connectOnChange'
 export withMethods from './extra/withMethods'
 export { compose } from 'redux'
 export searchObjects, { tokenizeKeywords } from './extra/searchObjects'
-export getSetter from './extra/getSetter'

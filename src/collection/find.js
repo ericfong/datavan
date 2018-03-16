@@ -1,53 +1,78 @@
+import _ from 'lodash'
+import Mingo from 'mingo'
+
+import { startsWith$$, isInResponseQuery } from '../definition'
 import { getAll } from '.'
-import { findInMemory } from './findInMemory'
-import { pickInMemory } from './query'
 import { checkFetch, isPreloadSkip } from './fetcher'
 
-export function get(collection, id, option = {}) {
-  if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    checkFetch(collection, [id], option)
-  }
-  if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
-    console.warn('find option.fetch === false is deprecating! Please use findInMemory')
-  }
-  return getAll(collection)[id]
+//
+// -------------------------------------------------------------------------------------------------------------------
+// Query, Tester
+// -------------------------------------------------------------------------------------------------------------------
+
+export const mingoQuery = query => new Mingo.Query(_.omitBy(query, startsWith$$))
+export const mingoTester = query => {
+  const mQuery = mingoQuery(query)
+  return doc => mQuery.test(doc)
 }
 
-export function find(collection, query = {}, option = {}) {
-  if (collection.onFetch && option.fetch !== false && !isPreloadSkip(collection, option)) {
-    checkFetch(collection, query, option)
-  }
-  if (process.env.NODE_ENV !== 'production' && option.fetch === false) {
-    console.warn('find option.fetch === false is deprecating! Please use findInMemory')
-  }
-  return findInMemory(collection, query, option)
+//
+// -------------------------------------------------------------------------------------------------------------------
+// pickBy, queryData
+// -------------------------------------------------------------------------------------------------------------------
+
+export const pickBy = (byId, query) => {
+  if (typeof query === 'string' || Array.isArray(query)) return _.pick(byId, query)
+  const omittedQuery = _.omitBy(query, startsWith$$)
+  if (_.isEmpty(omittedQuery)) return byId
+  const mQuery = new Mingo.Query(omittedQuery)
+  return _.pickBy(byId, doc => mQuery.test(doc))
 }
 
-export function findAsync(collection, query = {}, option = {}) {
-  if (collection.onFetch) {
-    return Promise.resolve(checkFetch(collection, query, option)).then(() => {
-      return findInMemory(collection, query, option)
-    })
+export const queryData = (coll, query, option) => {
+  const state = coll.getState()
+  let { byId, originals } = state
+
+  if (option.queryString && isInResponseQuery(query)) {
+    const ids = coll._inResponses[option.queryString]
+    byId = _.pick(byId, ids)
+    originals = _.pick(originals, ids)
   }
-  return findInMemory(collection, query, option)
+
+  if (option.inOriginal) {
+    byId = _.omitBy({ ...byId, ...originals }, v => v === null)
+  }
+  return byId
 }
 
-export function findOne(core, query, option) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('findOne is deprecated! Please use find()[0]')
-  }
-  return find(core, query, { ...option, limit: 1 })[0]
-}
+//
+// -------------------------------------------------------------------------------------------------------------------
+// pickInMemory, findInMemory
+// -------------------------------------------------------------------------------------------------------------------
+export const pickInMemory = (coll, query, option = {}) => pickBy(queryData(coll, query, option), query)
+export const findInMemory = (coll, query, option) => _.values(pickInMemory(coll, query, option))
 
-export const pick = (coll, query, option = {}) => {
-  if (coll.onFetch && !isPreloadSkip(coll, option)) {
-    checkFetch(coll, query, option)
-  }
-  return pickInMemory(coll, query, option)
+//
+// -------------------------------------------------------------------------------------------------------------------
+// get, pick, find
+// -------------------------------------------------------------------------------------------------------------------
+export const get = (coll, id, option = {}) => {
+  if (coll.onFetch && !isPreloadSkip(coll, option)) checkFetch(coll, [id], option)
+  return getAll(coll)[id]
 }
+const _find = (func, coll, query, option = {}) => {
+  if (coll.onFetch && !isPreloadSkip(coll, option)) checkFetch(coll, query, option)
+  return func(coll, query, option)
+}
+export const pick = (coll, query, option) => _find(pickInMemory, coll, query, option)
+export const find = (coll, query, option) => _find(findInMemory, coll, query, option)
 
-export const pickAsync = (coll, query, option = {}) => {
-  return Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(() => {
-    return pickInMemory(coll, query, option)
-  })
+//
+// -------------------------------------------------------------------------------------------------------------------
+// pickAsync, findAsync
+// -------------------------------------------------------------------------------------------------------------------
+const _findAsync = (func, coll, query, option = {}) => {
+  return Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(() => func(coll, query, option))
 }
+export const pickAsync = (coll, query, option) => _findAsync(pickInMemory, coll, query, option)
+export const findAsync = (coll, query, option) => _findAsync(findInMemory, coll, query, option)

@@ -4,10 +4,6 @@ import { createCollection, onFetchEcho, timeoutResolve } from '../test/util'
 import { getQueryIds } from '../collection/fetcher'
 import { getPending, findAsync, insert, update, getAll, find, get, TMP_ID_PREFIX as TMP, findInMemory } from '..'
 
-// import { printTimes } from '../datavanEnhancer'
-//
-// afterAll(printTimes)
-
 function onFetchById(query, idField, func) {
   const ids = getQueryIds(query, idField)
   return Promise.all(_.map(ids, func)).then(values => _.zipObject(ids, values))

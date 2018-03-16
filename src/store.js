@@ -1,4 +1,4 @@
-import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './constant'
+import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './definition'
 
 const getDatavanAction = { type: GET_DATAVAN_ACTION }
 

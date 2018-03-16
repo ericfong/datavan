@@ -4,7 +4,7 @@ import { createStore } from 'redux'
 import { datavanEnhancer, getCollection } from '../..'
 import { getQueryIds } from '../collection/fetcher'
 
-export const timeoutResolve = (value, t = 10) => new Promise(resolve => setTimeout(() => resolve(value), t))
+export const timeoutResolve = value => new Promise(resolve => resolve(value))
 
 export const onFetchEcho = query =>
   timeoutResolve(

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mutateUtil from 'immutability-helper'
 
-import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './constant'
+import { GET_DATAVAN_ACTION, DATAVAN_MUTATE_ACTION } from './definition'
 import { collectionDefaults } from './collection'
 import { load } from './collection/load'
 import { dispatchMutations } from './store'

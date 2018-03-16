@@ -1,9 +1,7 @@
 import _ from 'lodash'
 
-import { TMP_ID_PREFIX } from '../constant'
+import { TMP_ID_PREFIX, getDeviceName } from '../definition'
 
-export const tmpIdRegExp = /^dv~(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)~([.\d]+)~(.+)/
-const getDeviceName = store => (store && store.getState().datavan.system.byId.deviceName) || 'tmp'
 // NOTE make tmpId sortable by time, so we use ISO Date
 export const genTmpId = store => `${TMP_ID_PREFIX}${new Date().toISOString()}~${Math.random()}~${getDeviceName(store)}`
 
