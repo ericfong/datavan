@@ -25,16 +25,29 @@ export const collectionDefaults = {
   },
 }
 
-export const getAll = self => self.getState().byId
+export const getAll = coll => coll.getState().byId
 
-export const getOriginals = self => self.getState().originals
+export const getOriginals = coll => coll.getState().originals
 
-export const getSubmits = self => {
-  const { byId, originals } = self.getState()
-  return _.mapValues(originals, (v, k) => byId[k])
+export function getPending(coll) {
+  const promises = Object.values(coll._fetchingPromises)
+  return promises.length <= 0 ? null : Promise.all(promises)
 }
 
-export function getPending(self) {
-  const promises = Object.values(self._fetchingPromises)
-  return promises.length <= 0 ? null : Promise.all(promises)
+export const memorize = (coll, memoryKey, func) => {
+  const state = coll.getState()
+  // reset _memory by checking _memoryById
+  if (coll._memoryById !== state) coll._memory = {}
+  coll._memoryById = state
+  const _memory = coll._memory
+
+  // HIT
+  if (memoryKey in _memory) return _memory[memoryKey]
+  // MISS
+  const ret = (_memory[memoryKey] = func(state))
+  return ret
+}
+
+export const getSubmits = coll => {
+  return memorize(coll, 'getSubmits', ({ byId, originals }) => _.mapValues(originals, (v, k) => byId[k]))
 }

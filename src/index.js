@@ -19,7 +19,7 @@ import { load as _load } from './collection/load'
 import { reset as _reset } from './collection/reset'
 import { mutate as _mutate, set as _set, insert as _insert, update as _update, remove as _remove } from './collection/setter'
 import { checkFetch as _checkFetch } from './collection/fetcher'
-import _recall from './collection/recall'
+import { recall as _recall } from './collection/recall'
 import {
   getStorePending as _getStorePending,
   serverPreload as _serverPreload,
