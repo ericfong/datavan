@@ -30,6 +30,9 @@ function addOnResize(coll) {
 }
 
 export function getBrowserWidth(state, collectionName, widthKey = 'browserWidth') {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('getBrowserWidth is deprecating! Please use css or your own UI library to achieve same result')
+  }
   const coll = getCollection(state, collectionName)
   coll._browserWidthKey = widthKey
   ensureListener(coll, '_browserOnResize', addOnResize)
@@ -37,6 +40,9 @@ export function getBrowserWidth(state, collectionName, widthKey = 'browserWidth'
 }
 
 export function getBrowserHeight(state, collectionName, heightKey = 'browserHeight') {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('getBrowserHeight is deprecating! Please use css or your own UI library to achieve same result')
+  }
   const coll = getCollection(state, collectionName)
   coll._browserHeightKey = heightKey
   ensureListener(coll, '_browserOnResize', addOnResize)
