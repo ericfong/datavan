@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-0"></a>
+# [4.0.0-0](https://github.com/ericfong/datavan/compare/v3.5.6...v4.0.0-0) (2018-03-19)
+
+
+### Bug Fixes
+
+* deprecate getBrowserWidth and getBrowserHeight ([c2d0309](https://github.com/ericfong/datavan/commit/c2d0309))
+* recall with 'buildIndex' even not yet define buildIndex function in collection ([d5d832a](https://github.com/ericfong/datavan/commit/d5d832a))
+* refactor ([c15bdce](https://github.com/ericfong/datavan/commit/c15bdce))
+* use memorize for getSubmits ([852b83d](https://github.com/ericfong/datavan/commit/852b83d))
+
+
+### Features
+
+* withRefetch to replace inResponse query ([e783dd5](https://github.com/ericfong/datavan/commit/e783dd5))
+
+
+### BREAKING CHANGES
+
+* 1. removed functions: findOne, findRemote, getIndex, calcOnChange, submit, getSubmittedIds, getSetter
+2. queryTester is renamed to mingoTester
+3. removed find options: skip, limit, sort, keyBy, keyByValue, groupBy, map, distinct, filterHook, fetch = false
+4. cannot pass anonymous function to recall function anymore
+
+
+
 <a name="3.5.6"></a>
 ## [3.5.6](https://github.com/ericfong/datavan/compare/v3.5.5...v3.5.6) (2018-03-15)
 
