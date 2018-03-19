@@ -15,5 +15,9 @@ export const buildIndex = (docs, fields, isUnique) => {
 }
 
 export const recall = (coll, fnName, ...args) => {
-  return memorize(coll, `${fnName}-${stringify(args)}`, state => coll[fnName](state.byId, ...args))
+  const func = coll[fnName] || (fnName === 'buildIndex' ? buildIndex : null)
+  if (process.env.NODE_ENV !== 'production' && typeof func !== 'function') {
+    console.error(`recall cannot find "${fnName}" in collection "${coll && coll.name}"`)
+  }
+  return memorize(coll, `${fnName}-${stringify(args)}`, state => func.apply(coll, [state.byId, ...args]))
 }
