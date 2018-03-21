@@ -1,16 +1,3 @@
 {
-  "env": {
-    "es6": {
-      "presets": [["env", { "targets": { "browsers": "> 1%" }, "useBuiltIns": true, "modules": false }]],
-      "plugins": ["transform-export-extensions", "transform-object-rest-spread", "transform-class-properties", "lodash"],
-    },
-    "cjs": {
-      "presets": [["env", { "targets": { "uglify": true }, "useBuiltIns": true }]],
-      "plugins": ["transform-export-extensions", "transform-object-rest-spread", "transform-class-properties", "lodash"],
-    },
-    "test": {
-      "presets": [["env", { "targets": { "node": "current" } }], "react"],
-      "plugins": ["transform-export-extensions", "transform-object-rest-spread", "transform-class-properties", "lodash"],
-    },
-  },
+  "presets": ["./.babelrc-preset.js"]
 }
