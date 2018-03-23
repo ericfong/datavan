@@ -20,7 +20,6 @@
     "node": ">= 8.9.4"
   },
   "jest": {
-    "testEnvironment": "node",
     "roots": [
       "<rootDir>/src"
     ],
@@ -32,6 +31,7 @@
     ]
   },
   "dependencies": {
+    "create-mutable-context": "^0.8.0",
     "fast-stable-stringify": "^1.0.0",
     "immutability-helper": "^2.6.6",
     "lodash": "^4.17.5",
@@ -66,7 +66,7 @@
     "delay": "2.0.0",
     "enzyme": "3.3.0",
     "enzyme-adapter-react-16": "1.1.1",
-    "eslint": "4.19.0",
+    "eslint": "4.19.1",
     "eslint-config-airbnb": "16.1.0",
     "eslint-plugin-babel": "4.1.2",
     "eslint-plugin-dependencies": "2.4.0",
@@ -75,12 +75,11 @@
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-lodash": "2.7.0",
     "eslint-plugin-react": "7.7.0",
-    "jest": "22.4.2",
+    "jest": "22.4.3",
     "jsdom": "11.6.2",
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "react-redux": "5.0.7",
-    "react-test-renderer": "16.2.0",
     "redux": "3.7.2",
     "shelljs": "0.8.1"
   },
