@@ -3,38 +3,34 @@ import stringify from 'fast-stable-stringify'
 
 import { getDeviceName } from '../definition'
 
-import { pickBy, buildIndex, genTmpId } from './util-external'
 import { tryCache } from './util'
-import { load } from './collection-load'
-import { checkFetch, isPreloadSkip } from '../collection/fetcher'
-
-const wrapPickOrFind = (coll, query, option = {}, func) => {
-  if (coll.onFetch && !isPreloadSkip(coll, option)) checkFetch(coll, query, option)
-  return func()
-}
-
-const wrapPickOrFindAsync = (coll, query, option = {}, func) => {
-  return Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(func)
-}
+import { pickBy, buildIndex, genTmpId } from './collection-util'
+import load from './collection-load'
+import mutateCollection from './collection-mutate'
+import { checkFetch } from './collection-fetch'
 
 const defaultCollFuncs = {
   idField: '_id',
+  // fetchMaxAge: 0,
+  // onFetch: () => {},
 
   get(id, option = {}) {
-    if (this.onFetch && !isPreloadSkip(this, option)) checkFetch(this, [id], option)
+    checkFetch(this, [id], option)
     return this.getById()[id]
   },
   pick(query, option) {
-    return wrapPickOrFind(this, query, option, () => pickBy(this.getById(), query))
+    checkFetch(this, query, option)
+    return pickBy(this.getById(), query)
   },
   find(query, option) {
-    return wrapPickOrFind(this, query, option, () => _.values(pickBy(this.getById(), query)))
+    checkFetch(this, query, option)
+    return _.values(pickBy(this.getById(), query))
   },
   pickAsync(coll, query, option) {
-    return wrapPickOrFindAsync(coll, query, option, () => pickBy(this.getById(), query))
+    return Promise.resolve(checkFetch(coll, query, option)).then(() => pickBy(this.getById(), query))
   },
   findAsync(coll, query, option) {
-    return wrapPickOrFindAsync(coll, query, option, () => _.values(pickBy(this.getById(), query)))
+    return Promise.resolve(checkFetch(coll, query, option)).then(() => _.values(pickBy(this.getById(), query)))
   },
 
   getSubmits() {
@@ -109,26 +105,51 @@ const defaultCollFuncs = {
   },
 
   genId() {
-    return genTmpId(getDeviceName(this.getDb()))
+    return genTmpId(getDeviceName(this.getState()))
   },
   load,
 }
 
-const createCollection = (conf, name, { dispatch, getDb } = {}) => {
+const getCollFuncs = (conf, name, store) => {
   return {
     ...defaultCollFuncs,
-
     name,
     ...conf,
-
     mutateData(...args) {
       this.dispatch({ type: 'mutateData', args })
     },
     mutate(...args) {
       this.mutateData('submits', ...args)
     },
-    getDb,
-    dispatch: action => dispatch({ name, ...action }),
+    getCtx: store.getState,
+    dispatch: action => store.dispatch({ name, ...action }),
   }
 }
+
+const initColl = (collFuncs, initState) => {
+  let coll = Object.assign(
+    _.defaults(initState, {
+      // my change
+      submits: {},
+      originals: {},
+      fetchAts: {},
+      // preload that may want to keep
+      preloads: {},
+
+      // cache
+      fetchingAt: null,
+      cache: {},
+      _fetchPromises: {},
+      _byIdAts: {},
+    }),
+    collFuncs
+  )
+  if (coll.initState) {
+    coll = mutateCollection(coll, coll.load(coll.initState, true))
+  }
+  return coll
+}
+
+const createCollection = (conf, name, store, initState) => initColl(getCollFuncs(conf, name, store), initState)
+
 export default createCollection

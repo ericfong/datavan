@@ -24,7 +24,7 @@ const addNewOriginals = (prev, mutationSubmits) => {
   return { $merge: newOriginals }
 }
 
-export const mutateCollection = (prev, mutation) => {
+const mutateCollection = (prev, mutation) => {
   mutation.originals = addNewOriginals(prev, mutation.submits)
 
   const next = Array.isArray(mutation) ? mutation.reduceRight((r, m) => mutateUtil(r, m), prev) : mutateUtil(prev, mutation)
@@ -36,22 +36,4 @@ export const mutateCollection = (prev, mutation) => {
   return false
 }
 
-const reduce = (prevState, action) => {
-  let totalMutation
-  if (action.type === 'mutateData') {
-    totalMutation = action.args.reduceRight((ret, step) => ({ [step]: ret }))
-  }
-
-  const changes = {}
-  _.mapValues(totalMutation, (mutation, name) => {
-    const next = mutateCollection(prevState[name], mutation)
-    if (next !== false) {
-      changes[name] = next
-    }
-  })
-
-  // console.log('reduce', prevState, totalMutation, changes)
-  return changes
-}
-
-export default reduce
+export default mutateCollection

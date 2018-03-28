@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { createCollection } from '../db'
+import { testColl } from './test-util'
 
 test('query = null or undefined', async () => {
-  const coll = createCollection({
+  const coll = testColl({
     initState: {
       1: {
         key: 'x-key',
@@ -15,7 +15,6 @@ test('query = null or undefined', async () => {
       },
     },
   })
-
   expect(coll.pick() |> _.values).toHaveLength(2)
   expect(coll.pick(null) |> _.values).toHaveLength(2)
   expect(coll.pick('') |> _.values).toHaveLength(0)

@@ -13,7 +13,7 @@ function loadToMutation(inDocs) {
   return mut
 }
 
-export function load(res, returnMutation) {
+export default function load(res, returnMutation) {
   if (!res) return
   const { idField, _byIdAts } = this
 
