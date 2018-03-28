@@ -25,15 +25,18 @@ const addNewOriginals = (prev, mutationSubmits) => {
 }
 
 const mutateCollection = (prev, mutation) => {
+  if (Array.isArray(mutation)) {
+    return mutation.reduce((r, m) => mutateCollection(r, m), prev)
+  }
+
   mutation.originals = addNewOriginals(prev, mutation.submits)
 
-  const next = Array.isArray(mutation) ? mutation.reduceRight((r, m) => mutateUtil(r, m), prev) : mutateUtil(prev, mutation)
-
+  const next = mutateUtil(prev, mutation)
   if (next !== prev) {
     next.cache = {}
     return next
   }
-  return false
+  return next
 }
 
 export default mutateCollection

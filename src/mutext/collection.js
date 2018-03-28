@@ -1,10 +1,8 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { getDeviceName } from '../definition'
-
 import { tryCache } from './util'
-import { pickBy, buildIndex, genTmpId } from './collection-util'
+import { pickBy, buildIndex, genTmpId, getDeviceName } from './collection-util'
 import load from './collection-load'
 import mutateCollection from './collection-mutate'
 import { checkFetch } from './collection-fetch'
@@ -105,9 +103,13 @@ const defaultCollFuncs = {
   },
 
   genId() {
-    return genTmpId(getDeviceName(this.getState()))
+    return genTmpId(getDeviceName(this.getStoreState()))
   },
   load,
+
+  getJson() {
+    return _.pick(this, 'submits', 'originals', 'fetchAts', 'preloads')
+  },
 }
 
 const getCollFuncs = (conf, name, store) => {
@@ -121,7 +123,7 @@ const getCollFuncs = (conf, name, store) => {
     mutate(...args) {
       this.mutateData('submits', ...args)
     },
-    getCtx: store.getState,
+    getStoreState: store.getState,
     dispatch: action => store.dispatch({ name, ...action }),
   }
 }

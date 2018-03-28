@@ -6,19 +6,25 @@ import mutateCollection from './collection-mutate'
 const reduce = (prevState, action) => {
   let totalMutation
   if (action.type === 'mutateData') {
-    totalMutation = action.args.reduceRight((ret, step) => ({ [step]: ret }))
+    totalMutation = {
+      [action.name]: action.args.reduceRight((ret, step) => ({ [step]: ret })),
+    }
   }
 
-  const changes = {}
+  let nextState = prevState
+  let hasChange = false
   _.mapValues(totalMutation, (mutation, name) => {
-    const next = mutateCollection(prevState[name], mutation)
-    if (next !== false) {
-      changes[name] = next
+    const prev = prevState[name]
+    const next = mutateCollection(prev, mutation)
+    if (next !== prev) {
+      if (!hasChange) {
+        hasChange = true
+        nextState = { ...prevState }
+      }
+      nextState[name] = next
     }
   })
-
-  // console.log('reduce', prevState, totalMutation, changes)
-  return changes
+  return nextState
 }
 
 const createStore = (confs, initState = {}) => {
@@ -26,11 +32,11 @@ const createStore = (confs, initState = {}) => {
     state: initState,
     getState: () => store.state,
     dispatch: action => {
-      const prev = store.getState()
-      const next = reduce(prev, action)
-      if (next !== prev) {
-        store.state = next
-        if (confs.onChange) confs.onChange(next)
+      const prevState = store.getState()
+      const nextState = reduce(prevState, action)
+      if (nextState !== prevState) {
+        store.state = nextState
+        if (confs.onChange) confs.onChange(nextState)
       }
     },
   }
@@ -39,6 +45,7 @@ const createStore = (confs, initState = {}) => {
       initState[name] = createCollection(conf, name, store, initState[name])
     }
   })
+  // console.log('>>>', store.getState().users)
   return store
 }
 export default createStore
