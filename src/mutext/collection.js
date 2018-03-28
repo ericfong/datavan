@@ -24,11 +24,11 @@ const defaultCollFuncs = {
     checkFetch(this, query, option)
     return _.values(pickBy(this.getById(), query))
   },
-  pickAsync(coll, query, option) {
-    return Promise.resolve(checkFetch(coll, query, option)).then(() => pickBy(this.getById(), query))
+  pickAsync(query, option) {
+    return Promise.resolve(checkFetch(this, query, option)).then(() => pickBy(this.getById(), query))
   },
-  findAsync(coll, query, option) {
-    return Promise.resolve(checkFetch(coll, query, option)).then(() => _.values(pickBy(this.getById(), query)))
+  findAsync(query, option) {
+    return Promise.resolve(checkFetch(this, query, option)).then(() => _.values(pickBy(this.getById(), query)))
   },
 
   getSubmits() {
@@ -63,8 +63,23 @@ const defaultCollFuncs = {
     this.mutate(...args)
   },
 
-  reset() {},
-  invalidate() {},
+  // @auto-fold here
+  reset(ids) {
+    this.invalidate(ids)
+    const mut = {}
+    mut.submits = ids ? { $unset: ids } : { $set: {} }
+    mut.originals = mut.byId
+    this.mutateData(mut)
+  },
+  // @auto-fold here
+  invalidate(_ids) {
+    this._byIdAts = _ids ? _.omit(this._byIdAts, _ids) : {}
+    const delIds = _ids || Object.keys(this.getPreloads())
+    // if any change in byIds, clear all query cache
+    if (delIds.length > 0) {
+      this.mutateData('fetchAts', { $set: {} })
+    }
+  },
 
   // @auto-fold here
   insert(docs) {

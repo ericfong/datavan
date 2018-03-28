@@ -29,13 +29,13 @@ const reduce = (prevState, action) => {
 
 const createStore = (confs, initState = {}) => {
   const store = {
-    state: initState,
-    getState: () => store.state,
+    db: initState,
+    getState: () => store.db,
     dispatch: action => {
       const prevState = store.getState()
       const nextState = reduce(prevState, action)
       if (nextState !== prevState) {
-        store.state = nextState
+        store.db = nextState
         if (confs.onChange) confs.onChange(nextState)
       }
     },
