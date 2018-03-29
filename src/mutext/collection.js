@@ -59,10 +59,14 @@ const defaultCollFuncs = {
   mutateData(...args) {
     const mutation = args.reduceRight((ret, step) => ({ [step]: ret }))
     if (mutation.submits) {
-      const { preloads, originals } = this
+      const { preloads, submits, originals } = this
       // copt preloads to originals
       const newOriginals = {}
       const _keepOriginal = k => {
+        if (!(k in submits)) {
+          // copy to submits to prepare mutation
+          submits[k] = preloads[k]
+        }
         if (!(k in originals)) {
           // need to convert undefined original to null, for persist
           const newOriginal = preloads[k]

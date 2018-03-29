@@ -1,14 +1,6 @@
 import _ from 'lodash'
 
-import createDb from '../db'
 import { getQueryIds } from '../collection-fetch'
-
-export const testColl = (collConf, name = 'users') => {
-  const db = createDb({
-    [name]: collConf,
-  })
-  return db[name]
-}
 
 const arrToValues = (arr, func) => _.mapValues(_.keyBy(arr), func)
 
@@ -25,3 +17,8 @@ export const onFetchEcho = query =>
       return _id ? { _id, name: _.toUpper(_id) } : undefined
     })
   )
+
+export const onFetchById = (query, idField, func) => {
+  const ids = getQueryIds(query, idField)
+  return Promise.all(_.map(ids, func)).then(values => _.zipObject(ids, values))
+}

@@ -21,13 +21,18 @@ export const mingoQuery = query => new Mingo.Query(query)
 
 export const mingoTester = query => {
   const mQuery = mingoQuery(query)
-  return doc => mQuery.test(doc)
+  return doc => doc && mQuery.test(doc)
 }
 
 export const pickBy = (byId, query) => {
   if (typeof query === 'string' || Array.isArray(query)) return _.pick(byId, query)
-  if (_.isEmpty(query)) return byId
+  if (!query) return byId
   return _.pickBy(byId, mingoTester(query))
+}
+
+export const filter = (byId, query) => {
+  if (!query) return _.values(byId)
+  return _.filter(byId, mingoTester(query))
 }
 
 // @auto-fold here prepare cast by loop mutation.byId and mark [id] $toggle $merge
