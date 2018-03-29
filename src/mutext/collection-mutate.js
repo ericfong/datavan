@@ -24,7 +24,7 @@ const addNewOriginals = (prev, mutationSubmits) => {
   return { $merge: newOriginals }
 }
 
-const mutateCollection = (prev, mutation) => {
+export const mutateCollection = (prev, mutation) => {
   if (Array.isArray(mutation)) {
     return mutation.reduce((r, m) => mutateCollection(r, m), prev)
   }
@@ -38,5 +38,3 @@ const mutateCollection = (prev, mutation) => {
   }
   return next
 }
-
-export default mutateCollection

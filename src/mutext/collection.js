@@ -4,7 +4,7 @@ import stringify from 'fast-stable-stringify'
 import { tryCache } from './util'
 import { pickBy, buildIndex, genTmpId, getDeviceName } from './collection-util'
 import load from './collection-load'
-import mutateCollection from './collection-mutate'
+import { mutateCollection } from './collection-mutate'
 import { checkFetch } from './collection-fetch'
 
 const defaultCollFuncs = {

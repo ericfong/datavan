@@ -7,7 +7,7 @@ export const testColl = (collConf, name = 'users') => {
   const store = createStore({
     [name]: collConf,
   })
-  return store.db[name]
+  return store[name]
 }
 
 const arrToValues = (arr, func) => _.mapValues(_.keyBy(arr), func)

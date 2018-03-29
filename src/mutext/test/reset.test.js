@@ -6,37 +6,37 @@ test('reset', async () => {
   const s = createStore({ users: { onFetch } })
 
   // fetch 'a'
-  await s.db.users.findAsync(['a'])
-  expect(s.db.users._byIdAts.a).toBeTruthy()
+  await s.users.findAsync(['a'])
+  expect(s.users._byIdAts.a).toBeTruthy()
 
-  s.db.users.reset()
+  s.users.reset()
   // preload still keep
-  expect(s.db.users.getById()).toEqual({ a: 'A' })
-  expect(s.db.users._byIdAts.a).toBeFalsy()
+  expect(s.users.getById()).toEqual({ a: 'A' })
+  expect(s.users._byIdAts.a).toBeFalsy()
 
   // fetch 'b'
-  await s.db.users.findAsync(['b']).then(arr => arr[0])
+  await s.users.findAsync(['b']).then(arr => arr[0])
 
-  s.db.users.reset()
+  s.users.reset()
   // preload still keep
-  expect(s.db.users.getById()).toEqual({ a: 'A', b: 'B' })
-  expect(s.db.users._byIdAts).toEqual({})
+  expect(s.users.getById()).toEqual({ a: 'A', b: 'B' })
+  expect(s.users._byIdAts).toEqual({})
 
   // will re-fetch 'b'
   onFetch.mockClear()
   expect(onFetch).toHaveBeenCalledTimes(0)
-  s.db.users.get('b')
-  await s.db.users.getPending()
+  s.users.get('b')
+  await s.users.getPending()
   expect(onFetch).toHaveBeenCalledTimes(1)
 
   // invalidate 'b'
-  expect(s.db.users._byIdAts.b).toBeTruthy()
-  s.db.users.invalidate(['b'])
+  expect(s.users._byIdAts.b).toBeTruthy()
+  s.users.invalidate(['b'])
   // preload still keep
-  expect(s.db.users.getById()).toEqual({ a: 'A', b: 'B' })
-  expect(s.db.users._byIdAts.b).toBeFalsy()
+  expect(s.users.getById()).toEqual({ a: 'A', b: 'B' })
+  expect(s.users._byIdAts.b).toBeFalsy()
 
   // re-fetch 'b' after invalidate
-  s.db.users.get('b')
+  s.users.get('b')
   expect(onFetch).toHaveBeenCalledTimes(2)
 })
