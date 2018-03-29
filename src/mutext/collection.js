@@ -57,6 +57,10 @@ const defaultCollFuncs = {
   // cast: () => {},
 
   // @auto-fold here
+  mutate(...args) {
+    this.mutateData('submits', ...args)
+  },
+  // @auto-fold here
   set(...args) {
     const last = args.length - 1
     args[last] = { $set: args[last] }
@@ -131,15 +135,12 @@ const getCollFuncs = (conf, name, store) => {
   return {
     ...defaultCollFuncs,
     name,
-    ...conf,
     mutateData(...args) {
       this.dispatch({ type: 'mutateData', args })
     },
-    mutate(...args) {
-      this.mutateData('submits', ...args)
-    },
     getStoreState: store.getState,
     dispatch: action => store.dispatch({ name, ...action }),
+    ...conf,
   }
 }
 

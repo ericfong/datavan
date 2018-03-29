@@ -37,5 +37,5 @@ export const mingoTester = query => {
 export const pickBy = (byId, query) => {
   if (typeof query === 'string' || Array.isArray(query)) return _.pick(byId, query)
   if (_.isEmpty(query)) return byId
-  return _.pickBy(mingoTester(query))
+  return _.pickBy(byId, mingoTester(query))
 }
