@@ -18,3 +18,10 @@ export const echoValue = query =>
       return _.toUpper(id)
     })
   )
+
+export const onFetchEcho = query =>
+  Promise.resolve(
+    _.map(getQueryIds(query, '_id'), _id => {
+      return _id ? { _id, name: _.toUpper(_id) } : undefined
+    })
+  )

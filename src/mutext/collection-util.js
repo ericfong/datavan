@@ -30,17 +30,47 @@ export const pickBy = (byId, query) => {
   return _.pickBy(byId, mingoTester(query))
 }
 
+// @auto-fold here prepare cast by loop mutation.byId and mark [id] $toggle $merge
+const checkCast = (coll, nextById, prevById, id) => {
+  const nextDoc = nextById[id]
+  if (nextDoc !== prevById[id] && nextDoc) {
+    nextById[id] = coll.cast(nextDoc) || nextDoc
+  }
+}
+// @auto-fold
+const checkCastById = (space, next, prev, mutation) => {
+  const nextById = next[space]
+  const prevById = prev[space]
+  if (nextById === prevById) return
+  _.each(mutation[space], (v, id) => {
+    if (id[0] === '$') {
+      if (id === '$merge' || id === '$toggle') {
+        _.each(v, (subV, subId) => checkCast(next, nextById, prevById, subId))
+      }
+    } else {
+      checkCast(next, nextById, prevById, id)
+    }
+  })
+}
 export const mutateCollection = (prev, mutation) => {
   if (Array.isArray(mutation)) {
     return mutation.reduce((r, m) => mutateCollection(r, m), prev)
   }
+
   const next = mutateUtil(prev, mutation)
   if (next !== prev) {
     next.cache = {}
+
+    if (next.cast) {
+      checkCastById('submits', next, prev, mutation)
+      checkCastById('preloads', next, prev, mutation)
+    }
+
     return next
   }
   return next
 }
+
 export const buildIndex = (docs, fields, isUnique) => {
   fields = Array.isArray(fields) ? fields : [fields]
   const field = fields[0]

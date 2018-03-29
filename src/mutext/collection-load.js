@@ -13,13 +13,15 @@ function loadToMutation(inDocs) {
   return mut
 }
 
+const getResponseById = res => res.preloads || res.byId || res
+
 export default function load(res, returnMutation) {
   if (!res) return
   const { idField, _byIdAts } = this
 
   // normalizeLoadData
-  res = res && res.byId ? res : { byId: res }
-  if (Array.isArray(res.byId)) res.byId = _.mapKeys(res.byId, (doc, i) => (doc && doc[idField]) || i)
+  let resPreloads = getResponseById(res)
+  if (Array.isArray(resPreloads)) resPreloads = _.mapKeys(resPreloads, (doc, i) => (doc && doc[idField]) || i)
 
   const mutations = []
 
@@ -39,12 +41,15 @@ export default function load(res, returnMutation) {
   }
 
   const mutation = {}
-  if (res.byId) {
-    mutation.preloads = loadToMutation(res.byId)
+  if (resPreloads) {
+    const mutPreloads = loadToMutation(resPreloads)
     const now = Date.now()
-    _.each(mutation.preloads.$merge, (inDoc, id) => {
+    const collPreloads = this.getPreloads()
+    mutPreloads.$merge = _.mapValues(mutPreloads.$merge, (inDoc, id) => {
       _byIdAts[id] = now
+      return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, collPreloads[id]) : inDoc
     })
+    mutation.preloads = mutPreloads
   }
   if (res.submits) mutation.submits = loadToMutation(res.submits)
   if (res.originals) mutation.originals = loadToMutation(res.originals)

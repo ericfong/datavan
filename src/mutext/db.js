@@ -16,22 +16,30 @@ const reduce = (prevState, totalMutation) => {
 }
 
 const createDb = (confs, initState) => {
-  const state = {
-    getState: () => state,
+  const db = {
+    loadCollections(datas) {
+      const action = _.mapValues(datas, (data, name) => {
+        const coll = db[name]
+        return coll ? coll.load(data, true) : {}
+      })
+      this.dispatch(action)
+    },
+
+    getState: () => db,
     dispatch: action => {
-      const change = reduce(state, action)
+      const change = reduce(db, action)
       if (Object.keys(change).length > 0) {
-        Object.assign(state, change)
-        if (confs.onChange) confs.onChange(state, change)
+        Object.assign(db, change)
+        if (confs.onChange) confs.onChange(db, change)
       }
     },
     ...initState,
   }
   _.each(confs, (conf, name) => {
     if (typeof conf === 'object') {
-      state[name] = createCollection(conf, name, state, state[name])
+      db[name] = createCollection(conf, name, db, db[name])
     }
   })
-  return state
+  return db
 }
 export default createDb
