@@ -4,6 +4,31 @@ import { createDb, pickBy, filter, TMP_ID_PREFIX as TMP } from '..'
 import { onFetchEcho, onFetchById } from './test-util'
 import { getQueryIds } from '../collection-fetch'
 
+test.skip('find inResponse', async () => {
+  const db = createDb({
+    users: {
+      onFetch({ $$search, $$limit }) {
+        const res = _.map(_.range(0, $$limit), i => {
+          return { _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }
+        })
+        return Promise.resolve(res)
+      },
+    },
+  })
+
+  const getIds = docs => _.map(docs, '_id').sort()
+  const findInResponse = (q, opt) => getIds(db.users.find(q, opt))
+
+  findInResponse({ $$search: 'a', $$limit: 2 })
+  findInResponse({ $$search: 'b', $$limit: 3 })
+
+  await db.users.getPending()
+  expect(getIds(db.users.getById())).toEqual(['a-0', 'a-1', 'b-0', 'b-1', 'b-2'])
+
+  expect(findInResponse({ $$search: 'a', $$limit: 2 })).toEqual(['a-0', 'a-1'])
+  expect(findInResponse({ $$search: 'b', $$limit: 3 })).toEqual(['b-0', 'b-1', 'b-2'])
+})
+
 test('find in original', async () => {
   const db = createDb({ users: { onFetch: onFetchEcho } })
   await db.users.findAsync(['a', 'b'])
