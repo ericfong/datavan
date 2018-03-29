@@ -7,7 +7,7 @@ test('virtual-collection', async () => {
   const db = createDb({
     orders: {
       getSubmits() {
-        return this.getStoreState().orderItems.recall('calcOrders')
+        return this.getDb().orderItems.recall('calcOrders')
       },
       getPreloads() {
         return this.preloads

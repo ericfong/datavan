@@ -57,8 +57,8 @@ export default function load(res, returnMutation) {
   mutations.push(mutation)
 
   // NOTE for server to pick-it back invalidate or reset data
-  // if (data.$invalidate) reset(coll, { ids: data.$invalidate, mutated: false })
-  // if (data.$reset) reset(coll, data.$reset)
+  if (res.$invalidate) this.invalidate(res.$invalidate)
+  if (res.$reset) this.reset(res.$reset)
 
   if (returnMutation) return mutations
   this.mutateData(mutations)

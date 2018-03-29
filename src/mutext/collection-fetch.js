@@ -3,7 +3,7 @@ import stringify from 'fast-stable-stringify'
 
 import { TMP_ID_PREFIX } from './collection-util'
 
-const isPreloadSkip = (coll, option) => !option.serverPreload && coll.getStoreState().duringServerPreload
+const isPreloadSkip = (coll, option) => !option.serverPreload && coll.getDb().duringServerPreload
 
 export const defaultGetQueryString = (query, option, coll) => {
   if (Array.isArray(query)) query = { [coll.idField]: { $in: query } }

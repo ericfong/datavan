@@ -24,10 +24,10 @@ const defaultCollFuncs = {
     return _.values(pickBy(this.getById(), query))
   },
   pickAsync(query, option) {
-    return Promise.resolve(checkFetch(this, query, option)).then(() => pickBy(this.getById(), query))
+    return Promise.resolve(checkFetch(this, query, option)).then(() => pickBy(this.getDb()[this.name].getById(), query))
   },
   findAsync(query, option) {
-    return Promise.resolve(checkFetch(this, query, option)).then(() => _.values(pickBy(this.getById(), query)))
+    return Promise.resolve(checkFetch(this, query, option)).then(() => _.values(pickBy(this.getDb()[this.name].getById(), query)))
   },
 
   getSubmits() {
@@ -152,7 +152,7 @@ const defaultCollFuncs = {
   },
 
   genId() {
-    return genTmpId(getDeviceName(this.getStoreState()))
+    return genTmpId(getDeviceName(this.getDb()))
   },
   load,
 
@@ -165,7 +165,7 @@ const getCollFuncs = (conf, name, db) => {
   return {
     ...defaultCollFuncs,
     name,
-    getStoreState: db.getState,
+    getDb: db.getState,
     dispatch: mutation => db.dispatch({ [name]: mutation }),
     ...conf,
   }
