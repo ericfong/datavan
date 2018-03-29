@@ -1,0 +1,186 @@
+import _ from 'lodash'
+import { createStore } from 'redux'
+import delay from 'delay'
+
+import { createDb, genTmpId } from '..'
+
+// import { createCollection, onFetchEcho } from '../test/util'
+
+test.only('load same $submittedIds again', async () => {
+  const db = createDb({ users: {} })
+  const tmpId = genTmpId()
+
+  db.users.load({ [tmpId]: { _id: tmpId, name: 'tmp' } })
+  expect(db.users.getById()).toEqual({ [tmpId]: { _id: tmpId, name: 'tmp' } })
+
+  const storedId = 'storedId'
+  const byId = { [storedId]: { _id: storedId, tmpId, name: 'tmp' } }
+  const $submittedIds = { [tmpId]: storedId }
+  db.users.load({ byId, $submittedIds })
+  expect(db.users.getSubmits()).toEqual({})
+  expect(db.users.getOriginals()).toEqual({})
+  expect(db.users.getById()).toEqual({ [storedId]: { _id: storedId, tmpId, name: 'tmp' } })
+
+  // load again won't overwrite storedId doc by null
+  db.users.load({ byId, $submittedIds })
+  expect(db.users.getById()).toEqual({ [storedId]: { _id: storedId, tmpId, name: 'tmp' } })
+})
+
+test('save&load will not re-fetch by ids', async () => {
+  // get serverUsers state
+  const onFetch = jest.fn(onFetchEcho)
+  const serverUsers = createCollection({ onFetch })
+  find(serverUsers, ['a', 'b', 'c'])
+  find(serverUsers, { name: 'A' })
+  await getPending(serverUsers)
+  const serverState = serverUsers.getState()
+
+  // new browser collection
+  const users = createCollection({ onFetch, initState: serverState })
+  expect(getAll(users)).toEqual({
+    a: { _id: 'a', name: 'A' },
+    b: { _id: 'b', name: 'B' },
+    c: { _id: 'c', name: 'C' },
+  })
+  expect(_.keys(users.getState().fetchAts)).toEqual([
+    `query=${encodeURIComponent('{"_id":{"$in":["a","b","c"]}}')}`,
+    `query=${encodeURIComponent('{"name":"A"}')}`,
+  ])
+  expect(_.keys(users._byIdAts)).toEqual(['a', 'b', 'c'])
+
+  // reset
+  onFetch.mockClear()
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Won't re-fetch in new store
+  find(users, ['a', 'b', 'c'])
+  find(users, { name: 'A' })
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Won't re-fetch for id query
+  find(users, ['a', 'b'])
+  expect(onFetch).toHaveBeenCalledTimes(0)
+  get(users, 'a')
+  expect(onFetch).toHaveBeenCalledTimes(0)
+
+  // Will re-fetch for not-fetch before
+  get(users, 'x')
+  expect(onFetch).toHaveBeenCalledTimes(1)
+})
+
+const collections = {
+  tasks: {
+    idField: 'id',
+    cast(doc) {
+      doc.dateAt = new Date(doc.dateAt)
+      // console.log('>>cast>', doc)
+      return doc
+    },
+  },
+}
+
+const rehydrateReducer = (state, action) => {
+  if (action.type === 'rehydrate') return action.state
+  return state
+}
+const preloadState = {
+  datavan: {
+    tasks: {
+      byId: {
+        t1: {
+          id: 't1',
+          name: 'customize idField',
+          num: 1,
+          dateAt: '2017-09-01T01:00:00Z',
+          done: 0,
+        },
+      },
+    },
+  },
+}
+const persistState = {
+  datavan: {
+    tasks: {
+      byId: {
+        t1: {
+          id: 't1',
+          name: 'new',
+          rehydrate: 1,
+          dateAt: '2017-10-01T01:00:00Z',
+        },
+      },
+    },
+  },
+}
+
+test('load stored data Async', async () => {
+  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
+  const mockCubscribe = jest.fn()
+  store.subscribe(mockCubscribe)
+
+  // get, set before rehydrate
+  insert(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'customize idField',
+    num: 2,
+  })
+  expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+
+  // Need to block all mutation before first change?
+
+  // Async rehydrate
+  await delay(60)
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+  loadCollections(store, persistState.datavan)
+
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'new',
+    rehydrate: 1,
+    num: 2,
+    done: 0,
+  })
+  expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
+})
+
+test('load stored data sync', async () => {
+  const store = createStore(rehydrateReducer, preloadState, datavanEnhancer({ collections }))
+  const mockCubscribe = jest.fn()
+  store.subscribe(mockCubscribe)
+
+  // get, set before rehydrate
+  insert(store, 'tasks', { ...get(store, 'tasks', 't1'), num: 2 })
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'customize idField',
+    num: 2,
+  })
+  expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
+  expect(mockCubscribe).toHaveBeenCalledTimes(1)
+
+  // rehydrate
+  loadCollections(store, persistState.datavan)
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
+  expect(get(store, 'tasks', 't1')).toMatchObject({
+    name: 'new',
+    rehydrate: 1,
+    num: 2,
+    done: 0,
+  })
+  expect(get(store, 'tasks', 't1').dateAt instanceof Date).toBe(true)
+  expect(get(store, 'tasks', 't1').dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
+  expect(mockCubscribe).toHaveBeenCalledTimes(2)
+})
+
+test.only('load', async () => {
+  const db = createDb({ users: {} })
+  db.users.load({ byId: { a: { x: 1, y: 1 } } })
+  expect(db.users.getById()).toEqual({ a: { x: 1, y: 1 } })
+  db.users.load({ byId: { a: { x: 2 }, b: null } })
+  expect(db.users.getById()).toEqual({ a: { x: 2, y: 1 }, b: null })
+})

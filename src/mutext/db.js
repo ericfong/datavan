@@ -1,16 +1,9 @@
 import _ from 'lodash'
 
 import createCollection from './collection'
-import { mutateCollection } from './collection-mutate'
+import { mutateCollection } from './collection-util'
 
-const reduce = (prevState, action) => {
-  let totalMutation
-  if (action.type === 'mutateData') {
-    totalMutation = {
-      [action.name]: action.args.reduceRight((ret, step) => ({ [step]: ret })),
-    }
-  }
-
+const reduce = (prevState, totalMutation) => {
   const change = {}
   _.mapValues(totalMutation, (mutation, name) => {
     const prev = prevState[name]

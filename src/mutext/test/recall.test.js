@@ -12,7 +12,7 @@ test('virtual-collection', async () => {
       getPreloads() {
         return this.preloads
       },
-      mutateData: jest.fn(() => {}),
+      dispatch: jest.fn(() => {}),
     },
     orderItems: {
       initState: [{ _id: '1', code: 'x', name: 'X-1' }, { _id: '2', code: 'x', name: 'X-2' }, { _id: '3', code: 'y', name: 'Y-1' }],
@@ -41,6 +41,6 @@ test('virtual-collection', async () => {
 
   // addMutation blocked
   db.orders.mutate({ $merge: { z: 1 } })
-  expect(db.orders.mutateData).toHaveBeenCalledTimes(1)
+  expect(db.orders.dispatch).toHaveBeenCalledTimes(1)
   expect(db.orders.getById().z).toBe(undefined)
 })

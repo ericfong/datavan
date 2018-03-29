@@ -2,9 +2,8 @@ import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
 import { tryCache } from './util'
-import { pickBy, buildIndex, genTmpId, getDeviceName } from './collection-util'
+import { pickBy, buildIndex, genTmpId, getDeviceName, mutateCollection } from './collection-util'
 import load from './collection-load'
-import { mutateCollection } from './collection-mutate'
 import { checkFetch } from './collection-fetch'
 
 const defaultCollFuncs = {
@@ -56,6 +55,33 @@ const defaultCollFuncs = {
   onInsert: () => {},
   // cast: () => {},
 
+  // @auto-fold here
+  mutateData(...args) {
+    const mutation = args.reduceRight((ret, step) => ({ [step]: ret }))
+    if (mutation.submits) {
+      const { preloads, originals } = this
+      // copt preloads to originals
+      const newOriginals = {}
+      const _keepOriginal = k => {
+        if (!(k in originals)) {
+          // need to convert undefined original to null, for persist
+          const newOriginal = preloads[k]
+          newOriginals[k] = newOriginal === undefined ? null : newOriginal
+        }
+      }
+      _.each(mutation.submits, (submit, id) => {
+        if (id === '$unset') {
+          _.each(submit, _keepOriginal)
+        } else if (id === '$merge') {
+          _.each(submit, (subSubMut, subId) => _keepOriginal(subId))
+        } else {
+          _keepOriginal(id)
+        }
+      })
+      mutation.originals = { $merge: newOriginals }
+    }
+    this.dispatch(mutation)
+  },
   // @auto-fold here
   mutate(...args) {
     this.mutateData('submits', ...args)
@@ -135,11 +161,8 @@ const getCollFuncs = (conf, name, db) => {
   return {
     ...defaultCollFuncs,
     name,
-    mutateData(...args) {
-      this.dispatch({ type: 'mutateData', args })
-    },
     getStoreState: db.getState,
-    dispatch: action => db.dispatch({ name, ...action }),
+    dispatch: mutation => db.dispatch({ [name]: mutation }),
     ...conf,
   }
 }

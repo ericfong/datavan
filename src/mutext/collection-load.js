@@ -35,7 +35,7 @@ export default function load(res, returnMutation) {
       }
       $unset.push(oldId)
     })
-    mutations.push({ submits: { $unset, $merge: merge }, originals: { $unset } })
+    mutations.push({ submits: { $unset, $merge: merge }, originals: { $unset }, preloads: { $unset } })
   }
 
   const mutation = {}
