@@ -1,10 +1,10 @@
 import _ from 'lodash'
 
-import createStore from '../store'
+import createDb from '../db'
 
 test('virtual-collection', async () => {
   let calcOrdersThisName = null
-  const db = createStore({
+  const db = createDb({
     orders: {
       getSubmits() {
         return this.getStoreState().orderItems.recall('calcOrders')

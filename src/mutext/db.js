@@ -22,7 +22,7 @@ const reduce = (prevState, action) => {
   return change
 }
 
-const createStore = (confs, initState) => {
+const createDb = (confs, initState) => {
   const state = {
     getState: () => state,
     dispatch: action => {
@@ -41,4 +41,4 @@ const createStore = (confs, initState) => {
   })
   return state
 }
-export default createStore
+export default createDb

@@ -1,9 +1,9 @@
-import createStore from '../store'
+import createDb from '../db'
 import { echoValue } from './test-util'
 
 test('reset', async () => {
   const onFetch = jest.fn(echoValue)
-  const s = createStore({ users: { onFetch } })
+  const s = createDb({ users: { onFetch } })
 
   // fetch 'a'
   await s.users.findAsync(['a'])

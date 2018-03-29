@@ -131,15 +131,15 @@ const defaultCollFuncs = {
   },
 }
 
-const getCollFuncs = (conf, name, store) => {
+const getCollFuncs = (conf, name, db) => {
   return {
     ...defaultCollFuncs,
     name,
     mutateData(...args) {
       this.dispatch({ type: 'mutateData', args })
     },
-    getStoreState: store.getState,
-    dispatch: action => store.dispatch({ name, ...action }),
+    getStoreState: db.getState,
+    dispatch: action => db.dispatch({ name, ...action }),
     ...conf,
   }
 }
@@ -168,6 +168,6 @@ const initColl = (collFuncs, initState) => {
   return coll
 }
 
-const createCollection = (conf, name, store, initState) => initColl(getCollFuncs(conf, name, store), initState)
+const createCollection = (conf, name, db, initState) => initColl(getCollFuncs(conf, name, db), initState)
 
 export default createCollection

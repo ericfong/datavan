@@ -1,13 +1,13 @@
 import _ from 'lodash'
 
-import createStore from '../store'
+import createDb from '../db'
 import { getQueryIds } from '../collection-fetch'
 
 export const testColl = (collConf, name = 'users') => {
-  const store = createStore({
+  const db = createDb({
     [name]: collConf,
   })
-  return store[name]
+  return db[name]
 }
 
 const arrToValues = (arr, func) => _.mapValues(_.keyBy(arr), func)
