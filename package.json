@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "create-mutable-context": "^0.9.2",
+    "create-react-context": "^0.2.1",
     "fast-stable-stringify": "^1.0.0",
     "immutability-helper": "^2.6.6",
     "lodash": "^4.17.5",

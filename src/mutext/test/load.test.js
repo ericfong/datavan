@@ -72,30 +72,35 @@ test('load stored data sync', async () => {
           return doc
         },
       },
-      onChange,
     },
-    {
-      users: {
-        preloads: {
-          t1: {
-            _id: 't1',
-            name: 'customize idField',
-            num: 1,
-            dateAt: '2017-09-01T01:00:00Z',
-            done: 0,
-          },
-        },
-      },
+    _db => {
+      return {
+        ..._db,
+        onChange,
+      }
     }
   )
+  db.loadCollections({
+    users: {
+      preloads: {
+        t1: {
+          _id: 't1',
+          name: 'customize idField',
+          num: 1,
+          dateAt: '2017-09-01T01:00:00Z',
+          done: 0,
+        },
+      },
+    },
+  })
 
   // get, set before rehydrate
   db.users.insert({ ...db.users.get('t1'), num: 2 })
-  expect(onChange).toHaveBeenCalledTimes(1)
+  expect(onChange).toHaveBeenCalledTimes(2)
   expect(db.users.get('t1')).toMatchObject({ name: 'customize idField', num: 2 })
   expect(db.users.get('t1').dateAt instanceof Date).toBe(true)
   expect(db.users.get('t1').dateAt.toISOString()).toBe('2017-09-01T01:00:00.000Z')
-  expect(onChange).toHaveBeenCalledTimes(1)
+  expect(onChange).toHaveBeenCalledTimes(2)
 
   // rehydrate
   db.loadCollections({
@@ -110,7 +115,7 @@ test('load stored data sync', async () => {
       },
     },
   })
-  expect(onChange).toHaveBeenCalledTimes(2)
+  expect(onChange).toHaveBeenCalledTimes(3)
   expect(db.users.getPreloads().t1).toMatchObject({
     name: 'new',
     rehydrate: 1,
@@ -119,7 +124,7 @@ test('load stored data sync', async () => {
   })
   expect(db.users.getPreloads().t1.dateAt instanceof Date).toBe(true)
   expect(db.users.getPreloads().t1.dateAt.toISOString()).toBe('2017-10-01T01:00:00.000Z')
-  expect(onChange).toHaveBeenCalledTimes(2)
+  expect(onChange).toHaveBeenCalledTimes(3)
 })
 
 test('load', async () => {

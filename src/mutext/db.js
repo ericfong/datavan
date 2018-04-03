@@ -15,31 +15,35 @@ const reduce = (prevState, totalMutation) => {
   return change
 }
 
-const createDb = (confs, initState) => {
-  const db = {
+const createDb = (confs, enhancer) => {
+  let db = {
     loadCollections(datas) {
       const action = _.mapValues(datas, (data, name) => {
         const coll = db[name]
         return coll ? coll.load(data, true) : {}
       })
-      this.dispatch(action)
+      db.dispatch(action)
     },
 
-    getState: () => db,
-    dispatch: action => {
+    getState() {
+      return db
+    },
+
+    dispatch(action) {
+      // TODO prepare for batch reduce?
       const change = reduce(db, action)
       if (Object.keys(change).length > 0) {
         Object.assign(db, change)
-        if (confs.onChange) confs.onChange(db, change)
+        if (db.onChange) db.onChange(change, db)
       }
     },
-    ...initState,
   }
   _.each(confs, (conf, name) => {
     if (typeof conf === 'object') {
-      db[name] = createCollection(conf, name, db, db[name])
+      db[name] = createCollection(conf, name, db)
     }
   })
+  if (enhancer) db = enhancer(db)
   return db
 }
 export default createDb

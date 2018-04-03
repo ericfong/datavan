@@ -171,30 +171,29 @@ const getCollFuncs = (conf, name, db) => {
   }
 }
 
-const initColl = (collFuncs, initState) => {
-  let coll = Object.assign(
-    _.defaults(initState, {
-      // my change
-      submits: {},
-      originals: {},
-      fetchAts: {},
-      // preload that may want to keep
-      preloads: {},
+const initColl = collFuncs => {
+  let coll = {
+    // my change
+    submits: {},
+    originals: {},
+    fetchAts: {},
+    // preload that may want to keep
+    preloads: {},
 
-      // cache
-      fetchingAt: null,
-      cache: {},
-      _fetchPromises: {},
-      _byIdAts: {},
-    }),
-    collFuncs
-  )
+    // cache
+    fetchingAt: null,
+    cache: {},
+    _fetchPromises: {},
+    _byIdAts: {},
+
+    ...collFuncs,
+  }
   if (coll.initState) {
     coll = mutateCollection(coll, coll.load(coll.initState, true))
   }
   return coll
 }
 
-const createCollection = (conf, name, db, initState) => initColl(getCollFuncs(conf, name, db), initState)
+const createCollection = (conf, name, db) => initColl(getCollFuncs(conf, name, db))
 
 export default createCollection

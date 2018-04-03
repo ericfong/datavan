@@ -1,31 +1,59 @@
 // import _ from 'lodash'
-import { createObservableMutext } from 'create-mutable-context'
+import { createElement, Component } from 'react'
+import createReactContext from 'create-react-context'
+import bitsObserver from './bitsObserver'
 
-import createDb from './createDb'
-import reduce from './reduce'
+import createDb from '../db'
 
-const createDatavanContext = (vanProtos, defaultState) => {
-  const C = createObservableMutext(defaultState, vanProtos, {
-    providerConstruct(provider) {
-      const firstState = createDb(vanProtos, {
-        getState: () => provider.state,
-        dispatch: action => {
-          provider.set(prevState => reduce(prevState, action, vanProtos))
+const wrapRenderProp = (Comp, props, mixin) => createElement(Comp, props, db => props.children(mixin(db)))
+
+const createDatavanContext = (confs, defaultValue = {}) => {
+  const { calcChangedBits, getObservedBits } = bitsObserver(confs)
+  const { Provider, Consumer } = createReactContext(defaultValue, calcChangedBits)
+
+  class VanProvider extends Component {
+    state = createDb(confs, db => {
+      return {
+        ...db,
+        // ...defaultValue,
+        onChange: change => {
+          this.setState(change)
+          // if (defaultValue.onChange) defaultValue.onChange(newDb, change)
         },
-      })
-      provider.state = firstState
-    },
-    consumerConstruct(consumer) {
-      consumer.mixin = {
-        vanConsumerMemory: {},
       }
-    },
-    consumerCtx(ctx, consumer) {
-      return { ...ctx, ...consumer.mixin }
-    },
-  })
+    })
+    render() {
+      return createElement(Provider, { value: this.state }, this.props.children)
+    }
+  }
 
-  return C
+  /* eslint-disable react/no-multi-comp */
+  class VanConsumer extends Component {
+    componentWillReceiveProps(nextProps) {
+      if (this.props.observe !== nextProps.observe) {
+        this.observedBits = getObservedBits(nextProps.observe)
+      }
+    }
+    observedBits = getObservedBits(this.props.observe)
+    mixin = {
+      vanConsumerMemory: {},
+    }
+    render() {
+      const { props } = this
+      return wrapRenderProp(
+        Consumer,
+        {
+          ...props,
+          observedBits: this.observedBits,
+        },
+        db => {
+          return { ...db, ...this.mixin }
+        }
+      )
+    }
+  }
+
+  return { Provider: VanProvider, Consumer: VanConsumer }
 }
 
 /*
