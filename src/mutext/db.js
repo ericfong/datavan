@@ -16,6 +16,20 @@ const reduce = (prevState, totalMutation) => {
 }
 
 const createDb = (confs, enhancer) => {
+  const getConfig = () => confs
+
+  const subscribers = []
+  const subscribe = subscriber => {
+    subscribers.push(subscriber)
+    let isSubscribed = true
+    return function unsubscribe() {
+      if (!isSubscribed) return false
+      isSubscribed = false
+      subscribers.splice(subscribers.indexOf(subscriber), 1)
+      return true
+    }
+  }
+
   let db = {
     loadCollections(datas) {
       const action = _.mapValues(datas, (data, name) => {
@@ -34,9 +48,14 @@ const createDb = (confs, enhancer) => {
       const change = reduce(db, action)
       if (Object.keys(change).length > 0) {
         Object.assign(db, change)
-        if (db.onChange) db.onChange(change, db)
+
+        for (let i = 0, ii = subscribers.length; i < ii; i++) {
+          subscribers[i](change, db)
+        }
       }
     },
+    subscribe,
+    getConfig,
   }
   _.each(confs, (conf, name) => {
     if (typeof conf === 'object') {

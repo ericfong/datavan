@@ -4,7 +4,7 @@ import React from 'react'
 import Enzyme, { mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 
-import createDatavanContext from './createDatavanContext'
+import { createDb, createDatavanContext } from '..'
 
 Enzyme.configure({ adapter: new Adapter() })
 
@@ -18,18 +18,19 @@ class Indirection extends React.Component {
 }
 
 test('mutate and get back', () => {
-  const C = createDatavanContext({ users: {} })
+  const globalDb = createDb({ users: {} })
+  const Van = createDatavanContext(globalDb)
 
   const App = () => (
-    <C.Provider>
+    <Van.Provider>
       <Indirection>
-        <C.Consumer observe="users">
+        <Van observe="users">
           {db => {
             return <button onClick={() => db.users.set('x', 2)}>{db.users.getById().x}</button>
           }}
-        </C.Consumer>
+        </Van>
       </Indirection>
-    </C.Provider>
+    </Van.Provider>
   )
 
   const wrapper = mount(<App />)

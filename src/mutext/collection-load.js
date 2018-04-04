@@ -51,9 +51,9 @@ export default function load(res, returnMutation) {
     })
     mutation.preloads = mutPreloads
   }
+  if (res.fetchAts) mutation.fetchAts = loadToMutation(res.fetchAts)
   if (res.submits) mutation.submits = loadToMutation(res.submits)
   if (res.originals) mutation.originals = loadToMutation(res.originals)
-  if (res.fetchAts) mutation.fetchAts = loadToMutation(res.fetchAts)
   mutations.push(mutation)
 
   // NOTE for server to pick-it back invalidate or reset data

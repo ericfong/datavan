@@ -62,24 +62,17 @@ test('save&load will not re-fetch by ids', async () => {
 })
 
 test('load stored data sync', async () => {
-  const onChange = jest.fn()
-  const db = createDb(
-    {
-      users: {
-        cast(doc) {
-          doc.dateAt = new Date(doc.dateAt)
-          // console.log('>>cast>', doc)
-          return doc
-        },
+  const db = createDb({
+    users: {
+      cast(doc) {
+        doc.dateAt = new Date(doc.dateAt)
+        // console.log('>>cast>', doc)
+        return doc
       },
     },
-    _db => {
-      return {
-        ..._db,
-        onChange,
-      }
-    }
-  )
+  })
+  const onChange = jest.fn()
+  db.subscribe(onChange)
   db.loadCollections({
     users: {
       preloads: {

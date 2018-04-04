@@ -40,21 +40,19 @@ const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
 
 const renderProp = (Comp, props, mixin) => createElement(Comp, props, db => props.children(mixin(db)))
 
-const createDatavanContext = (confs, defaultValue = {}) => {
-  const { calcChangedBits, getObservedBits } = bitsObserver(confs)
-  const { Provider, Consumer } = createReactContext(defaultValue, calcChangedBits)
+const createDatavanContext = db => {
+  const { calcChangedBits, getObservedBits } = bitsObserver(db.getConfig())
+  const { Provider, Consumer } = createReactContext(db, calcChangedBits)
 
   class VanProvider extends Component {
-    state = createDb(confs, db => {
-      return {
-        ...db,
-        // ...defaultValue,
-        onChange: change => {
-          this.setState(change)
-          // if (defaultValue.onChange) defaultValue.onChange(newDb, change)
-        },
-      }
-    })
+    constructor(props) {
+      super(props)
+      this.state = db
+      this.unsubscribe = db.subscribe(change => this.setState(change))
+    }
+    componentWillUnmount() {
+      this.unsubscribe()
+    }
     render() {
       return createElement(Provider, { value: this.state }, this.props.children)
     }
@@ -91,7 +89,9 @@ const createDatavanContext = (confs, defaultValue = {}) => {
     }
   }
 
-  return { Provider: VanProvider, Consumer: VanConsumer }
+  VanConsumer.Provider = VanProvider
+
+  return VanConsumer
 }
 
 export default createDatavanContext

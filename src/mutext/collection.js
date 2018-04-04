@@ -176,9 +176,10 @@ const initColl = collFuncs => {
     // my change
     submits: {},
     originals: {},
-    fetchAts: {},
-    // preload that may want to keep
+
+    // global preload that may want to keep
     preloads: {},
+    fetchAts: {},
 
     // cache
     fetchingAt: null,
