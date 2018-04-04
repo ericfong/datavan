@@ -24,6 +24,7 @@ const bitsObserver = namesObj => {
   }
 
   const getObservedBits = observe => {
+    if (!observe) return undefined
     // observe should be string to recognition
     return parseNames(observe).reduce((r, name) => {
       // eslint-disable-next-line no-bitwise

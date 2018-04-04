@@ -1,41 +1,9 @@
 import { createElement, Component } from 'react'
 import createReactContext from 'create-react-context'
-import stringify from 'fast-stable-stringify'
 
 import bitsObserver from './bitsObserver'
 import createDb from '../db'
-
-const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
-  const results = {}
-  const promises = {}
-  const cache = (key, inlineFunc) => {
-    if (typeof key !== 'string') key = stringify(key)
-    if (key in results) return results[key]
-
-    const promise = (inlineFunc || handler)(key)
-    let ret
-    if (promise && promise.then) {
-      promise.then(
-        result => {
-          results[key] = result
-          delete promises[key]
-          return onSuccess(result, key)
-        },
-        error => {
-          promises[key] = error
-          return onError(error, key)
-        }
-      )
-      promises[key] = promise
-    } else {
-      ret = promise
-    }
-    return (results[key] = ret) // eslint-disable-line
-  }
-  cache.results = results
-  cache.promises = promises
-  return cache
-}
+import { createAsyncCache } from '../cache-util'
 
 const renderProp = (Comp, props, mixin) => createElement(Comp, props, db => props.children(mixin(db)))
 
@@ -85,6 +53,7 @@ const createDatavanContext = (config, defaultValue = {}) => {
           observedBits: this.observedBits,
         },
         consumerDb => {
+          this.cache.newBatch()
           return { ...consumerDb, cache: this.cache, consumerState: this.state }
         }
       )

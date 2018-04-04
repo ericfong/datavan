@@ -17,17 +17,23 @@ const defaultCollFuncs = {
   // fetchMaxAge: 0,
   // onFetch: () => {},
 
+  pickInMemory(query) {
+    return pickBy(this.getById(), query)
+  },
+  findInMemory(query) {
+    return _.values(this.pickInMemory(query))
+  },
   get(id, option = {}) {
     checkFetch(this, [id], option)
     return this.getById()[id]
   },
   pick(query, option) {
     checkFetch(this, query, option)
-    return pickBy(this.getById(), query)
+    return this.pickInMemory(query)
   },
   find(query, option) {
     checkFetch(this, query, option)
-    return _.values(pickBy(this.getById(), query))
+    return this.findInMemory(query)
   },
   pickAsync(query, option) {
     return Promise.resolve(checkFetch(this, query, option)).then(() => pickBy(this.getDb()[this.name].getById(), query))
