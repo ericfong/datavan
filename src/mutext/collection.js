@@ -1,10 +1,16 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { tryCache } from './util'
 import { pickBy, buildIndex, genTmpId, getDeviceName, mutateCollection } from './collection-util'
 import load from './collection-load'
 import { checkFetch } from './collection-fetch'
+
+// @auto-fold here
+const tryCache = (cache, key, func) => {
+  const c = cache[key]
+  if (c) return c
+  return (cache[key] = func()) // eslint-disable-line
+}
 
 const defaultCollFuncs = {
   idField: '_id',
@@ -157,7 +163,7 @@ const defaultCollFuncs = {
   load,
 
   getJson() {
-    return _.pick(this, 'submits', 'originals', 'fetchAts', 'preloads')
+    return _.pick(this, 'submits', 'originals', 'preloads', 'fetchAts')
   },
 }
 
@@ -165,25 +171,27 @@ const getCollFuncs = (conf, name, db) => {
   return {
     ...defaultCollFuncs,
     name,
+    ...conf,
+
     getDb: db.getState,
     dispatch: mutation => db.dispatch({ [name]: mutation }),
-    ...conf,
+    getConfig: () => conf,
   }
 }
 
 const initColl = collFuncs => {
   let coll = {
-    // my change
+    // local persist
     submits: {},
     originals: {},
+    // local memory
+    cache: {},
 
-    // global preload that may want to keep
+    // conf-level persist
     preloads: {},
     fetchAts: {},
-
-    // cache
+    // conf-level memory
     fetchingAt: null,
-    cache: {},
     _fetchPromises: {},
     _byIdAts: {},
 
@@ -195,6 +203,8 @@ const initColl = collFuncs => {
   return coll
 }
 
-const createCollection = (conf, name, db) => initColl(getCollFuncs(conf, name, db))
+const createCollection = (conf, name, db) => {
+  return initColl(getCollFuncs(conf, name, db))
+}
 
 export default createCollection
