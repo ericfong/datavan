@@ -46,7 +46,9 @@ const createDatavanContext = (config, defaultValue = {}) => {
   class VanProvider extends Component {
     constructor(props) {
       super(props)
-      const db = props.db || createDb(config)
+      // TODO may pass upper provider db instead of config here
+      let db = createDb(config)
+      if (props.initDb) db = props.initDb(db)
       this.state = db
       this.unsubscribe = db.subscribe(change => this.setState(change))
     }

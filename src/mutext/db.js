@@ -15,8 +15,8 @@ const reduce = (prevState, totalMutation) => {
   return change
 }
 
-const createDb = (confs, enhancer) => {
-  const getConfig = () => confs
+const createDb = config => {
+  const getConfig = () => config
 
   const subscribers = []
   const subscribe = subscriber => {
@@ -30,7 +30,7 @@ const createDb = (confs, enhancer) => {
     }
   }
 
-  let db = {
+  const db = {
     loadCollections(datas) {
       const action = _.mapValues(datas, (data, name) => {
         const coll = db[name]
@@ -57,12 +57,11 @@ const createDb = (confs, enhancer) => {
     subscribe,
     getConfig,
   }
-  _.each(confs, (conf, name) => {
+  _.each(config, (conf, name) => {
     if (typeof conf === 'object') {
       db[name] = createCollection(conf, name, db)
     }
   })
-  if (enhancer) db = enhancer(db)
   return db
 }
 export default createDb
