@@ -4,7 +4,7 @@ import React from 'react'
 import Enzyme, { mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 
-import { createDb, createDatavanContext } from '..'
+import { createDatavanContext } from '..'
 
 Enzyme.configure({ adapter: new Adapter() })
 
@@ -18,8 +18,7 @@ class Indirection extends React.Component {
 }
 
 test('mutate and get back', () => {
-  const globalDb = createDb({ users: {} })
-  const Van = createDatavanContext(globalDb)
+  const Van = createDatavanContext({ users: {} })
 
   const App = () => (
     <Van.Provider>

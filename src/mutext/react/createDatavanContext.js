@@ -3,6 +3,7 @@ import createReactContext from 'create-react-context'
 import stringify from 'fast-stable-stringify'
 
 import bitsObserver from './bitsObserver'
+import createDb from '../db'
 
 const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
   const results = {}
@@ -38,16 +39,16 @@ const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
 
 const renderProp = (Comp, props, mixin) => createElement(Comp, props, db => props.children(mixin(db)))
 
-const createDatavanContext = globalDb => {
-  const { calcChangedBits, getObservedBits } = bitsObserver(globalDb.getConfig())
-  const { Provider, Consumer } = createReactContext(globalDb, calcChangedBits)
+const createDatavanContext = (config, defaultValue = {}) => {
+  const { calcChangedBits, getObservedBits } = bitsObserver(config)
+  const { Provider, Consumer } = createReactContext(defaultValue, calcChangedBits)
 
   class VanProvider extends Component {
     constructor(props) {
       super(props)
-      const providerDb = props.db || globalDb
-      this.state = providerDb
-      this.unsubscribe = providerDb.subscribe(change => this.setState(change))
+      const db = props.db || createDb(config)
+      this.state = db
+      this.unsubscribe = db.subscribe(change => this.setState(change))
     }
     componentWillUnmount() {
       this.unsubscribe()
@@ -90,7 +91,7 @@ const createDatavanContext = globalDb => {
 
   Object.assign(VanConsumer, {
     Provider: VanProvider,
-    db: globalDb,
+    config,
   })
 
   return VanConsumer
