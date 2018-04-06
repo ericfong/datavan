@@ -1,38 +1,41 @@
 import { shallowEqual } from 'recompose'
 
-export const createBatchMemoize = ({ handler, onSuccess, onError } = {}) => {
+export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
   let batchIndex = 0
   const lastProps = {}
   const results = {}
   const promises = {}
-  const memoize = (props, inlineFunc) => {
-    const callIndex = batchIndex
+
+  const memoize = (inlineFunc, props, ...restArgs) => {
+    const batchI = batchIndex
     batchIndex++
 
-    if (shallowEqual(lastProps[callIndex], props)) {
-      return results[callIndex]
+    if (shallowEqual(lastProps[batchI], props)) {
+      return results[batchI]
     }
+    lastProps[batchI] = props
 
-    const promise = (inlineFunc || handler)(props)
+    const promise = (inlineFunc || handler)(props, ...restArgs)
     let ret
     if (promise && promise.then) {
       promise.then(
         result => {
-          results[callIndex] = result
-          delete promises[callIndex]
-          return onSuccess(result, callIndex)
+          results[batchI] = result
+          delete promises[batchI]
+          return onSuccess(result, batchI)
         },
         error => {
-          promises[callIndex] = error
-          return onError(error, callIndex)
+          delete promises[batchI]
+          return Promise.reject(error)
         }
       )
-      promises[callIndex] = promise
+      promises[batchI] = promise
     } else {
       ret = promise
     }
-    return (results[callIndex] = ret) // eslint-disable-line
+    return (results[batchI] = ret) // eslint-disable-line
   }
+
   memoize.results = results
   memoize.promises = promises
   memoize.newBatch = () => {

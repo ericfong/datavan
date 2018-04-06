@@ -20,6 +20,7 @@ const markPromiseDone = (coll, key, promise) => {
   }
 }
 const markPromise = (coll, key, promise) => {
+  if (!key) return promise
   const { _fetchPromises } = coll
   const oldPromise = _fetchPromises[key]
   if (oldPromise) return oldPromise
@@ -95,8 +96,20 @@ const isAllIdHit = (coll, query) => {
   return _.every(ids, id => _byIdAts[id] > expire)
 }
 
+export default {
+  doFetch(fetchQuery, option = {}, fetchKey) {
+    if (fetchKey) this.fetchAts[fetchKey] = Date.now()
+    const p = Promise.resolve(this.onFetch(fetchQuery, option, this)).then(res => {
+      this.load(res)
+      return res
+    })
+    return markPromise(this, fetchKey, p)
+  },
+}
+
 export function checkFetch(coll, query, option = {}) {
-  if (!coll.onFetch || isPreloadSkip(coll, option)) return false
+  const { onFetch } = coll
+  if (!onFetch || isPreloadSkip(coll, option)) return false
 
   const notForce = !option.force
 
@@ -109,22 +122,14 @@ export function checkFetch(coll, query, option = {}) {
   option._fetchKey = fetchKey
 
   if (notForce) {
-    const { fetchAts } = coll
-    const now = Date.now()
     // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
-    const { fetchMaxAge } = coll
+    const { fetchMaxAge, fetchAts } = coll
+    const now = Date.now()
     // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
     if (fetchMaxAge > 0 ? fetchAts[fetchKey] > now - fetchMaxAge : fetchAts[fetchKey]) {
       return false
     }
-    fetchAts[fetchKey] = now
   }
 
-  // want to return fetching promise for findAsync
-  const { onFetch } = coll
-  const p = Promise.resolve(onFetch(fetchQuery, option, coll)).then(res => {
-    coll.load(res)
-    return res
-  })
-  return markPromise(coll, fetchKey, p)
+  return coll.doFetch(fetchQuery, option, fetchKey)
 }

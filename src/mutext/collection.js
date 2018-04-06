@@ -3,7 +3,7 @@ import stringify from 'fast-stable-stringify'
 
 import { pickBy, buildIndex, genTmpId, getDeviceName, mutateCollection } from './collection-util'
 import load from './collection-load'
-import { checkFetch } from './collection-fetch'
+import fetchCollFuncs, { checkFetch } from './collection-fetch'
 
 // @auto-fold here
 const tryCache = (cache, key, func) => {
@@ -13,6 +13,7 @@ const tryCache = (cache, key, func) => {
 }
 
 const defaultCollFuncs = {
+  TYPE: 'Collection',
   idField: '_id',
   // fetchMaxAge: 0,
   // onFetch: () => {},
@@ -41,6 +42,8 @@ const defaultCollFuncs = {
   findAsync(query, option) {
     return Promise.resolve(checkFetch(this, query, option)).then(() => _.values(pickBy(this.getDb()[this.name].getById(), query)))
   },
+
+  ...fetchCollFuncs,
 
   getSubmits() {
     return this.submits
