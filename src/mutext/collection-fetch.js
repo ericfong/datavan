@@ -42,18 +42,15 @@ const markPromise = (coll, key, promise) => {
   return promise
 }
 
-const isTmpId = (id, tmpIdPrefix = TMP_ID_PREFIX) => !id || _.startsWith(id, tmpIdPrefix)
-const sortUniqFilter = (ids, tmpIdPrefix) => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id, tmpIdPrefix))
+const isTmpId = id => !id || _.startsWith(id, TMP_ID_PREFIX)
+const sortUniqFilter = ids => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id))
 // @auto-fold here
-const prepareFetchQuery = (query, idField, tmpIdPrefix = TMP_ID_PREFIX) => {
+const prepareFetchQuery = (query, idField) => {
   if (!query) return query
 
   if (Array.isArray(query)) {
-    const ids = sortUniqFilter(query, tmpIdPrefix)
-    if (ids.length === 0) {
-      return false
-    }
-    // return ids
+    const ids = sortUniqFilter(query)
+    if (ids.length === 0) return false
     return { [idField]: { $in: ids } }
   }
 
@@ -62,10 +59,10 @@ const prepareFetchQuery = (query, idField, tmpIdPrefix = TMP_ID_PREFIX) => {
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (matcher) {
-      if (typeof matcher === 'string' && isTmpId(matcher, tmpIdPrefix)) {
+      if (typeof matcher === 'string' && isTmpId(matcher)) {
         return false
       } else if (matcher.$in) {
-        const $in = sortUniqFilter(matcher.$in, tmpIdPrefix)
+        const $in = sortUniqFilter(matcher.$in)
         if ($in.length === 0) {
           return false
         }
@@ -75,6 +72,11 @@ const prepareFetchQuery = (query, idField, tmpIdPrefix = TMP_ID_PREFIX) => {
       // idField is falsy
       return false
     }
+  }
+
+  const idFieldStr = fetchQuery[idField]
+  if (typeof idFieldStr === 'string') {
+    fetchQuery[idField] = { $in: [idFieldStr] }
   }
   return fetchQuery
 }
@@ -111,12 +113,11 @@ export function checkFetch(coll, query, option = {}) {
   const { onFetch } = coll
   if (!onFetch || isPreloadSkip(coll, option)) return false
 
-  const notForce = !option.force
-
-  if (notForce && isAllIdHit(coll, query)) return false
-
   const fetchQuery = prepareFetchQuery(query, coll.idField)
+  const notForce = !option.force
   if (notForce && fetchQuery === false) return false
+  if (notForce && isAllIdHit(coll, fetchQuery)) return false
+
   const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
   if (notForce && fetchKey === false) return false
   option._fetchKey = fetchKey
