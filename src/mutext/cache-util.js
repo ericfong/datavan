@@ -1,4 +1,4 @@
-import { shallowEqual } from 'recompose'
+import shallowEqual from 'fbjs/lib/shallowEqual'
 
 export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
   let batchIndex = 0
