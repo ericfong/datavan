@@ -5,8 +5,7 @@ import { TMP_ID_PREFIX } from './collection-util'
 
 const isPreloadSkip = (coll, option) => !option.serverPreload && coll.getDb().duringServerPreload
 
-export const defaultGetQueryString = (query, option, coll) => {
-  if (Array.isArray(query)) query = { [coll.idField]: { $in: query } }
+export const defaultGetFetchKey = (query, option) => {
   return stringify({ ..._.omitBy(option, (v, k) => k[0] === '_'), ...query })
 }
 
@@ -53,7 +52,8 @@ const prepareFetchQuery = (query, idField, tmpIdPrefix = TMP_ID_PREFIX) => {
     if (ids.length === 0) {
       return false
     }
-    return ids
+    // return ids
+    return { [idField]: { $in: ids } }
   }
 
   const fetchQuery = { ...query }
@@ -104,20 +104,20 @@ export function checkFetch(coll, query, option = {}) {
 
   const fetchQuery = prepareFetchQuery(query, coll.idField)
   if (notForce && fetchQuery === false) return false
-  const queryString = (coll.getQueryString || defaultGetQueryString)(fetchQuery, option, coll)
-  if (notForce && queryString === false) return false
-  option.queryString = queryString
+  const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
+  if (notForce && fetchKey === false) return false
+  option._fetchKey = fetchKey
 
   if (notForce) {
     const { fetchAts } = coll
     const now = Date.now()
     // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
     const { fetchMaxAge } = coll
-    // console.log('>>>', queryString, fetchAts, fetchAts[queryString])
-    if (fetchMaxAge > 0 ? fetchAts[queryString] > now - fetchMaxAge : fetchAts[queryString]) {
+    // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
+    if (fetchMaxAge > 0 ? fetchAts[fetchKey] > now - fetchMaxAge : fetchAts[fetchKey]) {
       return false
     }
-    fetchAts[queryString] = now
+    fetchAts[fetchKey] = now
   }
 
   // want to return fetching promise for findAsync
@@ -126,5 +126,5 @@ export function checkFetch(coll, query, option = {}) {
     coll.load(res)
     return res
   })
-  return markPromise(coll, queryString, p)
+  return markPromise(coll, fetchKey, p)
 }
