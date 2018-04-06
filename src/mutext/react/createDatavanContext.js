@@ -3,9 +3,7 @@ import createReactContext from 'create-react-context'
 
 import bitsObserver from './bitsObserver'
 import createDb from '../db'
-import { createAsyncCache } from '../cache-util'
-
-const renderProp = (Comp, props, mixin) => createElement(Comp, props, db => props.children(mixin(db)))
+import { createBatchMemoize } from '../cache-util'
 
 const createDatavanContext = (config, defaultValue = {}) => {
   const { calcChangedBits, getObservedBits } = bitsObserver(config)
@@ -40,21 +38,21 @@ const createDatavanContext = (config, defaultValue = {}) => {
 
     observedBits = getObservedBits(this.props.observe)
 
-    cache = createAsyncCache({
+    memoize = createBatchMemoize({
       onSuccess: () => this.setState({ cacheAt: Date.now() }), // eslint-disable-line react/no-unused-state
     })
 
     render() {
       const { props } = this
-      return renderProp(
+      return createElement(
         Consumer,
         {
           ...props,
           observedBits: this.observedBits,
         },
-        consumerDb => {
-          this.cache.newBatch()
-          return { ...consumerDb, cache: this.cache, consumerState: this.state }
+        db => {
+          this.memoize.newBatch()
+          return props.children({ ...db, memoize: this.memoize, consumerState: this.state })
         }
       )
     }

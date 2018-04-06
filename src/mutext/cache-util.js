@@ -1,11 +1,11 @@
 import { shallowEqual } from 'recompose'
 
-export const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
+export const createBatchMemoize = ({ handler, onSuccess, onError } = {}) => {
   let batchIndex = 0
   const lastProps = {}
   const results = {}
   const promises = {}
-  const cache = (props, inlineFunc) => {
+  const memoize = (props, inlineFunc) => {
     const callIndex = batchIndex
     batchIndex++
 
@@ -33,12 +33,12 @@ export const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
     }
     return (results[callIndex] = ret) // eslint-disable-line
   }
-  cache.results = results
-  cache.promises = promises
-  cache.newBatch = () => {
+  memoize.results = results
+  memoize.promises = promises
+  memoize.newBatch = () => {
     batchIndex = 0
   }
-  return cache
+  return memoize
 }
 
 // const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
