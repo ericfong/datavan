@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-1"></a>
+# [4.0.0-1](https://github.com/ericfong/datavan/compare/v4.0.0-0...v4.0.0-1) (2018-04-06)
+
+
+### Bug Fixes
+
+* bugs and add back findInMemory and pickInMemory ([2c774d1](https://github.com/ericfong/datavan/commit/2c774d1))
+* collection test ([b0a5de8](https://github.com/ericfong/datavan/commit/b0a5de8))
+* createDatavanContext ([beb228d](https://github.com/ericfong/datavan/commit/beb228d))
+* fetch test ([6478eed](https://github.com/ericfong/datavan/commit/6478eed))
+* find ([73ef298](https://github.com/ericfong/datavan/commit/73ef298))
+* fix test for empty string fetchKey ([923f3b2](https://github.com/ericfong/datavan/commit/923f3b2))
+* load test ([17827dc](https://github.com/ericfong/datavan/commit/17827dc))
+* min deps ([a0a2396](https://github.com/ericfong/datavan/commit/a0a2396))
+* recall test ([fbc5ef4](https://github.com/ericfong/datavan/commit/fbc5ef4))
+* reset ([54401b3](https://github.com/ericfong/datavan/commit/54401b3))
+* setter.test ([68bdcfa](https://github.com/ericfong/datavan/commit/68bdcfa))
+* upgrade babel ([56d41ae](https://github.com/ericfong/datavan/commit/56d41ae))
+
+
+### Features
+
+* confirm cache api ([2ea49f2](https://github.com/ericfong/datavan/commit/2ea49f2))
+
+
+
 <a name="4.0.0-0"></a>
 # [4.0.0-0](https://github.com/ericfong/datavan/compare/v3.5.6...v4.0.0-0) (2018-03-19)
 
