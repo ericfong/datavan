@@ -2,7 +2,6 @@ import _ from 'lodash'
 
 import { createDb, pickBy, filter, TMP_ID_PREFIX as TMP } from '..'
 import { onFetchEcho, onFetchById } from './test-util'
-import { getQueryIds } from '../collection-fetch'
 
 test.skip('find inResponse', async () => {
   const db = createDb({
@@ -105,11 +104,11 @@ test('without tmp-id', async () => {
   // removed tmp-id
   db.users.find(['db-id-abc', `${TMP}-123`, 'db-id-xyz', `${TMP}-456`])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
-  expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
+  expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual({ _id: { $in: ['db-id-abc', 'db-id-xyz'] } })
 
   // reverse will use same cacheKey??
   db.users.find(['db-id-xyz', 'db-id-abc'])
-  expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual(['db-id-abc', 'db-id-xyz'])
+  expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual({ _id: { $in: ['db-id-abc', 'db-id-xyz'] } })
 
   // find other fields with tmp id
   db.users.onFetch.mockClear()
@@ -123,8 +122,7 @@ test('consider getFetchKey', async () => {
   const db = createDb({
     users: {
       onFetch: jest.fn(onFetchEcho),
-      getFetchQuery: () => ({}),
-      getQueryString: () => '',
+      getFetchKey: () => '',
     },
   })
 
@@ -158,7 +156,7 @@ test('basic', async () => {
     users: {
       onFetch: jest.fn((query, option, collection) => {
         if (query) {
-          const ids = getQueryIds(query)
+          const ids = _.get(query, ['_id', '$in'])
           if (ids) {
             ++calledGet
             // console.log('onFetch get', ids, calledGet)

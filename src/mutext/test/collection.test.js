@@ -3,8 +3,9 @@ import _ from 'lodash'
 import { createDb } from '..'
 
 function onFetch(query, option, collection) {
-  if (Array.isArray(query)) {
-    return Promise.resolve(_.map(query, id => ({ id, name: 'John' })))
+  const ids = _.get(query, ['id', '$in'])
+  if (ids) {
+    return Promise.resolve(_.map(ids, id => ({ id, name: 'John' })))
   }
   return Promise.resolve([{ id: 'u2', name: `${collection.name} Eric` }])
 }

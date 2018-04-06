@@ -20,7 +20,7 @@ const markPromiseDone = (coll, key, promise) => {
   }
 }
 const markPromise = (coll, key, promise) => {
-  if (!key) return promise
+  if (key !== undefined) return promise
   const { _fetchPromises } = coll
   const oldPromise = _fetchPromises[key]
   if (oldPromise) return oldPromise
@@ -98,7 +98,7 @@ const isAllIdHit = (coll, query) => {
 
 export default {
   doFetch(fetchQuery, option = {}, fetchKey) {
-    if (fetchKey) this.fetchAts[fetchKey] = Date.now()
+    if (fetchKey !== undefined) this.fetchAts[fetchKey] = Date.now()
     const p = Promise.resolve(this.onFetch(fetchQuery, option, this)).then(res => {
       this.load(res)
       return res
