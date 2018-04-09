@@ -5,18 +5,20 @@ import bitsObserver from './bitsObserver'
 import createDb from '../db'
 import { createBatchMemoize } from '../cache-util'
 
-const createDatavanContext = (config, defaultValue = {}) => {
+const createDatavanContext = config => {
   const { calcChangedBits, getObservedBits } = bitsObserver(config)
-  const { Provider, Consumer } = createReactContext(defaultValue, calcChangedBits)
+  const { Provider, Consumer } = createReactContext(null, calcChangedBits)
 
   class VanProvider extends Component {
     constructor(props) {
       super(props)
       // TODO may pass upper provider db instead of config here
-      let db = createDb(config)
+      let db = props.db || createDb(config)
       if (props.initDb) db = props.initDb(db)
       this.state = db
-      this.unsubscribe = db.subscribe(change => this.setState(change))
+    }
+    componentDidMount() {
+      this.unsubscribe = this.state.subscribe(change => this.setState(change))
     }
     componentWillUnmount() {
       this.unsubscribe()
