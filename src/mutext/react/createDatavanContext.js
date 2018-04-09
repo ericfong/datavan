@@ -30,7 +30,7 @@ const createDatavanContext = (config, defaultValue = {}) => {
   class VanConsumer extends Component {
     state = { setState: this.setState } // eslint-disable-line react/no-unused-state
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.observe !== nextProps.observe) {
         this.observedBits = getObservedBits(nextProps.observe)
       }
