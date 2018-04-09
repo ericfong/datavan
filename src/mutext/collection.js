@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { pickBy, buildIndex, genTmpId, getDeviceName, mutateCollection } from './collection-util'
+import { pickBy, buildIndex, genTmpId, getDeviceName } from './collection-util'
 import load from './collection-load'
-import fetchCollFuncs, { checkFetch } from './collection-fetch'
+import { checkFetch } from './collection-fetch'
 
 // @auto-fold here
 const tryCache = (cache, key, func) => {
@@ -25,25 +25,25 @@ const defaultCollFuncs = {
     return _.values(this.pickInMemory(query))
   },
   get(id, option = {}) {
-    checkFetch(this, [id], option)
+    this.checkFetch([id], option)
     return this.getById()[id]
   },
   pick(query, option) {
-    checkFetch(this, query, option)
+    this.checkFetch(query, option)
     return this.pickInMemory(query)
   },
   find(query, option) {
-    checkFetch(this, query, option)
+    this.checkFetch(query, option)
     return this.findInMemory(query)
   },
   pickAsync(query, option) {
-    return Promise.resolve(checkFetch(this, query, option)).then(() => pickBy(this.getDb()[this.name].getById(), query))
+    return Promise.resolve(this.checkFetch(query, option)).then(() => pickBy(this.getDb()[this.name].getById(), query))
   },
   findAsync(query, option) {
-    return Promise.resolve(checkFetch(this, query, option)).then(() => _.values(pickBy(this.getDb()[this.name].getById(), query)))
+    return Promise.resolve(this.checkFetch(query, option)).then(() => _.values(pickBy(this.getDb()[this.name].getById(), query)))
   },
 
-  ...fetchCollFuncs,
+  checkFetch,
 
   getSubmits() {
     return this.submits

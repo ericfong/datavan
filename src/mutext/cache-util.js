@@ -6,7 +6,7 @@ export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
   const results = {}
   const promises = {}
 
-  const memoize = (inlineFunc, props, ...restArgs) => {
+  function memoize(inlineFunc, props, ...restArgs) {
     const batchI = batchIndex
     batchIndex++
 

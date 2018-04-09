@@ -96,18 +96,17 @@ const isAllIdHit = (coll, query) => {
   return _.every(ids, id => _byIdAts[id] > expire)
 }
 
-export default {
-  doFetch(fetchQuery, option = {}, fetchKey) {
-    if (fetchKey !== undefined) this.fetchAts[fetchKey] = Date.now()
-    const p = Promise.resolve(this.onFetch(fetchQuery, option, this)).then(res => {
-      this.load(res)
-      return res
-    })
-    return markPromise(this, fetchKey, p)
-  },
+function doFetch(coll, fetchQuery, option = {}, fetchKey) {
+  if (fetchKey !== undefined) coll.fetchAts[fetchKey] = Date.now()
+  const p = Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
+    coll.load(res)
+    return res
+  })
+  return markPromise(coll, fetchKey, p)
 }
 
-export function checkFetch(coll, query, option = {}) {
+export function checkFetch(query, option = {}) {
+  const coll = this
   const { onFetch } = coll
   if (!onFetch || isPreloadSkip(coll, option)) return false
 
@@ -130,5 +129,5 @@ export function checkFetch(coll, query, option = {}) {
     }
   }
 
-  return coll.doFetch(fetchQuery, option, fetchKey)
+  return doFetch(coll, fetchQuery, option, fetchKey)
 }
