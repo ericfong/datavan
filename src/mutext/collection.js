@@ -186,30 +186,20 @@ const getCollFuncs = (conf, name, db) => ({
   getConfig: () => conf,
 })
 
-const initColl = collFuncs => {
-  let coll = {
-    // local persist
-    submits: {},
-    originals: {},
-    // local memory
-    cache: {},
+export default (conf, name, db) => ({
+  // local persist
+  submits: {},
+  originals: {},
+  // local memory
+  cache: {},
 
-    // conf-level persist
-    preloads: {},
-    fetchAts: {},
-    // conf-level memory
-    fetchingAt: null,
-    _fetchPromises: {},
-    _byIdAts: {},
+  // conf-level persist
+  preloads: {},
+  fetchAts: {},
+  // conf-level memory
+  fetchingAt: null,
+  _fetchPromises: {},
+  _byIdAts: {},
 
-    ...collFuncs,
-  }
-  if (coll.initState) {
-    coll = mutateCollection(coll, coll.load(coll.initState, true))
-  }
-  return coll
-}
-
-const createCollection = (conf, name, db) => initColl(getCollFuncs(conf, name, db))
-
-export default createCollection
+  ...getCollFuncs(conf, name, db),
+})

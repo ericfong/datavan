@@ -4,23 +4,18 @@ function loadToMutation(inDocs) {
   const $merge = {}
   const mut = { $merge }
   _.each(inDocs, (v, id) => {
-    if (id[0] === '$') {
-      mut[id] = v
-    } else {
-      $merge[id] = v
-    }
+    if (id[0] === '$') mut[id] = v
+    else $merge[id] = v
   })
   return mut
 }
-
-const getResponseById = res => res.preloads || res.byId || res
 
 export default function load(res, returnMutation) {
   if (!res) return
   const { idField, _byIdAts } = this
 
   // normalizeLoadData
-  let resPreloads = getResponseById(res)
+  let resPreloads = res.preloads || res.byId || res
   if (Array.isArray(resPreloads)) resPreloads = _.mapKeys(resPreloads, (doc, i) => (doc && doc[idField]) || i)
 
   const mutations = []

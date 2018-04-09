@@ -29,6 +29,7 @@ const createDb = config => {
       return true
     }
   }
+  let isStarted = false
 
   const db = {
     loadCollections(datas) {
@@ -49,19 +50,23 @@ const createDb = config => {
       if (Object.keys(change).length > 0) {
         Object.assign(db, change)
 
-        for (let i = 0, ii = subscribers.length; i < ii; i++) {
-          subscribers[i](change, db)
-        }
+        if (isStarted) _.each(subscribers, subscriber => subscriber(change, db))
       }
     },
     subscribe,
     getConfig,
   }
-  _.each(config, (conf, name) => {
-    if (typeof conf === 'object') {
-      db[name] = createCollection(conf, name, db)
-    }
+
+  // create collections
+  const colls = _.mapValues(_.pickBy(config, _.isPlainObject), (conf, name) => createCollection(conf, name, db))
+  Object.assign(db, colls)
+  // init collections
+  _.each(colls, (coll, name) => {
+    if (coll.initState) coll = db[name] = mutateCollection(coll, coll.load(coll.initState, true))
+    if (coll.onInit) coll.onInit(coll)
   })
+
+  isStarted = true
   return db
 }
 export default createDb
