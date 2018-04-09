@@ -176,17 +176,15 @@ const defaultCollFuncs = {
   },
 }
 
-const getCollFuncs = (conf, name, db) => {
-  return {
-    ...defaultCollFuncs,
-    name,
-    ...conf,
+const getCollFuncs = (conf, name, db) => ({
+  ...defaultCollFuncs,
+  name,
+  ...conf,
 
-    getDb: db.getState,
-    dispatch: mutation => db.dispatch({ [name]: mutation }),
-    getConfig: () => conf,
-  }
-}
+  getDb: db.getState,
+  dispatch: mutation => db.dispatch({ [name]: mutation }),
+  getConfig: () => conf,
+})
 
 const initColl = collFuncs => {
   let coll = {
@@ -212,8 +210,6 @@ const initColl = collFuncs => {
   return coll
 }
 
-const createCollection = (conf, name, db) => {
-  return initColl(getCollFuncs(conf, name, db))
-}
+const createCollection = (conf, name, db) => initColl(getCollFuncs(conf, name, db))
 
 export default createCollection

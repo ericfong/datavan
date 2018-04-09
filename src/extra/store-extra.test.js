@@ -43,14 +43,12 @@ test('$relations', async () => {
     fetchUrl: 'complex-query-1',
   })
   await getPending(store, 'users')
-  expect(
-    _.sortBy(
-      find(store, 'users', query1, {
-        fetchUrl: 'complex-query-1',
-      }),
-      '_id'
-    )
-  ).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
+  expect(_.sortBy(
+    find(store, 'users', query1, {
+      fetchUrl: 'complex-query-1',
+    }),
+    '_id'
+  )).toEqual([{ _id: '1', age: 10 }, { _id: '2', gender: 'M' }])
 
   // complex query 2
   const query2 = { age: 20 }

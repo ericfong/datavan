@@ -24,9 +24,7 @@ test('mutate and get back', () => {
     <Van.Provider>
       <Indirection>
         <Van observe="users">
-          {db => {
-            return <button onClick={() => db.users.set('x', 2)}>{db.users.getById().x}</button>
-          }}
+          {db => <button onClick={() => db.users.set('x', 2)}>{db.users.getById().x}</button>}
         </Van>
       </Indirection>
     </Van.Provider>

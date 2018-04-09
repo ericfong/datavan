@@ -15,8 +15,9 @@ plugins:
   - dependencies
 root: true
 rules:
-  arrow-body-style: off
-  arrow-parens: off
+  arrow-parens:
+    - warn
+    - as-needed
   class-methods-use-this: off
   comma-dangle:
     - warn

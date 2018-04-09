@@ -7,18 +7,10 @@ import { getQueryIds } from '../collection/fetcher'
 export const timeoutResolve = value => new Promise(resolve => resolve(value))
 
 export const onFetchEcho = query =>
-  timeoutResolve(
-    _.map(getQueryIds(query, '_id'), _id => {
-      return _id ? { _id, name: _.toUpper(_id) } : undefined
-    })
-  )
+  timeoutResolve(_.map(getQueryIds(query, '_id'), _id => (_id ? { _id, name: _.toUpper(_id) } : undefined)))
 
 export const echoValue = query =>
-  timeoutResolve(
-    _.mapValues(_.keyBy(getQueryIds(query, '_id')), id => {
-      return _.toUpper(id)
-    })
-  )
+  timeoutResolve(_.mapValues(_.keyBy(getQueryIds(query, '_id')), id => _.toUpper(id)))
 
 export function createCollection(spec = {}) {
   const name = spec.name || 'users'

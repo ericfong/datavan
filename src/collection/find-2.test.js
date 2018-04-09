@@ -7,9 +7,7 @@ import { createCollection } from '../test/util'
 test('find inResponse', async () => {
   const collection = createCollection({
     onFetch({ $$search, $$limit }) {
-      const res = _.map(_.range(0, $$limit), i => {
-        return { _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }
-      })
+      const res = _.map(_.range(0, $$limit), i => ({ _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }))
       return Promise.resolve(res)
     },
   })

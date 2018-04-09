@@ -15,10 +15,12 @@ const bitsObserver = namesObj => {
   const bitmaskTable = getBitmaskTable(names)
 
   const calcChangedBits = (a, b) => {
-    const result = names.reduce((r, name) => {
+    const result = names.reduce(
+      (r, name) =>
       // eslint-disable-next-line no-bitwise
-      return a[name] !== b[name] ? r | bitmaskTable[name] : r
-    }, 0)
+        (a[name] !== b[name] ? r | bitmaskTable[name] : r)
+      , 0
+    )
     // changed on somethings that not in names
     return result === 0 && a !== b ? MAX_SIGNED_31_BIT_INT : result
   }
@@ -26,10 +28,12 @@ const bitsObserver = namesObj => {
   const getObservedBits = observe => {
     if (!observe) return undefined
     // observe should be string to recognition
-    return parseNames(observe).reduce((r, name) => {
+    return parseNames(observe).reduce(
+      (r, name) =>
       // eslint-disable-next-line no-bitwise
-      return r | bitmaskTable[name]
-    }, 0)
+        r | bitmaskTable[name]
+      , 0
+    )
   }
 
   return { bitmaskTable, calcChangedBits, getObservedBits }

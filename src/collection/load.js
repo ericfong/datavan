@@ -47,9 +47,7 @@ export function normalizeLoadData(self, data) {
   return { byId: data }
 }
 
-const loadAs = (inDoc, id, targets) => {
-  return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc
-}
+const loadAs = (inDoc, id, targets) => (inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, targets[id]) : inDoc)
 
 export function load(coll, _data) {
   if (!_data) return _data
@@ -68,10 +66,9 @@ export function load(coll, _data) {
     _byIdAts[id] = now
     return loadAs(inDoc, id, byId)
   })
-  mutation.originals = _loop(mutation.originals, data.originals, (inDoc, id) => {
+  mutation.originals = _loop(mutation.originals, data.originals, (inDoc, id) =>
     // original may be null
-    return inDoc ? loadAs(inDoc, id, originals) : inDoc
-  })
+    (inDoc ? loadAs(inDoc, id, originals) : inDoc))
 
   if (data.fetchAts) {
     mutation.fetchAts = { $merge: data.fetchAts }

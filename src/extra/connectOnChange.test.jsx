@@ -11,10 +11,10 @@ test('work with virtual collection and recall', async () => {
   const collections = {
     item_table: {
       initState: [{ list: 'l1', _id: 'a', name: 'a' }, { list: 'l1', _id: 'b', name: 'b' }, { list: 'l2', _id: 'c' }],
-      groupByList: byId => {
+      groupByList: byId =>
         // console.log('>> ???>', _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items })))
-        return _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items }))
-      },
+        _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items }))
+      ,
     },
     list_table: {
       getState() {
@@ -27,9 +27,7 @@ test('work with virtual collection and recall', async () => {
       list = get(state, 'list_table', list._id)
     }
     return { list }
-  })(props => {
-    return <div id="result">{_.map(_.get(props.list, 'items'), 'name').join()}</div>
-  })
+  })(props => <div id="result">{_.map(_.get(props.list, 'items'), 'name').join()}</div>)
   const store = createStore(s => s, {}, datavanEnhancer({ collections }))
   const App = () => (
     <Provider store={store}>
@@ -50,13 +48,11 @@ test('basic', async () => {
     gender: find(state, 'users', { name })[0].gender,
   }))
 
-  const Comp = connectOnChange(['name'], func)(props => {
-    return (
-      <div id="result">
-        {props.gender}-{props.other}
-      </div>
-    )
-  })
+  const Comp = connectOnChange(['name'], func)(props => (
+    <div id="result">
+      {props.gender}-{props.other}
+    </div>
+  ))
   const store = createStore(
     s => s,
     {},

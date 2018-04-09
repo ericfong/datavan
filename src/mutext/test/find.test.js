@@ -7,9 +7,7 @@ test.skip('find inResponse', async () => {
   const db = createDb({
     users: {
       onFetch({ $$search, $$limit }) {
-        const res = _.map(_.range(0, $$limit), i => {
-          return { _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }
-        })
+        const res = _.map(_.range(0, $$limit), i => ({ _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }))
         return Promise.resolve(res)
       },
     },
@@ -83,8 +81,7 @@ test('onFetch with $invalidate', async () => {
     Promise.resolve({
       byId: { 'id-123': undefined },
       $invalidate: ['id-123'],
-    })
-  )
+    }))
   const db = createDb({ users: { onFetch } })
   db.users.find(['id-123'])
   await db.users.getPending()
@@ -160,14 +157,10 @@ test('basic', async () => {
           if (ids) {
             ++calledGet
             // console.log('onFetch get', ids, calledGet)
-            return Promise.resolve(
-              _.compact(
-                _.map(ids, id => {
-                  if (id === 'not_exists') return null
-                  return { _id: id, name: `${id} name` }
-                })
-              )
-            )
+            return Promise.resolve(_.compact(_.map(ids, id => {
+              if (id === 'not_exists') return null
+              return { _id: id, name: `${id} name` }
+            })))
           }
         }
         ++calledFind

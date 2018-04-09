@@ -105,17 +105,15 @@ export default function datavanEnhancer(vanConf) {
     const store = _createStore(mutateReducer, preload, enhancer)
 
     // createCollection step 2: assign store and per-store-variables
-    const vanDb = _.mapValues(confCollections, collectionConf => {
-      return {
-        ...collectionConf,
-        // per store variables
-        store,
-        _memory: {},
-        _fetchingPromises: {},
-        _byIdAts: {},
-        _inResponses: {},
-      }
-    })
+    const vanDb = _.mapValues(confCollections, collectionConf => ({
+      ...collectionConf,
+      // per store variables
+      store,
+      _memory: {},
+      _fetchingPromises: {},
+      _byIdAts: {},
+      _inResponses: {},
+    }))
 
     // injects
     const { getState, dispatch } = store

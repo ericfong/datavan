@@ -48,6 +48,4 @@ export const memorize = (coll, memoryKey, func) => {
   return ret
 }
 
-export const getSubmits = coll => {
-  return memorize(coll, 'getSubmits', ({ byId, originals }) => _.mapValues(originals, (v, k) => byId[k]))
-}
+export const getSubmits = coll => memorize(coll, 'getSubmits', ({ byId, originals }) => _.mapValues(originals, (v, k) => byId[k]))

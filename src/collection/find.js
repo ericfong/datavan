@@ -71,8 +71,7 @@ export const find = (coll, query, option) => _find(findInMemory, coll, query, op
 // -------------------------------------------------------------------------------------------------------------------
 // pickAsync, findAsync
 // -------------------------------------------------------------------------------------------------------------------
-const _findAsync = (func, coll, query, option = {}) => {
-  return Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(() => func(coll, query, option))
-}
+const _findAsync = (func, coll, query, option = {}) =>
+  Promise.resolve(coll.onFetch && checkFetch(coll, query, option)).then(() => func(coll, query, option))
 export const pickAsync = (coll, query, option) => _findAsync(pickInMemory, coll, query, option)
 export const findAsync = (coll, query, option) => _findAsync(findInMemory, coll, query, option)

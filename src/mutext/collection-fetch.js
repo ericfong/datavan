@@ -5,9 +5,7 @@ import { TMP_ID_PREFIX } from './collection-util'
 
 const isPreloadSkip = (coll, option) => !option.serverPreload && coll.getDb().duringServerPreload
 
-export const defaultGetFetchKey = (query, option) => {
-  return stringify({ ..._.omitBy(option, (v, k) => k[0] === '_'), ...query })
-}
+export const defaultGetFetchKey = (query, option) => stringify({ ..._.omitBy(option, (v, k) => k[0] === '_'), ...query })
 
 // @auto-fold here
 const markPromiseDone = (coll, key, promise) => {
