@@ -6,13 +6,15 @@ test('virtual-collection', async () => {
   let calcOrdersThisName = null
   const db = createDb({
     orders: {
-      getSubmits: _db => _db.recall('orderItems', 'calcOrders'),
+      getSubmits(coll) {
+        return coll.getDb().recall('orderItems', 'calcOrders')
+      },
     },
     orderItems: {
       initState: [{ _id: '1', code: 'x', name: 'X-1' }, { _id: '2', code: 'x', name: 'X-2' }, { _id: '3', code: 'y', name: 'Y-1' }],
-      calcOrders(_db, name) {
-        calcOrdersThisName = name
-        const byNumber = _.groupBy(_db.getById(name), 'code')
+      calcOrders(byId) {
+        calcOrdersThisName = this.name
+        const byNumber = _.groupBy(byId, 'code')
         return _.mapValues(byNumber, (items, code) => ({ _id: code, code, items }))
       },
     },

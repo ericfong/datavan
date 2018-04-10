@@ -107,7 +107,7 @@ export default {
 
     // doFetch
     coll.fetchAts[fetchKey] = Date.now()
-    const p = Promise.resolve(coll.onFetch(fetchQuery, option, this, name)).then(res => {
+    const p = Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
       this.load(name, res)
       return res
     })

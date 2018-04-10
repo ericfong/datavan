@@ -16,10 +16,9 @@ const tryCache = (cache, key, func) => {
   return (cache[key] = func()) // eslint-disable-line
 }
 
-const getData = (db, name, field, funcName) => {
-  const coll = db[name]
+const getData = (coll, field, funcName) => {
   const fn = coll[funcName]
-  return typeof fn === 'function' ? fn(db, name) : coll[field]
+  return typeof fn === 'function' ? fn(coll) : coll[field]
 }
 
 export default {
@@ -28,10 +27,10 @@ export default {
   },
 
   getSubmits(name) {
-    return getData(this, name, 'submits', 'getSubmits')
+    return getData(this[name], 'submits', 'getSubmits')
   },
   getOriginals(name) {
-    return getData(this, name, 'originals', 'getOriginals')
+    return getData(this[name], 'originals', 'getOriginals')
   },
   getPreloads(name) {
     return this.getFetchData(name).preloads
@@ -50,7 +49,7 @@ export default {
   recall(name, fnName, ...args) {
     const coll = this[name]
     const func = coll[fnName] || (fnName === 'buildIndex' ? buildIndex : null)
-    return tryCache(coll._cache, `${fnName}-${stringify(args)}`, () => func(this, name, ...args))
+    return tryCache(coll._cache, `${fnName}-${stringify(args)}`, () => func.apply(coll, [this.getById(name), ...args]))
   },
 
   genId() {

@@ -2,12 +2,12 @@ import _ from 'lodash'
 
 import { createDb } from '..'
 
-function onFetch(query, option, db, name) {
+function onFetch(query, option, coll) {
   const ids = _.get(query, ['id', '$in'])
   if (ids) {
     return Promise.resolve(_.map(ids, id => ({ id, name: 'John' })))
   }
-  return Promise.resolve([{ id: 'u2', name: `${name} Eric` }])
+  return Promise.resolve([{ id: 'u2', name: `${coll.name} Eric` }])
 }
 
 test('getSubmits', async () => {

@@ -66,7 +66,10 @@ const createDb = config => {
     _fetchPromises: {},
     _byIdAts: {},
 
+    TYPE: 'Collection',
     idField: '_id',
+    name,
+    getDb: () => db,
     ...conf,
   }))
   Object.assign(db, colls)

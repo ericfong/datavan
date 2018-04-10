@@ -132,7 +132,7 @@ test('basic', async () => {
   let calledGet = 0
   const db = createDb({
     users: {
-      onFetch: jest.fn((query, option, _db, name) => {
+      onFetch: jest.fn((query, option, coll) => {
         if (query) {
           const ids = _.get(query, ['_id', '$in'])
           if (ids) {
@@ -149,7 +149,7 @@ test('basic', async () => {
           }
         }
         ++calledFind
-        return Promise.resolve([{ _id: 'u2', name: `${name} Eric` }])
+        return Promise.resolve([{ _id: 'u2', name: `${coll.name} Eric` }])
       }),
     },
   })
