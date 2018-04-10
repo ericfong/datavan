@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-2"></a>
+# [4.0.0-2](https://github.com/ericfong/datavan/compare/v4.0.0-1...v4.0.0-2) (2018-04-10)
+
+
+### Bug Fixes
+
+* can pass in a db into context provider ([5fa0d9a](https://github.com/ericfong/datavan/commit/5fa0d9a))
+
+
+### Features
+
+* auto detect touched collections ([ed26b1d](https://github.com/ericfong/datavan/commit/ed26b1d))
+* keep fetch results ([d10f62a](https://github.com/ericfong/datavan/commit/d10f62a))
+* more compatible with old version ([21933e5](https://github.com/ericfong/datavan/commit/21933e5))
+* port all collection functions to db based ([aee7efb](https://github.com/ericfong/datavan/commit/aee7efb))
+* refactor and add onInit function ([bbe6e90](https://github.com/ericfong/datavan/commit/bbe6e90))
+
+
+
 <a name="4.0.0-1"></a>
 # [4.0.0-1](https://github.com/ericfong/datavan/compare/v4.0.0-0...v4.0.0-1) (2018-04-06)
 
