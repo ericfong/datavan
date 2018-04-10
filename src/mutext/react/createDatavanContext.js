@@ -3,7 +3,7 @@ import createReactContext from 'create-react-context'
 
 import bitsObserver from './bitsObserver'
 import createDb from '../db'
-import { createBatchMemoize } from '../cache-util'
+import { createBatchMemoizer } from '../cache-util'
 
 const createDatavanContext = config => {
   const { calcChangedBits, getObservedBits } = bitsObserver(config)
@@ -30,7 +30,7 @@ const createDatavanContext = config => {
 
   /* eslint-disable react/no-multi-comp */
   class VanConsumer extends Component {
-    state = { setState: this.setState } // eslint-disable-line react/no-unused-state
+    // state = { setState: this.setState } // eslint-disable-line react/no-unused-state
 
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.observe !== nextProps.observe) {
@@ -40,7 +40,7 @@ const createDatavanContext = config => {
 
     observedBits = getObservedBits(this.props.observe)
 
-    memoize = createBatchMemoize({
+    memoizer = createBatchMemoizer({
       onSuccess: () => this.setState({ cacheAt: Date.now() }), // eslint-disable-line react/no-unused-state
     })
 
@@ -52,10 +52,7 @@ const createDatavanContext = config => {
           ...props,
           observedBits: this.observedBits,
         },
-        db => {
-          this.memoize.newBatch()
-          return props.children({ ...db, memoize: this.memoize, consumerState: this.state })
-        }
+        db => props.children(this.memoizer.newBatch(db))
       )
     }
   }

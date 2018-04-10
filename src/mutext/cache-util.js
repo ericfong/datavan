@@ -1,7 +1,9 @@
+import _ from 'lodash'
 import shallowEqual from 'fbjs/lib/shallowEqual'
 
-export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
+export const createBatchMemoizer = ({ handler, onSuccess } = {}) => {
   let batchIndex = 0
+  const lastColls = {}
   const lastProps = {}
   const results = {}
   const promises = {}
@@ -10,12 +12,33 @@ export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
     const batchI = batchIndex
     batchIndex++
 
-    if (shallowEqual(lastProps[batchI], props)) {
-      return results[batchI]
-    }
+    const db = this
+    const lastColl = lastColls[batchI]
+    const collEqual = shallowEqual(lastColl, _.pick(db, _.keys(lastColl)))
+
+    // eslint-disable-next-line
+    const propsEqual = lastProps.hasOwnProperty(batchI) && shallowEqual(lastProps[batchI], props)
+
+    if (collEqual && propsEqual) return results[batchI]
     lastProps[batchI] = props
 
-    const promise = (inlineFunc || handler)(props, ...restArgs)
+    const touchNames = {}
+    const useDb = {
+      ...db,
+      // TODO fetchingAt?
+      ...['getSubmits', 'getOriginals', 'getPreloads'].reduce((newDb, funcName) => {
+        newDb[funcName] = (...args) => {
+          // record touched name
+          touchNames[args[0]] = true
+          return db[funcName](...args)
+        }
+        return newDb
+      }, {}),
+    }
+    const promise = (inlineFunc || handler)(useDb, props, ...restArgs)
+    // console.log('>touchNames>>', touchNames)
+    lastColls[batchI] = _.mapValues(touchNames, (v, name) => db[name])
+
     let ret
     if (promise && promise.then) {
       promise.then(
@@ -36,12 +59,17 @@ export const createBatchMemoize = ({ handler, onSuccess } = {}) => {
     return (results[batchI] = ret) // eslint-disable-line
   }
 
-  memoize.results = results
-  memoize.promises = promises
-  memoize.newBatch = () => {
-    batchIndex = 0
+  return {
+    results,
+    promises,
+    newBatch(db) {
+      batchIndex = 0
+      return {
+        ...db,
+        memoize,
+      }
+    },
   }
-  return memoize
 }
 
 // const createAsyncCache = ({ handler, onSuccess, onError } = {}) => {
