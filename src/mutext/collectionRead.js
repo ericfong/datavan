@@ -82,54 +82,60 @@ const isAllIdHit = (coll, query) => {
   return _.every(ids, id => coll._byIdAts[id] > expire)
 }
 
+function doFetch(db, name, query, option) {
+  const coll = db.getFetchData(name)
+  if (!coll.onFetch) return undefined
+
+  const fetchQuery = prepareFetchQuery(query, coll.idField)
+  const notForce = !option.force
+  if (notForce && fetchQuery === false) return undefined
+  if (notForce && isAllIdHit(coll, fetchQuery)) return undefined
+
+  const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
+  if (notForce && fetchKey === false) return undefined
+  option._fetchKey = fetchKey
+
+  if (notForce) {
+    // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
+    const now = Date.now()
+    // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
+    if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
+      return coll._fetchResults[fetchKey]
+    }
+  }
+
+  // doFetch
+  coll.fetchAts[fetchKey] = Date.now()
+  const p = Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
+    if (option._keepFetchResult) coll._fetchResults[fetchKey] = res
+    db.load(name, res)
+    return res
+  })
+  return markPromise(db, name, fetchKey, p)
+}
+
 export default {
   fetch(name, query, option = {}) {
-    const coll = this.getFetchData(name)
-    if (!coll.onFetch) return false
-
-    const fetchQuery = prepareFetchQuery(query, coll.idField)
-    const notForce = !option.force
-    if (notForce && fetchQuery === false) return false
-    if (notForce && isAllIdHit(coll, fetchQuery)) return false
-
-    const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
-    if (notForce && fetchKey === false) return false
-    option._fetchKey = fetchKey
-
-    if (notForce) {
-      // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
-      const now = Date.now()
-      // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
-      if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
-        return false
-      }
-    }
-
-    // doFetch
-    coll.fetchAts[fetchKey] = Date.now()
-    const p = Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
-      this.load(name, res)
-      return res
-    })
-    return markPromise(this, name, fetchKey, p)
+    option._keepFetchResult = true
+    return doFetch(this, name, query, option)
   },
 
   get(name, id, option = {}) {
-    this.fetch(name, [id], option)
+    doFetch(this, name, [id], option)
     return this.getById(name)[id]
   },
-  pick(name, query, option) {
-    this.fetch(name, query, option)
+  pick(name, query, option = {}) {
+    doFetch(this, name, query, option)
     return this.pickInMemory(name, query)
   },
-  find(name, query, option) {
-    this.fetch(name, query, option)
+  find(name, query, option = {}) {
+    doFetch(this, name, query, option)
     return this.findInMemory(name, query)
   },
-  pickAsync(name, query, option) {
-    return Promise.resolve(this.fetch(name, query, option)).then(() => this.pickInMemory(name, query))
+  pickAsync(name, query, option = {}) {
+    return Promise.resolve(doFetch(this, name, query, option)).then(() => this.pickInMemory(name, query))
   },
-  findAsync(name, query, option) {
-    return Promise.resolve(this.fetch(name, query, option)).then(() => this.findInMemory(name, query))
+  findAsync(name, query, option = {}) {
+    return Promise.resolve(doFetch(this, name, query, option)).then(() => this.findInMemory(name, query))
   },
 }

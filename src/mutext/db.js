@@ -63,6 +63,7 @@ const createDb = config => {
     fetchAts: {},
     // fetch memory
     fetchingAt: null,
+    _fetchResults: {},
     _fetchPromises: {},
     _byIdAts: {},
 
