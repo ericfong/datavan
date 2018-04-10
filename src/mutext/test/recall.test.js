@@ -6,16 +6,13 @@ test('virtual-collection', async () => {
   let calcOrdersThisName = null
   const db = createDb({
     orders: {
-      getSubmits() {
-        return this.getDb().orderItems.recall('calcOrders')
-      },
-      mutateData: jest.fn(() => {}),
+      getSubmits: _db => _db.recall('orderItems', 'calcOrders'),
     },
     orderItems: {
       initState: [{ _id: '1', code: 'x', name: 'X-1' }, { _id: '2', code: 'x', name: 'X-2' }, { _id: '3', code: 'y', name: 'Y-1' }],
-      calcOrders(byId) {
-        calcOrdersThisName = this.name
-        const byNumber = _.groupBy(byId, 'code')
+      calcOrders(_db, name) {
+        calcOrdersThisName = name
+        const byNumber = _.groupBy(_db.getById(name), 'code')
         return _.mapValues(byNumber, (items, code) => ({ _id: code, code, items }))
       },
     },
@@ -24,7 +21,7 @@ test('virtual-collection', async () => {
 
   // calc
   expect(spy).toHaveBeenCalledTimes(0)
-  expect(db.orders.getById()).toEqual({
+  expect(db.getById('orders')).toEqual({
     x: { _id: 'x', items: [{ _id: '1', name: 'X-1', code: 'x' }, { _id: '2', name: 'X-2', code: 'x' }], code: 'x' },
     y: { _id: 'y', items: [{ _id: '3', name: 'Y-1', code: 'y' }], code: 'y' },
   })
@@ -32,12 +29,11 @@ test('virtual-collection', async () => {
   expect(calcOrdersThisName).toBe('orderItems')
 
   // find and won't re-calc
-  expect(db.orders.find({ 'items.name': 'X-1' })).toEqual([
+  expect(db.find('orders', { 'items.name': 'X-1' })).toEqual([
     { _id: 'x', items: [{ _id: '1', name: 'X-1', code: 'x' }, { _id: '2', name: 'X-2', code: 'x' }], code: 'x' },
   ])
 
   // addMutation blocked
-  db.orders.mutate({ $merge: { z: 1 } })
-  expect(db.orders.mutateData).toHaveBeenCalledTimes(1)
-  expect(db.orders.getById().z).toBe(undefined)
+  db.mutate('orders', { $merge: { z: 1 } })
+  expect(db.getById('orders').z).toBe(undefined)
 })

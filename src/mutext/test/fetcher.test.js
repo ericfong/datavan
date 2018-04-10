@@ -7,13 +7,13 @@ test('findAsync', async () => {
   const onFetch = jest.fn(onFetchEcho)
   const db = createDb({ users: { onFetch } })
   expect(onFetch).toHaveBeenCalledTimes(0)
-  expect(await db.users.findAsync(['a'])).toEqual([{ _id: 'a', name: 'A' }])
+  expect(await db.findAsync('users', ['a'])).toEqual([{ _id: 'a', name: 'A' }])
   expect(onFetch).toHaveBeenCalledTimes(1)
   // same query will hit cache
-  await db.users.findAsync(['a'])
+  await db.findAsync('users', ['a'])
   expect(onFetch).toHaveBeenCalledTimes(1)
   // can force
-  await db.users.findAsync(['a'], { force: true })
+  await db.findAsync('users', ['a'], { force: true })
   expect(onFetch).toHaveBeenCalledTimes(2)
 })
 
@@ -32,14 +32,14 @@ test('fetchMaxAge', async () => {
   onFetch.mockClear()
 
   // all id is hit
-  db.users.find(['a'])
+  db.find('users', ['a'])
   expect(onFetch).toHaveBeenCalledTimes(0)
   // hit initState.fetchAts
-  db.users.find({})
+  db.find('users', {})
   expect(onFetch).toHaveBeenCalledTimes(0)
   await delay(100)
-  db.users.find({})
+  db.find('users', {})
   expect(onFetch).toHaveBeenCalledTimes(1)
-  db.users.find(['a'])
+  db.find('users', ['a'])
   expect(onFetch).toHaveBeenCalledTimes(2)
 })

@@ -1,0 +1,121 @@
+import _ from 'lodash'
+
+export default {
+  load(name, res, returnMutation) {
+    if (!name) return
+    if (typeof name === 'object') {
+      return this.dispatch(_.mapValues(name, (data, _name) => this.load(_name, data, true)))
+    }
+
+    const coll = this[name]
+    const { idField } = coll
+
+    // normalizeLoadData
+    let resPreloads = res.preloads || res.byId || res
+    if (Array.isArray(resPreloads)) resPreloads = _.mapKeys(resPreloads, (doc, i) => (doc && doc[idField]) || i)
+
+    const mutations = []
+
+    // move tmp id to $submittedIds before loadAsMerge
+    if (res.$submittedIds) {
+      const submits = this.getSubmits(name)
+      const $unset = []
+      const merge = {}
+      _.each(res.$submittedIds, (newId, oldId) => {
+        // move oldId to newId
+        if (newId && oldId in submits) {
+          merge[newId] = submits[oldId]
+        }
+        $unset.push(oldId)
+      })
+      mutations.push({ submits: { $unset, $merge: merge }, originals: { $unset }, preloads: { $unset } })
+    }
+
+    const mutation = {}
+    if (resPreloads) {
+      const now = Date.now()
+      const { _byIdAts, preloads } = this.getFetchData(name)
+      resPreloads = _.mapValues(resPreloads, (inDoc, id) => {
+        _byIdAts[id] = now
+        return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, preloads[id]) : inDoc
+      })
+      mutation.preloads = { $merge: resPreloads }
+    }
+    if (res.submits) mutation.submits = { $merge: res.submits }
+    if (res.originals) mutation.originals = { $merge: res.originals }
+    if (res.fetchAts) mutation.fetchAts = { $merge: res.fetchAts }
+    mutations.push(mutation)
+
+    // NOTE for server to pick-it back invalidate or reset data
+    if (res.$invalidate) this.invalidate(name, res.$invalidate)
+    if (res.$reset) this.reset(name, res.$reset)
+
+    if (returnMutation) return mutations
+    this.mutateData(name, mutations)
+  },
+
+  // @auto-fold here
+  set(...args) {
+    const last = args.length - 1
+    args[last] = { $set: args[last] }
+    this.mutate(...args)
+  },
+
+  // @auto-fold here
+  invalidate(name, _ids) {
+    const fetchData = this.getFetchData(name)
+    fetchData._byIdAts = _ids ? _.omit(fetchData._byIdAts, _ids) : {}
+    const delIds = _ids || Object.keys(fetchData.preloads)
+    // if any change in byIds, clear all query cache
+    if (delIds.length > 0) {
+      this.mutateData(name, { fetchAts: { $set: {} } })
+    }
+  },
+
+  // @auto-fold here
+  reset(name, ids) {
+    this.invalidate(name, ids)
+    const mut = {}
+    mut.submits = ids ? { $unset: ids } : { $set: {} }
+    mut.originals = mut.submits
+    this.mutateData(name, mut)
+  },
+
+  // @auto-fold here
+  insert(name, docs) {
+    const inputIsArray = Array.isArray(docs)
+    const inserts = inputIsArray ? docs : [docs]
+    const merge = {}
+    const coll = this[name]
+    const { idField } = coll
+    const insertedDocs = _.map(inserts, doc => {
+      let id = doc[idField]
+      if (!id) id = doc[idField] = this.genId()
+      if (coll.onInsert) coll.onInsert(doc)
+      merge[id] = doc
+      return doc
+    })
+    this.mutate(name, { $merge: merge })
+    return inputIsArray ? insertedDocs : insertedDocs[0]
+  },
+
+  // @auto-fold here
+  update(name, query, updates) {
+    const oldDocs = this.pickInMemory(name, query)
+    const coll = this[name]
+    const { idField } = coll
+    const mut = {}
+    _.each(oldDocs, doc => {
+      mut[doc[idField]] = updates
+    })
+    this.mutate(name, mut)
+    return oldDocs
+  },
+
+  // @auto-fold here
+  remove(name, query) {
+    const removedDocs = this.pickInMemory(name, query)
+    this.mutate(name, { $unset: _.keys(removedDocs) })
+    return removedDocs
+  },
+}

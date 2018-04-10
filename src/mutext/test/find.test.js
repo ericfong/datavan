@@ -3,42 +3,22 @@ import _ from 'lodash'
 import { createDb, pickBy, filter, TMP_ID_PREFIX as TMP } from '..'
 import { onFetchEcho, onFetchById } from './test-util'
 
-test.skip('find inResponse', async () => {
-  const db = createDb({
-    users: {
-      onFetch({ $$search, $$limit }) {
-        const res = _.map(_.range(0, $$limit), i => ({ _id: `${$$search}-${i}`, name: `${$$limit}-${i}` }))
-        return Promise.resolve(res)
-      },
-    },
-  })
-
-  const getIds = docs => _.map(docs, '_id').sort()
-  const findInResponse = (q, opt) => getIds(db.users.find(q, opt))
-
-  findInResponse({ $$search: 'a', $$limit: 2 })
-  findInResponse({ $$search: 'b', $$limit: 3 })
-
-  await db.users.getPending()
-  expect(getIds(db.users.getById())).toEqual(['a-0', 'a-1', 'b-0', 'b-1', 'b-2'])
-
-  expect(findInResponse({ $$search: 'a', $$limit: 2 })).toEqual(['a-0', 'a-1'])
-  expect(findInResponse({ $$search: 'b', $$limit: 3 })).toEqual(['b-0', 'b-1', 'b-2'])
-})
-
 test('find in original', async () => {
   const db = createDb({ users: { onFetch: onFetchEcho } })
-  await db.users.findAsync(['a', 'b'])
-  db.users.update({ name: 'A' }, { $merge: { newField: 1 } })
-  expect(_.map(db.users.getById(), 'name')).toEqual(['A', 'B'])
-  db.users.insert({ _id: 'c', name: 'C' })
-  expect(filter({ ...db.users.getPreloads(), ...db.users.getOriginals() }, {})).toEqual([{ _id: 'a', name: 'A' }, { _id: 'b', name: 'B' }])
-  expect(_.map(db.users.getById(), 'name')).toEqual(['A', 'B', 'C'])
+  await db.findAsync('users', ['a', 'b'])
+  db.update('users', { name: 'A' }, { $merge: { newField: 1 } })
+  expect(_.map(db.getById('users'), 'name')).toEqual(['A', 'B'])
+  db.insert('users', { _id: 'c', name: 'C' })
+  expect(filter({ ...db.getPreloads('users'), ...db.getOriginals('users') }, {})).toEqual([
+    { _id: 'a', name: 'A' },
+    { _id: 'b', name: 'B' },
+  ])
+  expect(_.map(db.getById('users'), 'name')).toEqual(['A', 'B', 'C'])
 })
 
 test('findAsync', async () => {
   const db = createDb({ users: { onFetch: onFetchEcho } })
-  expect(await db.users.findAsync(['a'])).toEqual([{ _id: 'a', name: 'A' }])
+  expect(await db.findAsync('users', ['a'])).toEqual([{ _id: 'a', name: 'A' }])
 })
 
 test('query = null or undefined', async () => {
@@ -58,21 +38,21 @@ test('query = null or undefined', async () => {
       },
     },
   })
-  expect(db.users.getById()).toEqual({ 1: { key: 'x-key', value: 'x-val' }, 2: { key: 'y-key', value: 'y-val' }, 3: null })
-  expect(db.users.pick() |> _.values).toHaveLength(3)
-  expect(db.users.pick(null) |> _.values).toHaveLength(3)
+  expect(db.getById('users')).toEqual({ 1: { key: 'x-key', value: 'x-val' }, 2: { key: 'y-key', value: 'y-val' }, 3: null })
+  expect(db.pick('users') |> _.values).toHaveLength(3)
+  expect(db.pick('users', null) |> _.values).toHaveLength(3)
   // query={} will skip all falsy doc, BUT query=null
-  expect(db.users.pick({}) |> _.values).toHaveLength(2)
-  expect(db.users.pick('') |> _.values).toHaveLength(0)
-  expect(db.users.pick([]) |> _.values).toHaveLength(0)
+  expect(db.pick('users', {}) |> _.values).toHaveLength(2)
+  expect(db.pick('users', '') |> _.values).toHaveLength(0)
+  expect(db.pick('users', []) |> _.values).toHaveLength(0)
 })
 
 test('hasFetch cache', async () => {
   const onFetch = jest.fn((query, option, self) => onFetchById(query, self.idField, () => undefined))
   const db = createDb({ users: { onFetch } })
-  db.users.find(['id-123'])
-  await db.users.getPending()
-  db.users.find(['id-123'])
+  db.find('users', ['id-123'])
+  await db.getPending('users')
+  db.find('users', ['id-123'])
   expect(onFetch).toHaveBeenCalledTimes(1)
 })
 
@@ -81,37 +61,38 @@ test('onFetch with $invalidate', async () => {
     Promise.resolve({
       byId: { 'id-123': undefined },
       $invalidate: ['id-123'],
-    }))
+    })
+  )
   const db = createDb({ users: { onFetch } })
-  db.users.find(['id-123'])
-  await db.users.getPending()
-  db.users.find(['id-123'])
+  db.find('users', ['id-123'])
+  await db.getPending('users')
+  db.find('users', ['id-123'])
   expect(onFetch).toHaveBeenCalledTimes(2)
 })
 
 test('without tmp-id', async () => {
   const db = createDb({ users: { onFetch: jest.fn(onFetchEcho) } })
   // won't call onFetch if only null or tmp
-  db.users.find([`${TMP}-123`, null, `${TMP}-456`])
+  db.find('users', [`${TMP}-123`, null, `${TMP}-456`])
   expect(db.users.onFetch).toHaveBeenCalledTimes(0)
-  db.users.get(undefined)
-  db.users.get(null)
+  db.get('users', undefined)
+  db.get('users', null)
   expect(db.users.onFetch).toHaveBeenCalledTimes(0)
 
   // removed tmp-id
-  db.users.find(['db-id-abc', `${TMP}-123`, 'db-id-xyz', `${TMP}-456`])
+  db.find('users', ['db-id-abc', `${TMP}-123`, 'db-id-xyz', `${TMP}-456`])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
   expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual({ _id: { $in: ['db-id-abc', 'db-id-xyz'] } })
 
   // reverse will use same cacheKey??
-  db.users.find(['db-id-xyz', 'db-id-abc'])
+  db.find('users', ['db-id-xyz', 'db-id-abc'])
   expect(_.last(db.users.onFetch.mock.calls)[0]).toEqual({ _id: { $in: ['db-id-abc', 'db-id-xyz'] } })
 
   // find other fields with tmp id
   db.users.onFetch.mockClear()
-  db.users.find({ userId: `${TMP}-123`, deleted: 0 })
+  db.find('users', { userId: `${TMP}-123`, deleted: 0 })
   expect(db.users.onFetch).toHaveBeenCalledTimes(0)
-  db.users.find({ userId: { $in: [`${TMP}-123`] }, deleted: 0 })
+  db.find('users', { userId: { $in: [`${TMP}-123`] }, deleted: 0 })
   expect(db.users.onFetch).toHaveBeenCalledTimes(0)
 })
 
@@ -123,26 +104,26 @@ test('consider getFetchKey', async () => {
     },
   })
 
-  db.users.find(['db-1'])
+  db.find('users', ['db-1'])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
-  db.users.find(['db-2'])
+  db.find('users', ['db-2'])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
-  db.users.find(['db-3'])
+  db.find('users', ['db-3'])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
-  db.users.get('db-4')
+  db.get('users', 'db-4')
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
 
   // invalid id won't refetch
-  db.users.find([null])
+  db.find('users', [null])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
-  await db.users.getPending()
-  db.users.find([null])
+  await db.getPending('users')
+  db.find('users', [null])
   expect(db.users.onFetch).toHaveBeenCalledTimes(1)
 })
 
 test('findInMemory', async () => {
   const db = createDb({ users: { onFetch: jest.fn(onFetchEcho) } })
-  pickBy(db.users.getById(), ['db-1'])
+  pickBy(db.getById('users'), ['db-1'])
   expect(db.users.onFetch).toHaveBeenCalledTimes(0)
 })
 
@@ -151,51 +132,55 @@ test('basic', async () => {
   let calledGet = 0
   const db = createDb({
     users: {
-      onFetch: jest.fn((query, option, collection) => {
+      onFetch: jest.fn((query, option, _db, name) => {
         if (query) {
           const ids = _.get(query, ['_id', '$in'])
           if (ids) {
             ++calledGet
             // console.log('onFetch get', ids, calledGet)
-            return Promise.resolve(_.compact(_.map(ids, id => {
-              if (id === 'not_exists') return null
-              return { _id: id, name: `${id} name` }
-            })))
+            return Promise.resolve(
+              _.compact(
+                _.map(ids, id => {
+                  if (id === 'not_exists') return null
+                  return { _id: id, name: `${id} name` }
+                })
+              )
+            )
           }
         }
         ++calledFind
-        return Promise.resolve([{ _id: 'u2', name: `${collection.name} Eric` }])
+        return Promise.resolve([{ _id: 'u2', name: `${name} Eric` }])
       }),
     },
   })
 
   // normal get
-  expect(db.users.get('u1')).toBe(undefined)
-  await db.users.getPending()
-  expect(db.users.get('u1')).toEqual({ _id: 'u1', name: 'u1 name' })
+  expect(db.get('users', 'u1')).toBe(undefined)
+  await db.getPending('users')
+  expect(db.get('users', 'u1')).toEqual({ _id: 'u1', name: 'u1 name' })
 
   // find again will same as search
-  expect(db.users.find({})).toEqual([{ _id: 'u1', name: 'u1 name' }])
-  await db.users.getPending()
-  expect(db.users.find({})).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
+  expect(db.find('users', {})).toEqual([{ _id: 'u1', name: 'u1 name' }])
+  await db.getPending('users')
+  expect(db.find('users', {})).toEqual([{ _id: 'u1', name: 'u1 name' }, { _id: 'u2', name: 'users Eric' }])
 
   expect(calledGet).toBe(1)
-  db.users.get('u1')
-  await db.users.getPending()
+  db.get('users', 'u1')
+  await db.getPending('users')
   expect(calledGet).toBe(1)
 
   // load something missing
-  db.users.get('not_exists')
-  await db.users.getPending()
+  db.get('users', 'not_exists')
+  await db.getPending('users')
   expect(calledGet).toBe(2)
 
   // load local won't affect
-  db.users.get('u1')
+  db.get('users', 'u1')
   expect(calledGet).toBe(2)
 
   expect(calledFind).toBe(1)
   expect(calledGet).toBe(2)
-  expect(db.users.getById()).toEqual({
+  expect(db.getById('users')).toEqual({
     u1: { _id: 'u1', name: 'u1 name' },
     u2: { _id: 'u2', name: 'users Eric' },
   })

@@ -9,7 +9,7 @@ export const TMP_ID_PREFIX = 'dv~'
 
 export const tmpIdRegExp = /^dv~(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)~([.\d]+)~(.+)/
 
-export const getDeviceName = state => (state && state.deviceName) || 'tmp'
+export const getDeviceName = db => (db && db.deviceName) || 'tmp'
 
 // NOTE query key with $$ prefix are omitted in query but send to fetcher
 const startsWith$$ = (v, k) => _.startsWith(k, '$$')
@@ -64,7 +64,7 @@ export const mutateCollection = (prev, mutation) => {
 
   const next = mutateUtil(prev, mutation)
   if (next !== prev) {
-    next.cache = {}
+    next._cache = {}
 
     if (next.cast) {
       checkCastById('submits', next, prev, mutation)

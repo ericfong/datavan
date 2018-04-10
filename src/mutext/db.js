@@ -1,6 +1,8 @@
 import _ from 'lodash'
 
-import createCollection from './collection'
+import collectionCore from './collectionCore'
+import collectionRead from './collectionRead'
+import collectionWrite from './collectionWrite'
 import { mutateCollection } from './collection-util'
 
 const reduce = (prevState, totalMutation) => {
@@ -16,8 +18,6 @@ const reduce = (prevState, totalMutation) => {
 }
 
 const createDb = config => {
-  const getConfig = () => config
-
   const subscribers = []
   const subscribe = subscriber => {
     subscribers.push(subscriber)
@@ -32,17 +32,9 @@ const createDb = config => {
   let isStarted = false
 
   const db = {
-    loadCollections(datas) {
-      const action = _.mapValues(datas, (data, name) => {
-        const coll = db[name]
-        return coll ? coll.load(data, true) : {}
-      })
-      db.dispatch(action)
-    },
-
-    getState() {
-      return db
-    },
+    ...collectionCore,
+    ...collectionRead,
+    ...collectionWrite,
 
     dispatch(action) {
       // TODO prepare for batch reduce?
@@ -54,15 +46,34 @@ const createDb = config => {
       }
     },
     subscribe,
-    getConfig,
+
+    getConfig: () => config,
   }
 
   // create collections
-  const colls = _.mapValues(_.pickBy(config, _.isPlainObject), (conf, name) => createCollection(conf, name, db))
+  const colls = _.mapValues(_.pickBy(config, _.isPlainObject), (conf, name) => ({
+    // local persist
+    submits: {},
+    originals: {},
+    // local memory
+    _cache: {},
+
+    // fetch persist
+    preloads: {},
+    fetchAts: {},
+    // fetch memory
+    fetchingAt: null,
+    _fetchPromises: {},
+    _byIdAts: {},
+
+    idField: '_id',
+    ...conf,
+  }))
   Object.assign(db, colls)
+
   // init collections
   _.each(colls, (coll, name) => {
-    if (coll.initState) coll = db[name] = mutateCollection(coll, coll.load(coll.initState, true))
+    if (coll.initState) coll = db[name] = mutateCollection(coll, db.load(name, coll.initState, true))
     if (coll.onInit) coll.onInit(coll)
   })
 
