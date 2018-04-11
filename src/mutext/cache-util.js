@@ -26,7 +26,7 @@ export const createBatchMemoizer = ({ handler, onSuccess } = {}) => {
     const useDb = {
       ...db,
       // TODO fetchingAt?
-      ...['getSubmits', 'getOriginals', 'getPreloads'].reduce((newDb, funcName) => {
+      ...['recall', 'getById', 'getSubmits', 'getOriginals', 'getPreloads'].reduce((newDb, funcName) => {
         newDb[funcName] = (...args) => {
           // record touched name
           touchNames[args[0]] = true
