@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { createElement, Component } from 'react'
 import createReactContext from 'create-react-context'
 
@@ -61,6 +62,17 @@ const createDatavanContext = config => {
   Object.assign(VanConsumer, {
     Provider: VanProvider,
     config,
+
+    hoc: (propKeys, mapFunc) => {
+      if (!mapFunc) return BaseComponent => BaseComponent
+      propKeys = _.uniq(_.compact(propKeys))
+
+      return BaseComponent => props =>
+        createElement(VanConsumer, props, db => {
+          const dataProps = db.memoize(mapFunc, _.pick(props, propKeys))
+          return createElement(BaseComponent, { ...props, ...dataProps })
+        })
+    },
   })
 
   return VanConsumer
