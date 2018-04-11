@@ -69,8 +69,8 @@ const createDatavanContext = config => {
 
       return BaseComponent => props =>
         createElement(VanConsumer, props, db => {
-          const dataProps = db.memoize(mapFunc, _.pick(props, propKeys))
-          return createElement(BaseComponent, { ...props, ...dataProps })
+          const dataProps = db.memoize(mapFunc, _.pick(props, propKeys), props)
+          return createElement(BaseComponent, { ...props, db, ...dataProps })
         })
     },
   })
