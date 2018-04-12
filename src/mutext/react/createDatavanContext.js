@@ -64,12 +64,10 @@ const createDatavanContext = config => {
     config,
 
     hoc: (propKeys, mapFunc) => {
-      if (!mapFunc) return BaseComponent => BaseComponent
       propKeys = _.uniq(_.compact(propKeys))
-
       return BaseComponent => props =>
         createElement(VanConsumer, props, db => {
-          const dataProps = db.memoize(mapFunc, _.pick(props, propKeys), props)
+          const dataProps = mapFunc && db.memoize(mapFunc, _.pick(props, propKeys), props)
           return createElement(BaseComponent, { ...props, db, ...dataProps })
         })
     },
