@@ -86,6 +86,7 @@ test('load stored data sync', async () => {
       },
     },
   })
+  expect(onChange).toHaveBeenCalledTimes(1)
 
   // get, set before rehydrate
   db.insert('users', { ...db.get('users', 't1'), num: 2 })

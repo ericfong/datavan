@@ -4,8 +4,9 @@ export default {
   load(name, res, returnMutation) {
     if (!name) return
     if (typeof name === 'object') {
-      return this.dispatch(_.mapValues(name, (data, _name) => this.load(_name, data, true)))
+      return this.dispatch(_.pickBy(_.mapValues(name, (data, n) => this.load(n, data, true))))
     }
+    if (!res) return
 
     const coll = this[name]
     const { idField } = coll
