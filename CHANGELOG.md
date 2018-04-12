@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-4"></a>
+# [4.0.0-4](https://github.com/ericfong/datavan/compare/v4.0.0-3...v4.0.0-4) (2018-04-12)
+
+
+### Bug Fixes
+
+* hoc still pass db if no propKeys or mapFunc ([5bead60](https://github.com/ericfong/datavan/commit/5bead60))
+* prevent load falsy value ([057c1de](https://github.com/ericfong/datavan/commit/057c1de))
+* use getLatestDb to get latest data ([66e0209](https://github.com/ericfong/datavan/commit/66e0209))
+
+
+
 <a name="4.0.0-3"></a>
 # [4.0.0-3](https://github.com/ericfong/datavan/compare/v4.0.0-2...v4.0.0-3) (2018-04-11)
 
