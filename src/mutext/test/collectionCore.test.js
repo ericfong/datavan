@@ -10,6 +10,15 @@ function onFetch(query, option, coll) {
   return Promise.resolve([{ id: 'u2', name: `${coll.name} Eric` }])
 }
 
+test('getLatestDb', async () => {
+  const db = createDb({ users: {} })
+  const dbClone = { ...db }
+  dbClone.insert('users', { name: 'Apple' })
+  expect(_.map(dbClone.getById('users'), 'name')).toEqual(['Apple'])
+  dbClone.insert('users', { name: 'Car' })
+  expect(_.map(dbClone.getById('users'), 'name')).toEqual(['Apple', 'Car'])
+})
+
 test('getSubmits', async () => {
   const db = createDb({ users: { idField: 'id', onFetch } })
 

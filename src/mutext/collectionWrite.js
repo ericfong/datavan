@@ -8,8 +8,7 @@ export default {
     }
     if (!res) return
 
-    const coll = this[name]
-    const { idField } = coll
+    const { idField } = this[name]
 
     // normalizeLoadData
     let resPreloads = res.preloads || res.byId || res
@@ -103,8 +102,7 @@ export default {
   // @auto-fold here
   update(name, query, updates) {
     const oldDocs = this.pickInMemory(name, query)
-    const coll = this[name]
-    const { idField } = coll
+    const { idField } = this[name]
     const mut = {}
     _.each(oldDocs, doc => {
       mut[doc[idField]] = updates

@@ -16,27 +16,28 @@ const tryCache = (cache, key, func) => {
   return (cache[key] = func()) // eslint-disable-line
 }
 
-const getData = (coll, field, funcName) => {
+const getData = (db, name, field, funcName) => {
+  const coll = db.getLatestDb()[name]
   const fn = coll[funcName]
   return typeof fn === 'function' ? fn(coll) : coll[field]
 }
 
 export default {
   getFetchData(name) {
-    return this[name]
+    return this.getLatestDb()[name]
   },
 
   getSubmits(name) {
-    return getData(this[name], 'submits', 'getSubmits')
+    return getData(this, name, 'submits', 'getSubmits')
   },
   getOriginals(name) {
-    return getData(this[name], 'originals', 'getOriginals')
+    return getData(this, name, 'originals', 'getOriginals')
   },
   getPreloads(name) {
     return this.getFetchData(name).preloads
   },
   getById(name) {
-    return tryCache(this[name]._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
+    return tryCache(this.getLatestDb()[name]._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
   },
 
   pickInMemory(name, query) {
@@ -47,7 +48,7 @@ export default {
   },
 
   recall(name, fnName, ...args) {
-    const coll = this[name]
+    const coll = this.getLatestDb()[name]
     const func = coll[fnName] || (fnName === 'buildIndex' ? buildIndex : null)
     return tryCache(coll._cache, `${fnName}-${stringify(args)}`, () => func.apply(coll, [this.getById(name), ...args]))
   },
@@ -66,35 +67,33 @@ export default {
   },
   mutate(name, ...args) {
     const mutSubmits = args.reduceRight((ret, step) => ({ [step]: ret }))
-    const mutation = { submits: mutSubmits }
-    if (mutSubmits) {
-      const submits = this.getSubmits(name)
-      const originals = this.getOriginals(name)
-      const preloads = this.getPreloads(name)
-      // copt preloads to originals
-      const newOriginals = {}
-      const _keepOriginal = k => {
-        if (!(k in submits)) {
-          // copy to submits to prepare mutation
-          submits[k] = preloads[k]
-        }
-        if (!(k in originals)) {
-          // need to convert undefined original to null, for persist
-          const newOriginal = preloads[k]
-          newOriginals[k] = newOriginal === undefined ? null : newOriginal
-        }
+    const newOriginals = {}
+
+    const oldSubmits = this.getSubmits(name)
+    const oldOriginals = this.getOriginals(name)
+    const oldPreloads = this.getPreloads(name)
+    // copy preloads to originals
+    const _keepOriginal = k => {
+      if (!(k in oldSubmits)) {
+        // copy to submits to prepare mutation
+        oldSubmits[k] = oldPreloads[k]
       }
-      _.each(mutSubmits, (submit, id) => {
-        if (id === '$unset') {
-          _.each(submit, _keepOriginal)
-        } else if (id === '$merge') {
-          _.each(submit, (subSubMut, subId) => _keepOriginal(subId))
-        } else {
-          _keepOriginal(id)
-        }
-      })
-      mutation.originals = { $merge: newOriginals }
+      if (!(k in oldOriginals)) {
+        // need to convert undefined original to null, for persist
+        const newOriginal = oldPreloads[k]
+        newOriginals[k] = newOriginal === undefined ? null : newOriginal
+      }
     }
-    this.mutateData(name, mutation)
+    _.each(mutSubmits, (submit, id) => {
+      if (id === '$unset') {
+        _.each(submit, _keepOriginal)
+      } else if (id === '$merge') {
+        _.each(submit, (subSubMut, subId) => _keepOriginal(subId))
+      } else {
+        _keepOriginal(id)
+      }
+    })
+
+    this.mutateData(name, { submits: mutSubmits, originals: { $merge: newOriginals } })
   },
 }

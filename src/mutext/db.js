@@ -48,6 +48,7 @@ const createDb = config => {
     subscribe,
 
     getConfig: () => config,
+    getLatestDb: () => db,
   }
 
   // create collections
