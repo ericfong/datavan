@@ -25,8 +25,8 @@ export const createBatchMemoizer = ({ handler, onSuccess } = {}) => {
     const touchNames = {}
     const useDb = {
       ...db,
-      // TODO fetchingAt?
-      ...['recall', 'getById', 'getSubmits', 'getOriginals', 'getPreloads'].reduce((newDb, funcName) => {
+      // should include tryCache wrapped function
+      ...['recall', 'getById', 'getSubmits', 'getOriginals', 'getFetchData'].reduce((newDb, funcName) => {
         newDb[funcName] = (...args) => {
           // record touched name
           touchNames[args[0]] = true

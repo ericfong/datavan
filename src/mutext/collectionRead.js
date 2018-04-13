@@ -6,20 +6,18 @@ import { TMP_ID_PREFIX } from './collection-util'
 export const defaultGetFetchKey = (query, option) => stringify({ ..._.omitBy(option, (v, k) => k[0] === '_'), ...query })
 
 // @auto-fold here
-const markPromise = (db, name, key, promise) => {
-  if (key !== undefined) return promise
-  const { _fetchPromises } = db[name]
-  const oldPromise = _fetchPromises[key]
+const markPromise = (coll, fetchKey, func) => {
+  const { _fetchPromises } = coll
+  const oldPromise = _fetchPromises[fetchKey]
   if (oldPromise) return oldPromise
+
   const markPromiseDone = () => {
-    if (_fetchPromises[key] === promise) {
-      delete _fetchPromises[key]
-      if (Object.keys(_fetchPromises).length === 0) {
-        db.mutateData(name, { $merge: { fetchingAt: undefined } })
-      }
+    delete _fetchPromises[fetchKey]
+    if (Object.keys(_fetchPromises).length === 0) {
+      coll.getDb().mutateData(coll.name, { $merge: { fetchingAt: undefined } })
     }
   }
-  promise
+  const promise = (_fetchPromises[fetchKey] = func()
     .then(ret => {
       markPromiseDone()
       return ret
@@ -27,12 +25,11 @@ const markPromise = (db, name, key, promise) => {
     .catch(err => {
       markPromiseDone()
       return Promise.reject(err)
-    })
-  _fetchPromises[key] = promise
+    }))
   // ensure fetchingAt is set to coll instantaneously
   const fetchingAt = Date.now()
-  db[name].fetchingAt = fetchingAt
-  db.mutateData(name, { $merge: { fetchingAt } })
+  coll.fetchingAt = fetchingAt
+  coll.getDb().mutateData(coll.name, { $merge: { fetchingAt } })
   return promise
 }
 
@@ -100,18 +97,19 @@ function doFetch(db, name, query, option) {
     const now = Date.now()
     // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
     if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
-      return coll._fetchResults[fetchKey]
+      return option._keepFetchResult ? coll._fetchPromises[fetchKey] : coll._fetchResults[fetchKey]
     }
   }
 
   // doFetch
   coll.fetchAts[fetchKey] = Date.now()
-  const p = Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
-    if (option._keepFetchResult) coll._fetchResults[fetchKey] = res
-    db.load(name, res)
-    return res
-  })
-  return markPromise(db, name, fetchKey, p)
+  return markPromise(coll, fetchKey, () =>
+    Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
+      if (option._keepFetchResult) coll._fetchResults[fetchKey] = res
+      db.load(name, res)
+      return res
+    })
+  )
 }
 
 export default {
