@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-5"></a>
+# [4.0.0-5](https://github.com/ericfong/datavan/compare/v4.0.0-4...v4.0.0-5) (2018-04-13)
+
+
+### Bug Fixes
+
+* add back getFetchQuery to modify ajax query ([15cf6f3](https://github.com/ericfong/datavan/commit/15cf6f3))
+* fetch always return promise ([488edb2](https://github.com/ericfong/datavan/commit/488edb2))
+
+
+
 <a name="4.0.0-4"></a>
 # [4.0.0-4](https://github.com/ericfong/datavan/compare/v4.0.0-3...v4.0.0-4) (2018-04-12)
 
