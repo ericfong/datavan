@@ -63,6 +63,10 @@ export default {
 
   // @auto-fold here
   invalidate(name, _ids) {
+    if (!name) {
+      return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
+    }
+
     const fetchData = this.getFetchData(name)
     fetchData._byIdAts = _ids ? _.omit(fetchData._byIdAts, _ids) : {}
     const delIds = _ids || Object.keys(fetchData.preloads)
@@ -74,6 +78,10 @@ export default {
 
   // @auto-fold here
   reset(name, ids) {
+    if (!name) {
+      return _.each(this.getConfig(), (conf, n) => this.reset(n))
+    }
+
     this.invalidate(name, ids)
     const mut = {}
     mut.submits = ids ? { $unset: ids } : { $set: {} }
