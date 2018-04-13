@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-6"></a>
+# [4.0.0-6](https://github.com/ericfong/datavan/compare/v4.0.0-5...v4.0.0-6) (2018-04-13)
+
+
+### Features
+
+* can reset and invalidate all collections ([70ef81b](https://github.com/ericfong/datavan/commit/70ef81b))
+
+
+
 <a name="4.0.0-5"></a>
 # [4.0.0-5](https://github.com/ericfong/datavan/compare/v4.0.0-4...v4.0.0-5) (2018-04-13)
 
