@@ -36,7 +36,7 @@ const markPromise = (coll, fetchKey, func) => {
 const isTmpId = id => !id || _.startsWith(id, TMP_ID_PREFIX)
 const sortUniqFilter = ids => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id))
 // @auto-fold here
-const prepareFetchQuery = (query, idField) => {
+const defaultGetFetchQuery = (query, idField) => {
   if (!query) return query
 
   if (Array.isArray(query)) {
@@ -83,11 +83,13 @@ function doFetch(db, name, query, option) {
   const coll = db.getFetchData(name)
   if (!coll.onFetch) return undefined
 
-  const fetchQuery = prepareFetchQuery(query, coll.idField)
+  // use getFetchQuery to modify final ajax call query
+  const fetchQuery = (coll.getFetchQuery || defaultGetFetchQuery)(query, coll.idField)
   const notForce = !option.force
   if (notForce && fetchQuery === false) return undefined
   if (notForce && isAllIdHit(coll, fetchQuery)) return undefined
 
+  // use getFetchKey to stringify into querystring like key
   const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
   if (notForce && fetchKey === false) return undefined
   option._fetchKey = fetchKey
