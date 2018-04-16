@@ -66,14 +66,10 @@ export default {
     if (!name) {
       return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
     }
-
     const fetchData = this.getFetchData(name)
     fetchData._byIdAts = _ids ? _.omit(fetchData._byIdAts, _ids) : {}
-    const delIds = _ids || Object.keys(fetchData.preloads)
-    // if any change in byIds, clear all query cache
-    if (delIds.length > 0) {
-      this.mutateData(name, { fetchAts: { $set: {} } })
-    }
+    // clear all query cache
+    this.mutateData(name, { fetchAts: { $set: {} } })
   },
 
   // @auto-fold here
