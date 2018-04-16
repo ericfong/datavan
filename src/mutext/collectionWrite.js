@@ -37,7 +37,7 @@ export default {
       const { _byIdAts, preloads } = this.getFetchData(name)
       resPreloads = _.mapValues(resPreloads, (inDoc, id) => {
         _byIdAts[id] = now
-        return inDoc && typeof inDoc === 'object' ? _.defaults(inDoc, preloads[id]) : inDoc
+        return _.isPlainObject(inDoc) ? _.defaults(inDoc, preloads[id]) : inDoc
       })
       mutation.preloads = { $merge: resPreloads }
     }
