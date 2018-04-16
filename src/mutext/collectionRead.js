@@ -99,7 +99,8 @@ function doFetch(db, name, query, option) {
     const now = Date.now()
     // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
     if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
-      return option._keepFetchResult ? coll._fetchPromises[fetchKey] : coll._fetchResults[fetchKey]
+      if (option._keepFetchResult) return coll._fetchPromises[fetchKey] || coll._fetchResults[fetchKey]
+      return false
     }
   }
 
