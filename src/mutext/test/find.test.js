@@ -39,9 +39,9 @@ test('query = null or undefined', async () => {
     },
   })
   expect(db.getById('users')).toEqual({ 1: { key: 'x-key', value: 'x-val' }, 2: { key: 'y-key', value: 'y-val' }, 3: null })
-  expect(db.pick('users') |> _.values).toHaveLength(3)
-  expect(db.pick('users', null) |> _.values).toHaveLength(3)
-  // query={} will skip all falsy doc, BUT query=null
+  expect(db.pick('users') |> _.values).toHaveLength(4)
+  expect(db.pick('users', null) |> _.values).toHaveLength(4)
+  // query={} will skip all falsy doc, BUT query=null will NOT
   expect(db.pick('users', {}) |> _.values).toHaveLength(2)
   expect(db.pick('users', '') |> _.values).toHaveLength(0)
   expect(db.pick('users', []) |> _.values).toHaveLength(0)

@@ -7,7 +7,8 @@ test('load same $submittedIds again', async () => {
   const db = createDb({ users: {} })
   const tmpId = genTmpId()
 
-  db.load('users', { [tmpId]: { _id: tmpId, name: 'tmp' } })
+  db.load('users', { submits: { [tmpId]: { _id: tmpId, name: 'tmp' } } })
+  expect(db.getSubmits('users')).toEqual({ [tmpId]: { _id: tmpId, name: 'tmp' } })
   expect(db.getById('users')).toEqual({ [tmpId]: { _id: tmpId, name: 'tmp' } })
 
   const storedId = 'storedId'

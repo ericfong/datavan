@@ -35,6 +35,8 @@ export const filter = (byId, query) => {
   return _.filter(byId, mingoTester(query))
 }
 
+mutateUtil.extend('$auto', (value, object) => (object ? mutateUtil(object, value) : mutateUtil({}, value)))
+
 // @auto-fold here prepare cast by loop mutation.byId and mark [id] $toggle $merge
 const checkCast = (coll, nextById, prevById, id) => {
   const nextDoc = nextById[id]

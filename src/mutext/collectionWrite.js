@@ -11,35 +11,30 @@ export default {
     const { idField } = this[name]
 
     // normalizeLoadData
-    let resPreloads = res.preloads || res.byId || res
+    let resPreloads = res.preloads || res.byId || (res.submits ? null : res)
     if (Array.isArray(resPreloads)) resPreloads = _.mapKeys(resPreloads, (doc, i) => (doc && doc[idField]) || i)
 
     const mutations = []
 
     // move tmp id to $submittedIds before loadAsMerge
     if (res.$submittedIds) {
-      const submits = this.getSubmits(name)
-      const $unset = []
-      const merge = {}
-      _.each(res.$submittedIds, (newId, oldId) => {
-        // move oldId to newId
-        if (newId && oldId in submits) {
-          merge[newId] = submits[oldId]
-        }
-        $unset.push(oldId)
-      })
-      mutations.push({ submits: { $unset, $merge: merge }, originals: { $unset }, preloads: { $unset } })
+      const $unset = _.keys(res.$submittedIds)
+      mutations.push({ submits: { $unset }, originals: { $unset } })
     }
 
     const mutation = {}
     if (resPreloads) {
       const now = Date.now()
-      const { _byIdAts, preloads } = this.getFetchData(name)
-      resPreloads = _.mapValues(resPreloads, (inDoc, id) => {
+      const { _byIdAts /* , preloads */ } = this.getFetchData(name)
+      // resPreloads = _.mapValues(resPreloads, (inDoc, id) => {
+      //   _byIdAts[id] = now
+      //   return _.isPlainObject(inDoc) ? _.defaults(inDoc, preloads[id]) : inDoc
+      // })
+      // mutation.preloads = { $merge: resPreloads }
+      mutation.preloads = _.mapValues(resPreloads, (inDoc, id) => {
         _byIdAts[id] = now
-        return _.isPlainObject(inDoc) ? _.defaults(inDoc, preloads[id]) : inDoc
+        return _.isPlainObject(inDoc) ? { $auto: { $merge: inDoc } } : { $set: inDoc }
       })
-      mutation.preloads = { $merge: resPreloads }
     }
     if (res.submits) mutation.submits = { $merge: res.submits }
     if (res.originals) mutation.originals = { $merge: res.originals }
