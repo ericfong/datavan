@@ -13,8 +13,7 @@ test('work with virtual collection and recall', async () => {
       initState: [{ list: 'l1', _id: 'a', name: 'a' }, { list: 'l1', _id: 'b', name: 'b' }, { list: 'l2', _id: 'c' }],
       groupByList: byId =>
         // console.log('>> ???>', _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items })))
-        _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items }))
-      ,
+        _.mapValues(_.groupBy(byId, 'list'), (items, _id) => ({ _id, items })),
     },
     list_table: {
       getState() {
