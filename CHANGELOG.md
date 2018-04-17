@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0-7"></a>
+# [4.0.0-7](https://github.com/ericfong/datavan/compare/v4.0.0-6...v4.0.0-7) (2018-04-17)
+
+
+### Bug Fixes
+
+* defaults from preloads ([2669830](https://github.com/ericfong/datavan/commit/2669830))
+* load $submittedIds ([0f145fa](https://github.com/ericfong/datavan/commit/0f145fa))
+* return of _keepFetchResult ([ac98c95](https://github.com/ericfong/datavan/commit/ac98c95))
+
+
+### Features
+
+* $submittedIds accept array of ids ([23cc4d8](https://github.com/ericfong/datavan/commit/23cc4d8))
+
+
+
 <a name="4.0.0-6"></a>
 # [4.0.0-6](https://github.com/ericfong/datavan/compare/v4.0.0-5...v4.0.0-6) (2018-04-13)
 
