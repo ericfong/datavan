@@ -10,30 +10,30 @@ test('reset', async () => {
   expect(s.users._byIdAts.a).toBeTruthy()
 
   s.reset('users')
-  // preload still keep
-  expect(s.getById('users')).toEqual({ a: 'A' })
+  // preload invalidated
+  expect(s.getById('users')).toEqual({})
   expect(s.users._byIdAts.a).toBeFalsy()
 
   // fetch 'b'
   await s.findAsync('users', ['b']).then(arr => arr[0])
 
   s.reset('users')
-  // preload still keep
-  expect(s.getById('users')).toEqual({ a: 'A', b: 'B' })
+  // preload invalidated
+  expect(s.getById('users')).toEqual({})
   expect(s.users._byIdAts).toEqual({})
 
   // will re-fetch 'b'
   onFetch.mockClear()
   expect(onFetch).toHaveBeenCalledTimes(0)
-  s.get('users', 'b')
+  s.find('users', ['b', 'c'])
   await s.getPending('users')
   expect(onFetch).toHaveBeenCalledTimes(1)
 
   // invalidate 'b'
   expect(s.users._byIdAts.b).toBeTruthy()
   s.invalidate('users', ['b'])
-  // preload still keep
-  expect(s.getById('users')).toEqual({ a: 'A', b: 'B' })
+  // preload invalidated
+  expect(s.getById('users')).toEqual({ c: 'C' })
   expect(s.users._byIdAts.b).toBeFalsy()
 
   // re-fetch 'b' after invalidate
