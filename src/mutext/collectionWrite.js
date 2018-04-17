@@ -18,7 +18,7 @@ export default {
 
     // move tmp id to $submittedIds before loadAsMerge
     if (res.$submittedIds) {
-      const $unset = _.keys(res.$submittedIds)
+      const $unset = Array.isArray(res.$submittedIds) ? res.$submittedIds : _.keys(res.$submittedIds)
       mutations.push({ submits: { $unset }, originals: { $unset } })
     }
 

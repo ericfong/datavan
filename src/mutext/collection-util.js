@@ -13,7 +13,6 @@ export const getDeviceName = db => (db && db.deviceName) || 'tmp'
 
 // NOTE query key with $$ prefix are omitted in query but send to fetcher
 const startsWith$$ = (v, k) => _.startsWith(k, '$$')
-// export const isInResponseQuery = query => _.some(query, startsWith$$)
 
 export const genTmpId = deviceName => `${TMP_ID_PREFIX}${new Date().toISOString()}~${Math.random()}~${deviceName || ''}`
 
