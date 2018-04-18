@@ -1,4 +1,4 @@
-**datavan: wrap redux into mongodb api and can sync with server**
+**datavan: in-memory mongodb for react that can track changes and sync with server**
 
 ![https://img.shields.io/npm/v/datavan.svg](https://img.shields.io/npm/v/datavan.svg?style=flat-square)
 [![state](https://img.shields.io/badge/state-alpha-green.svg?style=flat-square)]()
@@ -6,7 +6,7 @@
 
 **Features**
 
-* based on [redux](https://www.npmjs.com/package/redux)
+* based on [New React Context](https://reactjs.org/docs/context.html)
 * mongodb-like find(), update() api
 * design with offline in mind
 * customizable server fetch, submit, persistent, conflict-resolve logic
@@ -21,41 +21,39 @@ During find(), datavan will query your local-data first. If local-data is missin
 **Table of Contents**
 
 <!-- TOC START min:1 max:3 link:true update:true -->
-
-* [Getting Started](#getting-started)
-* [Setup](#setup)
-  * [datavanEnhancer](#datavanenhancer)
-  * [use with redux's combineReducers](#use-with-reduxs-combinereducers)
-  * [data in redux store state](#data-in-redux-store-state)
-* [Better Performance](#better-performance)
-  * [connectOnChange](#connectonchange)
-  * [withMethods](#withmethods)
-* [API](#api)
-  * [find](#find)
-  * [findAsync](#findasync)
-  * [findOne](#findone)
-  * [findInMemory](#findinmemory)
-  * [checkFetch](#checkfetch)
-  * [get](#get)
-  * [getAll, getOriginals, getSubmits](#getall-getoriginals-getsubmits)
-  * [insert](#insert)
-  * [update](#update)
-  * [remove](#remove)
-  * [mutate](#mutate)
-  * [set](#set)
-  * [reset](#reset)
-  * [load](#load)
-  * [submit](#submit)
-  * [recall](#recall)
-  * [getCollection](#getcollection)
-  * [resetStore](#resetstore)
-* [Extra](#extra)
-  * [genTmpId](#gentmpid)
-  * [getState to get latest fetching time](#getstate-to-get-latest-fetching-time)
-  * [getPending, getStorePending to wait for fetching](#getpending-getstorepending-to-wait-for-fetching)
-  * [loadCollections](#loadcollections)
-  * [get and listen to browser size](#get-and-listen-to-browser-size)
-  * [Server Rendering](#server-rendering)
+- [Getting Started](#getting-started)
+- [Setup](#setup)
+    - [datavanEnhancer](#datavanenhancer)
+    - [use with redux's combineReducers](#use-with-reduxs-combinereducers)
+    - [data in redux store state](#data-in-redux-store-state)
+- [Better Performance](#better-performance)
+    - [connectOnChange](#connectonchange)
+    - [withMethods](#withmethods)
+- [API](#api)
+    - [find, pick](#find-pick)
+    - [findAsync, pickAsync](#findasync-pickasync)
+    - [findInMemory](#findinmemory)
+    - [checkFetch](#checkfetch)
+    - [get](#get)
+    - [getAll, getOriginals, getSubmits](#getall-getoriginals-getsubmits)
+    - [insert](#insert)
+    - [update](#update)
+    - [remove](#remove)
+    - [mutate](#mutate)
+    - [set](#set)
+    - [reset](#reset)
+    - [load](#load)
+    - [submit](#submit)
+    - [recall](#recall)
+    - [getCollection](#getcollection)
+    - [resetStore](#resetstore)
+- [Extra](#extra)
+    - [genTmpId](#gentmpid)
+    - [getState to get latest fetching time](#getstate-to-get-latest-fetching-time)
+    - [getPending, getStorePending to wait for fetching](#getpending-getstorepending-to-wait-for-fetching)
+    - [loadCollections](#loadcollections)
+    - [get and listen to browser size](#get-and-listen-to-browser-size)
+    - [Server Rendering](#server-rendering)
 
 <!-- TOC END -->
 
@@ -66,51 +64,39 @@ During find(), datavan will query your local-data first. If local-data is missin
 # Getting Started
 
 ```js
-import { createStore } from 'redux'
-import { Provider, connect } from 'react-redux'
-import { datavanEnhancer, find, connectOnChange } from 'datavan'
+import _ from 'lodash'
+import { createDatavanContext } from 'datavan'
 
-const PureComponent = props => <div>{props.user.name}</div>
-
-// normal redux connect
-const MyApp = connect(
-  (state, { name }) => {
-    const user = find(state, 'user_table' /* collection */, { name } /* mongo query syntax */)[0]
-    // first call result will be undefined
-    // after HTTP response, connect will be re-run
-    // second result will get user object
-    return { user }
-  },
-  (dispatch, { name }) => {
-    return {
-      modifyUser: () =>
-        update(dispatch, 'user_table' /* collection */, { name } /* query */, { $merge: { name: 'smith' } } /* mongo update syntax */),
-    }
-  }
-)(PureComponent)
-
-// create redux store
-const store = createStore(
-  // reducer
-  state => state,
-  // preloadedState
-  {},
-  datavanEnhancer({
-    collections: {
-      // defined collection called 'user_table'
-      user_table: {
-        onFetch(collection, query, option) {
-          return Promise.resolve([{ _id: 'id', name: 'john' }])
-        },
-      },
+const Van = createDatavanContext({
+  // defined collection called 'myUserTable'
+  myUserTable: {
+    onFetch(collection, query, option) {
+      return Promise.resolve([{ _id: 'id', name: 'john' }])
     },
-  })
-)
+  },
+})
 
 render(
-  <Provider store={store}>
-    <MyApp name="john" />
-  </Provider>
+  <Van.Provider store={store}>
+    ...
+    <Van>
+      {db => {
+        // first call result will be undefined
+        // after HTTP response, connect will be re-run
+        // second result will get user object
+        const users = db.find('myUserTable', { name: { $in: ['John'] } })
+
+        const onClick = () => db.update('myUserTable', { name: 'John' }, { $merge: { name: 'smith' } })
+
+        return (
+          <button onClick={onClick}>
+            {_.map(users, 'name').join()}
+          </button>
+        )
+      }}
+    </Van>
+    ...
+  </Van.Provider>
 )
 ```
 
@@ -119,67 +105,61 @@ render(
 
 # Setup
 
-### datavanEnhancer
-
-Use `datavanEnhancer` to create datavan enhancer for redux `createStore`.
+### createDb
 
 ```js
-import { genId, defaultGetQueryString } from 'datavan'
+import { createDb } from 'datavan'
 
-const enhancer = datavanEnhancer({
-  collections: {
-    user_table: {
-      // all following fields are optional
+const db = createDb({
+  myUserTable: {
+    // id field for document (default: `_id`)
+    idField: 'id',
 
-      // id field for document (default: `_id`)
-      idField: 'id',
+    // async fetch function (default: `undefined`). Should return array or map of documents
+    onFetch(query, option, collection) {
+      return fetch('restful-api?name=john')
+    },
 
-      // async fetch function (default: `undefined`). Should return array or map of documents
-      onFetch(query, option, collection) {
-        return fetch('restful-api?name=john')
+    // cast and convert doc fields. Return: casted doc
+    // NOTE only cast to primitive types that can use === to compare. (DON'T cast to Date, Object, Array or anything that cannot be JSON.stringify)
+    cast(doc) {
+      doc.count = parseInt(doc.count, 10)
+      // Can cast to Number as count === JSON.parse(JSON.stringify(count))
+      doc.arr = 'a,b'.split(',')
+      // Can cast to Number as arr !== JSON.parse(JSON.stringify(arr))
+      return doc
+    },
+
+    onInsert(doc) {
+    },
+
+    onLoad(doc) {
+    },
+
+    // generate a new tmp id string (default: genId from datavan)
+    genId: genId,
+
+    getFetchQuery: (query, idField) => '',
+    // calculate and return fetchKey (to determine cache hit or miss) from fetchQuery (default: defaultGetQueryString from datavan)
+    getFetchKey: (query, option) => '',
+
+    // another way to setup initial data. With `{ byId: {}, originals: {}, fetchAts: {} }` object tables.
+    initState: {
+      // byId is table of docs
+      byId: {
+        'user-1': { _id: 'user-1', name: 'John' },
       },
-
-      // async submit function (default: `undefined`). Should return array or map of documents. Return `false` means submit cancelled.
-      onSubmit(submits, collection) {
-        return fetch('restful-api', { method: 'POST', body: JSON.stringify(submits) })
+      // originals is table of modified docs' originals
+      originals: {
+        'user-1': { _id: 'user-1', name: 'Old Name' },
       },
-
-      // cast and convert doc fields. Return: casted doc
-      // NOTE since cast() will directly mutate state in reducer, less usage of cast(), less side-effects
-      // NOTE only cast to primitive types. DON'T cast to Date, Object, Array or values not triple equal after JSON.stringify()
-      cast(doc) {
-        doc.count = parseInt(doc.count, 10)
-        // Can cast to Number as count === JSON.parse(JSON.stringify(count))
-        doc.arr = 'a,b'.split(',')
-        // Can cast to Number as arr !== JSON.parse(JSON.stringify(arr))
-        return doc
-      },
-
-      // generate a new tmp id string (default: genId from datavan)
-      genId: genId,
-
-      // calculate and return fetchKey (to determine cache hit or miss) from fetchQuery (default: defaultGetQueryString from datavan)
-      getQueryString: (query, option, collection) => '',
-
-      // another way to setup initial data. With `{ byId: {}, originals: {}, fetchAts: {} }` object tables.
-      initState: {
-        // byId is table of docs
-        byId: {
-          'user-1': { _id: 'user-1', name: 'John' },
-        },
-        // originals is table of modified docs' originals
-        originals: {
-          'user-1': { _id: 'user-1', name: 'Old Name' },
-        },
-        // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
-        fetchAts: {},
-      },
-
-      // gcTime (in msec) for reset expired calculation
-      gcTime: 60 * 1000,
+      // fetchAts is server fetched queries times (msec, to prevent re-fetch after server rendering)
+      fetchAts: {},
     },
   },
 })
+
+db.find('myUserTable', { name: 'John' })
 ```
 
 ### use with redux's combineReducers

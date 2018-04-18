@@ -3,12 +3,6 @@ import stringify from 'fast-stable-stringify'
 
 import { genTmpId, getDeviceName, pickBy, buildIndex } from './collection-util'
 
-/*
-idField: '_id',
-fetchMaxAge: 0,
-onFetch: () => {},
-*/
-
 // @auto-fold here
 const tryCache = (cache, key, func) => {
   const c = cache[key]

@@ -1,5 +1,14 @@
 import _ from 'lodash'
 
+// @auto-fold here
+const runCast = (coll, funcName, doc) => {
+  if (coll[funcName]) {
+    const newDoc = coll[funcName](doc)
+    return newDoc === undefined ? doc : newDoc
+  }
+  return doc
+}
+
 export default {
   load(name, res, returnMutation) {
     if (!name) return
@@ -7,8 +16,8 @@ export default {
       return this.dispatch(_.pickBy(_.mapValues(name, (data, n) => this.load(n, data, true))))
     }
     if (!res) return
-
-    const { idField } = this[name]
+    const coll = this[name]
+    const { idField } = coll
 
     // normalizeLoadData
     let resPreloads = res.preloads || res.byId || (res.submits ? null : res)
@@ -25,15 +34,11 @@ export default {
     const mutation = {}
     if (resPreloads) {
       const now = Date.now()
-      const { _byIdAts /* , preloads */ } = this.getFetchData(name)
-      // resPreloads = _.mapValues(resPreloads, (inDoc, id) => {
-      //   _byIdAts[id] = now
-      //   return _.isPlainObject(inDoc) ? _.defaults(inDoc, preloads[id]) : inDoc
-      // })
-      // mutation.preloads = { $merge: resPreloads }
-      mutation.preloads = _.mapValues(resPreloads, (inDoc, id) => {
+      const { _byIdAts } = this.getFetchData(name)
+      mutation.preloads = _.mapValues(resPreloads, (doc, id) => {
         _byIdAts[id] = now
-        return _.isPlainObject(inDoc) ? { $auto: { $merge: inDoc } } : { $set: inDoc }
+        doc = runCast(coll, 'onLoad', doc)
+        return _.isPlainObject(doc) ? { $auto: { $merge: doc } } : { $set: doc }
       })
     }
     if (res.submits) mutation.submits = { $merge: res.submits }
@@ -90,7 +95,7 @@ export default {
     const insertedDocs = _.map(inserts, doc => {
       let id = doc[idField]
       if (!id) id = doc[idField] = this.genId()
-      if (coll.onInsert) coll.onInsert(doc)
+      doc = runCast(coll, 'onInsert', doc)
       merge[id] = doc
       return doc
     })
