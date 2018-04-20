@@ -84,7 +84,7 @@ export default {
     if (ids && ids.length === 0) return
     this.invalidate(name, ids)
     const submits = ids ? { $unset: ids } : { $set: {} }
-    this.mutateData(name, { submits, originals: submits })
+    this.mutateData(name, { submits, originals: submits, resetAt: { $set: Date.now() } })
   },
 
   // @auto-fold here
