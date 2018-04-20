@@ -62,16 +62,17 @@ export default {
   },
 
   // @auto-fold here
-  invalidate(name, _ids) {
+  invalidate(name, ids) {
     if (!name) {
       return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
     }
+    if (ids && ids.length === 0) return
     const fetchData = this.getFetchData(name)
-    fetchData._byIdAts = _ids ? _.omit(fetchData._byIdAts, _ids) : {}
+    fetchData._byIdAts = ids ? _.omit(fetchData._byIdAts, ids) : {}
     // clear all query cache
     this.mutateData(name, {
       fetchAts: { $set: {} },
-      preloads: _ids ? { $unset: _ids } : { $set: {} },
+      preloads: ids ? { $unset: ids } : { $set: {} },
     })
   },
 
@@ -80,6 +81,7 @@ export default {
     if (!name) {
       return _.each(this.getConfig(), (conf, n) => this.reset(n))
     }
+    if (ids && ids.length === 0) return
     this.invalidate(name, ids)
     const submits = ids ? { $unset: ids } : { $set: {} }
     this.mutateData(name, { submits, originals: submits })
