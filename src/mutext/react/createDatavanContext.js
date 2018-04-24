@@ -6,6 +6,15 @@ import bitsObserver from './bitsObserver'
 import createDb from '../db'
 import { createBatchMemoizer } from '../cache-util'
 
+export const getMemoizeHoc = VanConsumer => (propKeys, mapFunc) => {
+  propKeys = _.uniq(_.compact(propKeys))
+  return BaseComponent => props =>
+    createElement(VanConsumer, props, db => {
+      const dataProps = mapFunc && db.memoize(mapFunc, _.pick(props, propKeys), props)
+      return createElement(BaseComponent, { ...props, db, ...dataProps })
+    })
+}
+
 const createDatavanContext = config => {
   const { calcChangedBits, getObservedBits } = bitsObserver(config)
   const { Provider, Consumer } = createReactContext(null, calcChangedBits)
@@ -63,14 +72,7 @@ const createDatavanContext = config => {
     Provider: VanProvider,
     config,
 
-    hoc: (propKeys, mapFunc) => {
-      propKeys = _.uniq(_.compact(propKeys))
-      return BaseComponent => props =>
-        createElement(VanConsumer, props, db => {
-          const dataProps = mapFunc && db.memoize(mapFunc, _.pick(props, propKeys), props)
-          return createElement(BaseComponent, { ...props, db, ...dataProps })
-        })
-    },
+    hoc: (propKeys, mapFunc) => getMemoizeHoc(VanConsumer)(propKeys, mapFunc),
   })
 
   return VanConsumer
