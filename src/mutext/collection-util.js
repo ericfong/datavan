@@ -35,6 +35,7 @@ export const filter = (byId, query) => {
 }
 
 mutateUtil.extend('$auto', (value, object) => (object ? mutateUtil(object, value) : mutateUtil({}, value)))
+export { mutateUtil }
 
 // @auto-fold here prepare cast by loop mutation.byId and mark [id] $toggle $merge
 const checkCast = (coll, nextById, prevById, id) => {
@@ -44,7 +45,7 @@ const checkCast = (coll, nextById, prevById, id) => {
   }
 }
 // @auto-fold
-const checkCastById = (space, next, prev, mutation) => {
+export const checkCastById = (space, next, prev, mutation) => {
   const nextById = next[space]
   const prevById = prev[space]
   if (nextById === prevById) return
@@ -57,24 +58,6 @@ const checkCastById = (space, next, prev, mutation) => {
       checkCast(next, nextById, prevById, id)
     }
   })
-}
-export const mutateCollection = (prev, mutation) => {
-  if (Array.isArray(mutation)) {
-    return mutation.reduce((r, m) => mutateCollection(r, m), prev)
-  }
-
-  const next = mutateUtil(prev, mutation)
-  if (next !== prev) {
-    next._cache = {}
-
-    if (next.cast) {
-      checkCastById('submits', next, prev, mutation)
-      checkCastById('preloads', next, prev, mutation)
-    }
-
-    return next
-  }
-  return next
 }
 
 export const buildIndex = (docs, fields, isUnique) => {

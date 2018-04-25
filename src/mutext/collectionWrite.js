@@ -63,9 +63,7 @@ export default {
 
   // @auto-fold here
   invalidate(name, ids) {
-    if (!name) {
-      return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
-    }
+    if (!name) return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
     if (ids && ids.length === 0) return
     const fetchData = this.getFetchData(name)
     fetchData._byIdAts = ids ? _.omit(fetchData._byIdAts, ids) : {}
@@ -77,13 +75,12 @@ export default {
   },
 
   // @auto-fold here
-  reset(name, ids) {
-    if (!name) {
-      return _.each(this.getConfig(), (conf, n) => this.reset(n))
-    }
+  reset(name, ids, { submitsOnly } = {}) {
+    if (!name) return _.each(this.getConfig(), (conf, n) => this.reset(n))
     if (ids && ids.length === 0) return
-    this.invalidate(name, ids)
+    if (!submitsOnly) this.invalidate(name, ids)
     const submits = ids ? { $unset: ids } : { $set: {} }
+    // use resetAt to always trigger re-render (not sure it is always needed?)
     this.mutateData(name, { submits, originals: submits, resetAt: { $set: Date.now() } })
   },
 

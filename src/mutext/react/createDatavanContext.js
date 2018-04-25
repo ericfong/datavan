@@ -40,8 +40,6 @@ const createDatavanContext = config => {
 
   /* eslint-disable react/no-multi-comp */
   class VanConsumer extends Component {
-    // state = { setState: this.setState } // eslint-disable-line react/no-unused-state
-
     // eslint-disable-next-line
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.observe !== nextProps.observe) {
