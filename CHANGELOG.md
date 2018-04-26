@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.1.0"></a>
+# [4.1.0](https://github.com/ericfong/datavan/compare/v4.0.0...v4.1.0) (2018-04-26)
+
+
+### Bug Fixes
+
+* dispatch support (name, mutations) or (actions) ([d7c9f79](https://github.com/ericfong/datavan/commit/d7c9f79))
+* export of forkDb and load Provider initDb ([22d51e8](https://github.com/ericfong/datavan/commit/22d51e8))
+
+
+### Features
+
+* can forkDb ([4ca554c](https://github.com/ericfong/datavan/commit/4ca554c))
+
+
+
 <a name="4.0.0"></a>
 # [4.0.0](https://github.com/ericfong/datavan/compare/v4.0.0-8...v4.0.0) (2018-04-24)
 
