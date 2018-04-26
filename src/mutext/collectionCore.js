@@ -56,9 +56,6 @@ export default {
     return promises.length <= 0 ? null : Promise.all(promises)
   },
 
-  mutateData(name, mutation) {
-    this.dispatch({ [name]: mutation })
-  },
   mutate(name, ...args) {
     const mutSubmits = args.reduceRight((ret, step) => ({ [step]: ret }))
     const newOriginals = {}
@@ -88,6 +85,6 @@ export default {
       }
     })
 
-    this.mutateData(name, { submits: mutSubmits, originals: { $merge: newOriginals } })
+    this.dispatch(name, { submits: mutSubmits, originals: { $merge: newOriginals } })
   },
 }

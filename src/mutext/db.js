@@ -39,29 +39,18 @@ const createDb = config => {
     ...collectionRead,
     ...collectionWrite,
 
-    dispatch(mutations) {
-      const change = {}
-      let hasChange = false
-      canEmit = false
-
+    dispatch(actionsOrName, mut) {
       // normalize
-      if (!Array.isArray(mutations)) {
-        const _mutSpecs = []
-        _.each(mutations, (mutation, name) => {
-          if (Array.isArray(mutation)) {
-            _.each(mutation, m => _mutSpecs.push({ name, mutation: m }))
-          } else {
-            _mutSpecs.push({ name, mutation })
-          }
-        })
-        mutations = _mutSpecs
-      }
+      let actions = Array.isArray(actionsOrName) ? actionsOrName : [{ name: actionsOrName, mutation: mut }]
 
       // hook
-      if (db.dispatchFilter) mutations = db.dispatchFilter(mutations)
+      canEmit = false
+      if (db.dispatchFilter) actions = db.dispatchFilter(actions)
 
       // do change
-      _.each(mutations, ({ name, mutation }) => {
+      const change = {}
+      let hasChange = false
+      _.each(actions, ({ name, mutation }) => {
         const prev = db[name]
         const next = mutateCollection(prev, mutation)
         if (next !== prev) {

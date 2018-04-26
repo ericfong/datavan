@@ -14,7 +14,7 @@ const markPromise = (coll, fetchKey, func) => {
   const markPromiseDone = () => {
     delete _fetchPromises[fetchKey]
     if (Object.keys(_fetchPromises).length === 0) {
-      coll.getDb().mutateData(coll.name, { $merge: { fetchingAt: undefined } })
+      coll.getDb().dispatch(coll.name, { $merge: { fetchingAt: undefined } })
     }
   }
   const promise = (_fetchPromises[fetchKey] = func()
@@ -29,7 +29,7 @@ const markPromise = (coll, fetchKey, func) => {
   // ensure fetchingAt is set to coll instantaneously
   const fetchingAt = Date.now()
   coll.fetchingAt = fetchingAt
-  coll.getDb().mutateData(coll.name, { $merge: { fetchingAt } })
+  coll.getDb().dispatch(coll.name, { $merge: { fetchingAt } })
   return promise
 }
 

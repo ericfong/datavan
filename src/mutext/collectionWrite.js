@@ -13,7 +13,7 @@ export default {
   load(name, res, returnMutation) {
     if (!name) return
     if (typeof name === 'object') {
-      return this.dispatch(_.pickBy(_.mapValues(name, (data, n) => this.load(n, data, true))))
+      return this.dispatch(_.flatMap(name, (data, n) => this.load(n, data, true)))
     }
     if (!res) return
     const coll = this[name]
@@ -23,12 +23,12 @@ export default {
     let resPreloads = res.preloads || res.byId || (res.submits ? null : res)
     if (Array.isArray(resPreloads)) resPreloads = _.mapKeys(resPreloads, (doc, i) => (doc && doc[idField]) || i)
 
-    const mutations = []
+    const actions = []
 
     // move tmp id to $submittedIds before loadAsMerge
     if (res.$submittedIds) {
       const $unset = Array.isArray(res.$submittedIds) ? res.$submittedIds : _.keys(res.$submittedIds)
-      mutations.push({ submits: { $unset }, originals: { $unset } })
+      actions.push({ name, mutation: { submits: { $unset }, originals: { $unset } } })
     }
 
     const mutation = {}
@@ -44,14 +44,14 @@ export default {
     if (res.submits) mutation.submits = { $merge: res.submits }
     if (res.originals) mutation.originals = { $merge: res.originals }
     if (res.fetchAts) mutation.fetchAts = { $merge: res.fetchAts }
-    mutations.push(mutation)
+    actions.push({ name, mutation })
 
     // NOTE for server to pick-it back invalidate or reset data
     if (res.$invalidate) this.invalidate(name, res.$invalidate)
     if (res.$reset) this.reset(name, res.$reset)
 
-    if (returnMutation) return mutations
-    this.mutateData(name, mutations)
+    if (returnMutation) return actions
+    this.dispatch(actions)
   },
 
   // @auto-fold here
@@ -68,10 +68,7 @@ export default {
     const fetchData = this.getFetchData(name)
     fetchData._byIdAts = ids ? _.omit(fetchData._byIdAts, ids) : {}
     // clear all query cache
-    this.mutateData(name, {
-      fetchAts: { $set: {} },
-      preloads: ids ? { $unset: ids } : { $set: {} },
-    })
+    this.dispatch(name, { fetchAts: { $set: {} }, preloads: ids ? { $unset: ids } : { $set: {} } })
   },
 
   // @auto-fold here
@@ -81,7 +78,7 @@ export default {
     if (!submitsOnly) this.invalidate(name, ids)
     const submits = ids ? { $unset: ids } : { $set: {} }
     // use resetAt to always trigger re-render (not sure it is always needed?)
-    this.mutateData(name, { submits, originals: submits, resetAt: { $set: Date.now() } })
+    this.dispatch(name, { submits, originals: submits, resetAt: { $set: Date.now() } })
   },
 
   // @auto-fold here
