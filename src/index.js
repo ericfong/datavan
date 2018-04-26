@@ -100,4 +100,4 @@ export withMethods from './extra/withMethods'
 export { compose } from 'redux'
 export searchObjects, { tokenizeKeywords } from './extra/searchObjects'
 
-export { createDb, createDatavanContext, getMemoizeHoc } from './mutext'
+export { createDb, createDatavanContext, getMemoizeHoc, forkDb } from './mutext'

@@ -23,8 +23,7 @@ const createDatavanContext = config => {
     constructor(props) {
       super(props)
       // TODO may pass upper provider db instead of config here
-      let db = props.db || createDb(config)
-      if (props.initDb) db = props.initDb(db)
+      const db = props.initDb ? props.initDb(config) : props.db || createDb(config)
       this.state = db
     }
     componentDidMount() {

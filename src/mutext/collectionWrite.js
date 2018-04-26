@@ -13,7 +13,7 @@ export default {
   load(name, res, returnMutation) {
     if (!name) return
     if (typeof name === 'object') {
-      return this.dispatch(_.flatMap(name, (data, n) => this.load(n, data, true)))
+      return this.dispatch(_.compact(_.flatMap(name, (data, n) => this.load(n, data, true))))
     }
     if (!res) return
     const coll = this[name]
@@ -61,7 +61,6 @@ export default {
     this.mutate(...args)
   },
 
-  // @auto-fold here
   invalidate(name, ids) {
     if (!name) return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
     if (ids && ids.length === 0) return
@@ -71,11 +70,10 @@ export default {
     this.dispatch(name, { fetchAts: { $set: {} }, preloads: ids ? { $unset: ids } : { $set: {} } })
   },
 
-  // @auto-fold here
-  reset(name, ids, { submitsOnly } = {}) {
-    if (!name) return _.each(this.getConfig(), (conf, n) => this.reset(n))
+  reset(name, ids, opt = {}) {
+    if (!name) return _.each(this.getConfig(), (conf, n) => this.reset(n, null, opt))
     if (ids && ids.length === 0) return
-    if (!submitsOnly) this.invalidate(name, ids)
+    if (!opt.submitsOnly) this.invalidate(name, ids)
     const submits = ids ? { $unset: ids } : { $set: {} }
     // use resetAt to always trigger re-render (not sure it is always needed?)
     this.dispatch(name, { submits, originals: submits, resetAt: { $set: Date.now() } })

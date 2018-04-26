@@ -3,6 +3,16 @@ import _ from 'lodash'
 import { createDb, genTmpId } from '..'
 import { onFetchEcho } from './test-util'
 
+test('load collections', async () => {
+  const db = createDb({ t1: {}, t2: {} })
+  db.load({
+    t1: [{ _id: 'a' }, { _id: 'b' }],
+    t2: null, // can load collections with some falsy
+  })
+  expect(_.keys(db.t1.preloads).sort()).toEqual(['a', 'b'])
+  expect(_.keys(db.t2.preloads).sort()).toEqual([])
+})
+
 test('load same $submittedIds again', async () => {
   const db = createDb({ users: {} })
   const tmpId = genTmpId()
