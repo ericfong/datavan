@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.1.3"></a>
+## [4.1.3](https://github.com/ericfong/datavan/compare/v4.1.2...v4.1.3) (2018-05-02)
+
+
+### Bug Fixes
+
+* clean newDb.collection._cache if parentDb is changed ([697ab1a](https://github.com/ericfong/datavan/commit/697ab1a))
+
+
+
 <a name="4.1.2"></a>
 ## [4.1.2](https://github.com/ericfong/datavan/compare/v4.1.1...v4.1.2) (2018-04-26)
 
