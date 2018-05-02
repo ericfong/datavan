@@ -5,21 +5,6 @@ import collectionRead from './collectionRead'
 import collectionWrite from './collectionWrite'
 import { mutateUtil, checkCastById } from './collection-util'
 
-const mutateCollection = (prev, mutation) => {
-  const next = mutateUtil(prev, mutation)
-  if (next !== prev) {
-    next._cache = {}
-
-    if (next.cast) {
-      checkCastById('submits', next, prev, mutation)
-      checkCastById('preloads', next, prev, mutation)
-    }
-
-    return next
-  }
-  return next
-}
-
 const createDb = config => {
   const subscribers = []
   const subscribe = subscriber => {
@@ -52,8 +37,15 @@ const createDb = config => {
       let hasChange = false
       _.each(actions, ({ name, mutation }) => {
         const prev = db[name]
-        const next = mutateCollection(prev, mutation)
+        const next = mutateUtil(prev, mutation)
         if (next !== prev) {
+          next._cache = {}
+
+          if (next.cast) {
+            checkCastById('submits', next, prev, mutation)
+            checkCastById('preloads', next, prev, mutation)
+          }
+
           db[name] = change[name] = next
           hasChange = true
         }

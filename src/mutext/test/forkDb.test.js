@@ -4,6 +4,20 @@ import createDb from '../db'
 import { forkDb } from '../db-util'
 import { onFetchEcho } from './test-util'
 
+test('clean newDb.collection._cache if parentDb is changed', async () => {
+  const dbRoot = createDb({ myTable: { onFetch: onFetchEcho } })
+  const db2 = forkDb(dbRoot)
+
+  // create caches
+  dbRoot.getById('myTable')
+  db2.getById('myTable')
+
+  // fetch in root
+  await dbRoot.findAsync('myTable', ['root-preload'])
+
+  expect(db2.getById('myTable')).toEqual({ 'root-preload': { _id: 'root-preload', name: 'ROOT-PRELOAD' } })
+})
+
 test('invalidate & reset', async () => {
   const dbRoot = createDb({ myTable: { onFetch: onFetchEcho } })
   await dbRoot.findAsync('myTable', ['root-preload'])

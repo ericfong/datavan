@@ -14,7 +14,12 @@ export const forkDb = parentDb => {
   })
 
   // subscribe parent change to child db change
-  parentDb.subscribe(newDb.emit)
+  parentDb.subscribe(change => {
+    _.each(change, (coll, name) => {
+      newDb[name]._cache = {}
+    })
+    return newDb.emit(change)
+  })
 
   return Object.assign(newDb, {
     getParent: () => parentDb,
