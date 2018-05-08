@@ -46,15 +46,14 @@ function matchKeywords(item, keywords) {
     const { term, exclude } = keyword
     const fieldIndex = matchTerm(item, term)
     if (exclude) {
-      return fieldIndex
-        ? null
-        : {
-            term,
-            exclude: true,
-            field: 'exclude',
-            index: 0,
-            percentage: 0.5,
-          }
+      if (fieldIndex) return null
+      return {
+        term,
+        exclude: true,
+        field: 'exclude',
+        index: 0,
+        percentage: 0.5,
+      }
     }
     return fieldIndex
   })
