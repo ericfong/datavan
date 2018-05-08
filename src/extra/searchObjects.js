@@ -49,12 +49,12 @@ function matchKeywords(item, keywords) {
       return fieldIndex
         ? null
         : {
-          term,
-          exclude: true,
-          field: 'exclude',
-          index: 0,
-          percentage: 0.5,
-        }
+            term,
+            exclude: true,
+            field: 'exclude',
+            index: 0,
+            percentage: 0.5,
+          }
     }
     return fieldIndex
   })
@@ -123,7 +123,7 @@ export default function searchObjects(docs, search, conf) {
   const optType = typeof conf
   let pick
   let tuneOrder
-  if (optType === 'function') {
+  if (optType === 'function' || Array.isArray(conf)) {
     pick = conf
   } else if (optType === 'object') {
     pick = conf.pick
