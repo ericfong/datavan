@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import shallowEqual from 'fbjs/lib/shallowEqual'
 
-export const createBatchMemoizer = ({ handler, onSuccess } = {}) => {
+export const createBatchMemoizer = onSuccess => {
   let batchIndex = 0
   const lastColls = {}
   const lastProps = {}
@@ -35,7 +35,7 @@ export const createBatchMemoizer = ({ handler, onSuccess } = {}) => {
         return newDb
       }, {}),
     }
-    const promise = (inlineFunc || handler)(useDb, props, ...restArgs)
+    const promise = inlineFunc(useDb, props, ...restArgs)
     // console.log('>touchNames>>', touchNames)
     lastColls[batchI] = _.mapValues(touchNames, (v, name) => db[name])
 

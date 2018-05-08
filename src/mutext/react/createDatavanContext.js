@@ -48,9 +48,8 @@ const createDatavanContext = config => {
 
     observedBits = getObservedBits(this.props.observe)
 
-    memoizer = createBatchMemoizer({
-      onSuccess: () => this.setState({ cacheAt: Date.now() }), // eslint-disable-line react/no-unused-state
-    })
+    // eslint-disable-next-line react/no-unused-state
+    memoizer = createBatchMemoizer(() => this.setState({ cacheAt: Date.now() }))
 
     render() {
       const { props } = this
