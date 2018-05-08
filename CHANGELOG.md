@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.1.4"></a>
+## [4.1.4](https://github.com/ericfong/datavan/compare/v4.1.3...v4.1.4) (2018-05-08)
+
+
+### Bug Fixes
+
+* make searchObjects support array of fields ([aa96103](https://github.com/ericfong/datavan/commit/aa96103))
+* simply and ensure inline func can also memorize ([655e10b](https://github.com/ericfong/datavan/commit/655e10b))
+
+
+
 <a name="4.1.3"></a>
 ## [4.1.3](https://github.com/ericfong/datavan/compare/v4.1.2...v4.1.3) (2018-05-02)
 
