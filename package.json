@@ -1,12 +1,10 @@
 {
   "scripts": {
+    "dev": "npm run build:es6 -- --watch",
     "build": "npm run build:cjs && npm run build:es6",
     "build:cjs": "BABEL_ENV=cjs babel src --out-dir lib --ignore '**/test/**,**.test.js,**.test.jsx'",
     "build:es6": "BABEL_ENV=es6 babel src --out-dir lib/es6 --ignore '**/test/**,**.test.js,**.test.jsx'",
     "prepublish": "npm test && npm run eslint && rm -rf ./lib && npm run build",
-    "babel": "NODE_ENV=test babel-node",
-    "start": "npm run build:es6 -- --watch",
-    "benchmark": "BENCHMARK=1 NODE_PATH=src jest --config=jest-benchmark-config.json",
     "eslint": "eslint --ext jsx --ext js src",
     "test": "NODE_PATH=src jest"
   },
@@ -18,6 +16,9 @@
   "module": "./lib/es6/index.js",
   "engines": {
     "node": ">= 8.9.4"
+  },
+  "babel": {
+    "presets": ["./tool/babel-preset"]
   },
   "jest": {
     "roots": [

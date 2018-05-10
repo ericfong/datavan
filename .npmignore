@@ -1,2 +1,7 @@
+/src
+/tool
+
+/yarn.lock
+*.log
 tmp-*
 *-tmp.*

@@ -1,21 +1,16 @@
+const envPresentOpts = {
+  default: { targets: { browsers: '> 1%' }, modules: false },
+  cjs: { targets: { uglify: true } },
+  test: { targets: { node: 'current' } },
+}
+
 module.exports = ({ env }) => {
-  const envStr = env && env()
+  const ENV = env && env()
   return {
     presets: [
-      [
-        '@babel/preset-env',
-        {
-          es6: {
-            targets: { browsers: '> 1%' },
-            modules: false,
-          },
-          cjs: {
-            targets: { uglify: true },
-          },
-          test: { targets: { node: 'current' } },
-        }[envStr],
-      ],
-      envStr === 'test' && '@babel/preset-react',
+      ['@babel/preset-env', envPresentOpts[ENV] || envPresentOpts.default],
+      // some test is using jsx
+      ENV === 'test' && '@babel/preset-react',
     ].filter(Boolean),
 
     plugins: [

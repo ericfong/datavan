@@ -2,9 +2,6 @@ import _ from 'lodash'
 import Mingo from 'mingo'
 import mutateUtil from 'immutability-helper'
 
-export const GET_DATAVAN_ACTION = 'DATAVAN'
-export const DATAVAN_MUTATE_ACTION = 'DATAVAN_MUTATE'
-
 export const TMP_ID_PREFIX = 'dv~'
 
 export const tmpIdRegExp = /^dv~(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z)~([.\d]+)~(.+)/
