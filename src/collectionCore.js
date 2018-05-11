@@ -11,14 +11,14 @@ const tryCache = (cache, key, func) => {
 }
 
 const getData = (db, name, field, funcName) => {
-  const coll = db.getLatestDb()[name]
+  const coll = db.getDb()[name]
   const fn = coll[funcName]
   return typeof fn === 'function' ? fn(coll) : coll[field]
 }
 
 export default {
   getFetchData(name) {
-    return this.getLatestDb()[name]
+    return this.getDb()[name]
   },
 
   getSubmits(name) {
@@ -31,7 +31,7 @@ export default {
     return this.getFetchData(name).preloads
   },
   getById(name) {
-    return tryCache(this.getLatestDb()[name]._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
+    return tryCache(this.getDb()[name]._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
   },
 
   pickInMemory(name, query) {
@@ -42,7 +42,7 @@ export default {
   },
 
   recall(name, fnName, ...args) {
-    const coll = this.getLatestDb()[name]
+    const coll = this.getDb()[name]
     const func = coll[fnName] || (fnName === 'buildIndex' ? buildIndex : null)
     return tryCache(coll._cache, `${fnName}-${stringify(args)}`, () => func.apply(coll, [this.getById(name), ...args]))
   },

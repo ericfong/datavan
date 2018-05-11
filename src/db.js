@@ -61,7 +61,7 @@ const createDb = config => {
     },
 
     getConfig: () => config,
-    getLatestDb: () => db,
+    getDb: () => db,
   }
 
   // create collections

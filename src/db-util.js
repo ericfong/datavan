@@ -25,7 +25,7 @@ export const forkDb = parentDb => {
     getParent: () => parentDb,
 
     getFetchData(name) {
-      return parentDb.getLatestDb()[name]
+      return parentDb.getDb()[name]
     },
 
     dispatchFilter(mutSpecs) {
