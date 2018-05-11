@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.2.0-0"></a>
+# [4.2.0-0](https://github.com/ericfong/datavan/compare/v4.1.5...v4.2.0-0) (2018-05-11)
+
+
+### Bug Fixes
+
+* clean up babel-preset ([61085f7](https://github.com/ericfong/datavan/commit/61085f7))
+* rename getLatestDb to getDb ([514f96b](https://github.com/ericfong/datavan/commit/514f96b))
+
+
+### Features
+
+* remove old redux ([8c84c70](https://github.com/ericfong/datavan/commit/8c84c70))
+
+
+
 <a name="4.1.5"></a>
 ## [4.1.5](https://github.com/ericfong/datavan/compare/v4.1.4...v4.1.5) (2018-05-08)
 
