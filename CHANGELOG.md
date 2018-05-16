@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.2.1"></a>
+## [4.2.1](https://github.com/ericfong/datavan/compare/v4.2.0...v4.2.1) (2018-05-16)
+
+
+### Bug Fixes
+
+* remove redux ([af4aaa3](https://github.com/ericfong/datavan/commit/af4aaa3))
+* support searchObjects with pick fields with dot ([627a9ea](https://github.com/ericfong/datavan/commit/627a9ea))
+
+
+
 <a name="4.2.0"></a>
 # [4.2.0](https://github.com/ericfong/datavan/compare/v4.2.0-0...v4.2.0) (2018-05-11)
 
