@@ -48,7 +48,7 @@ During find(), datavan will query your local-data first. If local-data is missin
 
 **Other Docs**
 
-* [searchObjects](https://github.com/ericfong/datavan/blob/master/src/extra/searchObjects.md)
+* [searchObjects](https://github.com/ericfong/datavan/blob/master/src/searchObjects/searchObjects.md)
 
 # Getting Started
 
