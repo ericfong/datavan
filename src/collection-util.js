@@ -34,6 +34,26 @@ export const filter = (byId, query) => {
 mutateUtil.extend('$auto', (value, object) => (object ? mutateUtil(object, value) : mutateUtil({}, value)))
 export { mutateUtil }
 
+// @auto-fold
+export const flattenMutationKeys = (mutation, skipUnset) =>
+  _.keys(
+    _.transform(mutation, (ret, value, key) => {
+      if (key[0] === '$') {
+        if (!skipUnset && key === '$unset') {
+          _.each(value, k => {
+            ret[k] = true
+          })
+        } else if (key === '$merge' || key === '$toggle') {
+          _.each(value, (v, k) => {
+            ret[k] = true
+          })
+        }
+      } else {
+        ret[key] = true
+      }
+    })
+  )
+
 // @auto-fold here prepare cast by loop mutation.byId and mark [id] $toggle $merge
 const checkCast = (coll, nextById, prevById, id) => {
   const nextDoc = nextById[id]
@@ -46,14 +66,8 @@ export const checkCastById = (space, next, prev, mutation) => {
   const nextById = next[space]
   const prevById = prev[space]
   if (nextById === prevById) return
-  _.each(mutation[space], (v, id) => {
-    if (id[0] === '$') {
-      if (id === '$merge' || id === '$toggle') {
-        _.each(v, (subV, subId) => checkCast(next, nextById, prevById, subId))
-      }
-    } else {
-      checkCast(next, nextById, prevById, id)
-    }
+  flattenMutationKeys(mutation[space], true).forEach(id => {
+    checkCast(next, nextById, prevById, id)
   })
 }
 

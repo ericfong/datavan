@@ -39,6 +39,7 @@ export const forkDb = parentDb => {
       const parentMuts = []
       const newSpecs = _.map(mutSpecs, mutSpec => {
         const { name, mutation } = mutSpec
+        // TODO separate/handle $merge, $toggle, $unset
         if (parentDataMutation.find(key => mutation[key])) {
           parentMuts.push({ name, mutation: _.pick(mutation, parentDataMutation) })
           return { name, mutation: _.omit(mutation, parentDataMutation) }

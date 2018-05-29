@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { genTmpId, getDeviceName, pickBy, buildIndex } from './collection-util'
+import { genTmpId, getDeviceName, pickBy, buildIndex, flattenMutationKeys } from './collection-util'
 
 // @auto-fold here
 const tryCache = (cache, key, func) => {
@@ -67,24 +67,15 @@ export default {
     const oldOriginals = this.getOriginals(name)
     const oldPreloads = this.getPreloads(name)
     // copy preloads to originals
-    const _keepOriginal = k => {
-      if (!(k in oldSubmits)) {
+    flattenMutationKeys(mutSubmits).forEach(id => {
+      if (!(id in oldSubmits)) {
         // copy to submits to prepare mutation
-        oldSubmits[k] = oldPreloads[k]
+        oldSubmits[id] = oldPreloads[id]
       }
-      if (!(k in oldOriginals)) {
+      if (!(id in oldOriginals)) {
         // need to convert undefined original to null, for persist
-        const newOriginal = oldPreloads[k]
-        newOriginals[k] = newOriginal === undefined ? null : newOriginal
-      }
-    }
-    _.each(mutSubmits, (submit, id) => {
-      if (id === '$unset') {
-        _.each(submit, _keepOriginal)
-      } else if (id === '$merge') {
-        _.each(submit, (subSubMut, subId) => _keepOriginal(subId))
-      } else {
-        _keepOriginal(id)
+        const newOriginal = oldPreloads[id]
+        newOriginals[id] = newOriginal === undefined ? null : newOriginal
       }
     })
 
