@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.2.2"></a>
+## [4.2.2](https://github.com/ericfong/datavan/compare/v4.2.1...v4.2.2) (2018-05-29)
+
+
+### Bug Fixes
+
+* extract flattenMutationIds ([e05cb08](https://github.com/ericfong/datavan/commit/e05cb08))
+* getLocalData and dispatch to change local/fetch data ([4ae811c](https://github.com/ericfong/datavan/commit/4ae811c))
+* should always re-emit parent changes as mutation only go to parent ([0cb1763](https://github.com/ericfong/datavan/commit/0cb1763))
+
+
+
 <a name="4.2.1"></a>
 ## [4.2.1](https://github.com/ericfong/datavan/compare/v4.2.0...v4.2.1) (2018-05-16)
 
