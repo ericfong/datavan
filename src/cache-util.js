@@ -41,7 +41,7 @@ export const createBatchMemoizer = onSuccess => {
     }
     const promise = inlineFunc(dbWithWrappedFuncs, props, ...restArgs)
     // console.log('>touchNames>>', touchNames)
-    lastColls[batchI] = _.mapValues(touchNames, (v, name) => db[name])
+    lastColls[batchI] = _.mapValues(touchNames, (v, name) => db.getLocalData(name))
 
     let ret
     if (promise && promise.then) {
