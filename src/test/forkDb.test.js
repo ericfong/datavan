@@ -15,6 +15,8 @@ test('clean newDb.collection._cache if parentDb is changed', async () => {
   // fetch in root
   await dbRoot.findAsync('myTable', ['root-preload'])
 
+  expect(db2.getFetchData('myTable').preloads).toEqual({ 'root-preload': { _id: 'root-preload', name: 'ROOT-PRELOAD' } })
+
   expect(db2.getById('myTable')).toEqual({ 'root-preload': { _id: 'root-preload', name: 'ROOT-PRELOAD' } })
 })
 

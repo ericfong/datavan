@@ -42,7 +42,6 @@ rules:
       commonjs: true
   import/prefer-default-export: off
   jsx-a11y/href-no-hash: off
-  linebreak-style: off
   max-len:
     - warn
     - code: 140

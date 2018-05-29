@@ -3,6 +3,14 @@ import delay from 'delay'
 import { createDb } from '..'
 import { onFetchEcho, echoValue } from './test-util'
 
+test('fetch and _fetchResults', async () => {
+  const db = createDb({ users: { onFetch: onFetchEcho } })
+  await db.fetch('users', ['a'])
+  expect(Object.keys(db.getFetchData('users')._fetchResults)).toHaveLength(1)
+  db.invalidate('users')
+  expect(Object.keys(db.getFetchData('users')._fetchResults)).toHaveLength(0)
+})
+
 test('findAsync', async () => {
   const onFetch = jest.fn(onFetchEcho)
   const db = createDb({ users: { onFetch } })

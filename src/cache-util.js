@@ -1,6 +1,8 @@
 import _ from 'lodash'
 import shallowEqual from 'fbjs/lib/shallowEqual'
 
+const touchCollectionFuncs = ['getLocalData', 'getFetchData']
+
 export const createBatchMemoizer = onSuccess => {
   let batchIndex = 0
   const lastColls = {}
@@ -14,7 +16,8 @@ export const createBatchMemoizer = onSuccess => {
 
     const db = this
     const lastColl = lastColls[batchI]
-    const collEqual = shallowEqual(lastColl, _.pick(db, _.keys(lastColl)))
+    const currColl = _.mapValues(lastColl, (oldColl, name) => db.getLocalData(name))
+    const collEqual = shallowEqual(lastColl, currColl)
 
     // eslint-disable-next-line
     const propsEqual = lastProps.hasOwnProperty(batchI) && shallowEqual(lastProps[batchI], props)
@@ -23,10 +26,11 @@ export const createBatchMemoizer = onSuccess => {
     lastProps[batchI] = props
 
     const touchNames = {}
-    const useDb = {
+    // db-with-memoize
+    const dbWithWrappedFuncs = {
       ...db,
       // should include tryCache wrapped function
-      ...['recall', 'getById', 'getSubmits', 'getOriginals', 'getFetchData'].reduce((newDb, funcName) => {
+      ...touchCollectionFuncs.reduce((newDb, funcName) => {
         newDb[funcName] = (...args) => {
           // record touched name
           touchNames[args[0]] = true
@@ -35,7 +39,7 @@ export const createBatchMemoizer = onSuccess => {
         return newDb
       }, {}),
     }
-    const promise = inlineFunc(useDb, props, ...restArgs)
+    const promise = inlineFunc(dbWithWrappedFuncs, props, ...restArgs)
     // console.log('>touchNames>>', touchNames)
     lastColls[batchI] = _.mapValues(touchNames, (v, name) => db[name])
 
@@ -64,6 +68,7 @@ export const createBatchMemoizer = onSuccess => {
     promises,
     newBatch(db) {
       batchIndex = 0
+      // make a db-with-memoize
       return {
         ...db,
         memoize,

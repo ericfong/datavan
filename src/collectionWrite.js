@@ -64,10 +64,12 @@ export default {
   invalidate(name, ids) {
     if (!name) return _.each(this.getConfig(), (conf, n) => this.invalidate(n))
     if (ids && ids.length === 0) return
-    const fetchData = this.getFetchData(name)
-    fetchData._byIdAts = ids ? _.omit(fetchData._byIdAts, ids) : {}
-    // clear all query cache
-    this.dispatch(name, { fetchAts: { $set: {} }, preloads: ids ? { $unset: ids } : { $set: {} } })
+    this.dispatch(name, {
+      _byIdAts: ids ? { $unset: ids } : { $set: {} },
+      _fetchResults: { $set: {} },
+      fetchAts: { $set: {} },
+      preloads: ids ? { $unset: ids } : { $set: {} },
+    })
   },
 
   reset(name, ids, opt = {}) {

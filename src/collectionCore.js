@@ -10,8 +10,8 @@ const tryCache = (cache, key, func) => {
   return (cache[key] = func()) // eslint-disable-line
 }
 
-const getData = (db, name, field, funcName) => {
-  const coll = db.getDb()[name]
+const _getLocalData = (db, name, field, funcName) => {
+  const coll = db.getLocalData(name)
   const fn = coll[funcName]
   return typeof fn === 'function' ? fn(coll) : coll[field]
 }
@@ -20,18 +20,21 @@ export default {
   getFetchData(name) {
     return this.getDb()[name]
   },
+  getLocalData(name) {
+    return this.getDb()[name]
+  },
 
   getSubmits(name) {
-    return getData(this, name, 'submits', 'getSubmits')
+    return _getLocalData(this, name, 'submits', 'getSubmits')
   },
   getOriginals(name) {
-    return getData(this, name, 'originals', 'getOriginals')
+    return _getLocalData(this, name, 'originals', 'getOriginals')
   },
   getPreloads(name) {
     return this.getFetchData(name).preloads
   },
   getById(name) {
-    return tryCache(this.getDb()[name]._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
+    return tryCache(this.getLocalData(name)._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
   },
 
   pickInMemory(name, query) {
@@ -42,7 +45,7 @@ export default {
   },
 
   recall(name, fnName, ...args) {
-    const coll = this.getDb()[name]
+    const coll = this.getLocalData(name)
     const func = coll[fnName] || (fnName === 'buildIndex' ? buildIndex : null)
     return tryCache(coll._cache, `${fnName}-${stringify(args)}`, () => func.apply(coll, [this.getById(name), ...args]))
   },

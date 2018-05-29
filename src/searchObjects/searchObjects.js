@@ -132,6 +132,7 @@ export default function searchObjects(docs, search, conf) {
     pick = defaultPickFields
   } else if (Array.isArray(pick)) {
     const fields = pick
+    // pick = doc => _.pick(doc, fields)
     pick = doc =>
       _.transform(
         fields,
