@@ -13,19 +13,15 @@ export const forkDb = parentDb => {
     subDb[name].originals = { ...parentDb[name].originals }
   })
 
-  let shouldEmitParentChange = true
-
   // subscribe parent change to child db change
   parentDb.subscribe(parentChange => {
-    if (shouldEmitParentChange) {
-      // re-emit parent change event by ...
-      const subChange = _.mapValues(parentChange, (coll, name) =>
-        // create new instance and clear _cache
-        ({ ...subDb[name], _cache: {} })
-      )
-      Object.assign(subDb, subChange)
-      subDb.emit(subChange)
-    }
+    // re-emit parent change event by ...
+    const subChange = _.mapValues(parentChange, (coll, name) =>
+      // create new instance and clear _cache
+      ({ ...subDb[name], _cache: {} })
+    )
+    Object.assign(subDb, subChange)
+    subDb.emit(subChange)
   })
 
   return Object.assign(subDb, {
@@ -47,9 +43,7 @@ export const forkDb = parentDb => {
         return mutSpec
       })
       if (parentMuts.length > 0) {
-        shouldEmitParentChange = false
         parentDb.dispatch(parentMuts)
-        shouldEmitParentChange = true
       }
       return newSpecs
     },
