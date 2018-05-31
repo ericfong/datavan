@@ -2,7 +2,8 @@
 // import 'raf/polyfill'
 import React from 'react'
 import Enzyme, { mount } from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
+// import Adapter from 'enzyme-adapter-react-16'
+import Adapter from '../test/ReactSixteenAdapter'
 
 import { createDatavanContext, createDb } from '..'
 

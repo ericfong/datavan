@@ -39,7 +39,7 @@ const normalizeQueryBasic = (query, idField) => {
     return { [idField]: { $in: query } }
   }
   const fetchQuery = { ...query }
-  if (idField in query) {
+  if (idField in fetchQuery) {
     const idFieldValue = fetchQuery[idField]
     if (!idFieldValue) {
       // query = { id: falsy }
