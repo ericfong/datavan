@@ -92,6 +92,7 @@ const createDb = config => {
   // init collections
   _.each(colls, (coll, name) => {
     if (coll.initState) db.load(name, coll.initState)
+    coll = db[name]
     if (coll.onInit) coll.onInit(coll)
   })
 
