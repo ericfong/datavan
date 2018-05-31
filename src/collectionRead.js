@@ -32,20 +32,31 @@ const markPromise = (coll, fetchKey, func) => {
   return promise
 }
 
+const normalizeQueryBasic = (query, idField) => {
+  // query = [ids]
+  if (Array.isArray(query)) {
+    if (query.length === 0) return false
+    return { [idField]: { $in: query } }
+  }
+  const fetchQuery = { ...query }
+  if (idField in query) {
+    const idFieldValue = fetchQuery[idField]
+    if (!idFieldValue) {
+      // query = { id: falsy }
+      return false
+    } else if (typeof idFieldValue === 'string') {
+      // query = { id: idStr }
+      fetchQuery[idField] = { $in: [idFieldValue] }
+    }
+  }
+  return fetchQuery
+}
+
 const isTmpId = id => !id || _.startsWith(id, TMP_ID_PREFIX)
 const sortUniqFilter = ids => _.filter(_.sortedUniq(ids.sort()), id => !isTmpId(id))
 // @auto-fold here
-const defaultGetFetchQuery = (query, idField) => {
-  if (!query) return query
-
-  if (Array.isArray(query)) {
-    const ids = sortUniqFilter(query)
-    if (ids.length === 0) return false
-    return { [idField]: { $in: ids } }
-  }
-
-  const fetchQuery = { ...query }
-  const entries = Object.entries(query)
+const defaultGetFetchQuery = fetchQuery => {
+  const entries = Object.entries(fetchQuery)
   for (let i = 0, ii = entries.length; i < ii; i++) {
     const [key, matcher] = entries[i]
     if (matcher) {
@@ -58,15 +69,7 @@ const defaultGetFetchQuery = (query, idField) => {
         }
         fetchQuery[key] = { $in }
       }
-    } else if (key === idField) {
-      // idField is falsy
-      return false
     }
-  }
-
-  const idFieldStr = fetchQuery[idField]
-  if (typeof idFieldStr === 'string') {
-    fetchQuery[idField] = { $in: [idFieldStr] }
   }
   return fetchQuery
 }
@@ -81,10 +84,12 @@ const isAllIdHit = (coll, query) => {
 function doFetch(db, name, query, option) {
   const coll = db.getFetchData(name)
   if (!coll.onFetch) return undefined
+  const notForce = !option.force
 
   // use getFetchQuery to modify final ajax call query
-  const fetchQuery = (coll.getFetchQuery || defaultGetFetchQuery)(query, coll.idField)
-  const notForce = !option.force
+  let fetchQuery = normalizeQueryBasic(query, coll.idField)
+  if (notForce && fetchQuery === false) return undefined
+  fetchQuery = (coll.getFetchQuery || defaultGetFetchQuery)(fetchQuery, coll.idField, coll)
   if (notForce && fetchQuery === false) return undefined
   if (notForce && isAllIdHit(coll, fetchQuery)) return undefined
 
