@@ -85,13 +85,19 @@ function doFetch(db, name, query, option) {
   const coll = db.getFetchData(name)
   if (!coll.onFetch) return undefined
   const notForce = !option.force
+  if (option.force) {
+    console.warn('fetch option.force will be deprecated soon. Please use invalidate')
+  }
 
   // use getFetchQuery to modify final ajax call query
   let fetchQuery = normalizeQueryBasic(query, coll.idField)
   if (notForce && fetchQuery === false) return undefined
   fetchQuery = (coll.getFetchQuery || defaultGetFetchQuery)(fetchQuery, coll.idField, coll)
   if (notForce && fetchQuery === false) return undefined
-  if (notForce && isAllIdHit(coll, fetchQuery)) return undefined
+
+  const fetchOption = _.omitBy(option, (v, k) => k[0] === '_')
+
+  if (notForce && _.size(fetchOption) === 0 && isAllIdHit(coll, fetchQuery)) return undefined
 
   // use getFetchKey to stringify into querystring like key
   const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
