@@ -84,34 +84,28 @@ const isAllIdHit = (coll, query) => {
 function doFetch(db, name, query, option) {
   const coll = db.getFetchData(name)
   if (!coll.onFetch) return undefined
-  const notForce = !option.force
-  if (option.force) {
-    console.warn('fetch option.force will be deprecated soon. Please use invalidate')
-  }
 
   // use getFetchQuery to modify final ajax call query
   let fetchQuery = normalizeQueryBasic(query, coll.idField)
-  if (notForce && fetchQuery === false) return undefined
+  if (fetchQuery === false) return undefined
   fetchQuery = (coll.getFetchQuery || defaultGetFetchQuery)(fetchQuery, coll.idField, coll)
-  if (notForce && fetchQuery === false) return undefined
+  if (fetchQuery === false) return undefined
 
   const fetchOption = _.omitBy(option, (v, k) => k[0] === '_')
 
-  if (notForce && _.size(fetchOption) === 0 && isAllIdHit(coll, fetchQuery)) return undefined
+  if (_.size(fetchOption) === 0 && isAllIdHit(coll, fetchQuery)) return undefined
 
   // use getFetchKey to stringify into querystring like key
   const fetchKey = (coll.getFetchKey || defaultGetFetchKey)(fetchQuery, option)
-  if (notForce && fetchKey === false) return undefined
+  if (fetchKey === false) return undefined
   option._fetchKey = fetchKey
 
-  if (notForce) {
-    // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
-    const now = Date.now()
-    // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
-    if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
-      if (option._keepFetchResult) return coll._fetchPromises[fetchKey] || coll._fetchResults[fetchKey]
-      return false
-    }
+  // collection.fetchMaxAge: 1, // in seconds; null, 0 or -1 means no maxAge
+  const now = Date.now()
+  // console.log('>>>', fetchKey, fetchAts, fetchAts[fetchKey])
+  if (coll.fetchMaxAge > 0 ? coll.fetchAts[fetchKey] > now - coll.fetchMaxAge : coll.fetchAts[fetchKey]) {
+    if (option._keepFetchResult) return coll._fetchPromises[fetchKey] || coll._fetchResults[fetchKey]
+    return false
   }
 
   // doFetch
