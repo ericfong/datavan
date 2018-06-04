@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.2.5"></a>
+## [4.2.5](https://github.com/ericfong/datavan/compare/v4.2.4...v4.2.5) (2018-06-04)
+
+
+### Bug Fixes
+
+* always do basic normalize before getFetchQuery ([95731dc](https://github.com/ericfong/datavan/commit/95731dc))
+* always use latest coll object event in onInit ([b17d98b](https://github.com/ericfong/datavan/commit/b17d98b))
+* set last props afte run inline func in cache-util ([6482c11](https://github.com/ericfong/datavan/commit/6482c11))
+* test for react 16.3 ([18bb9a8](https://github.com/ericfong/datavan/commit/18bb9a8))
+
+
+
 <a name="4.2.4"></a>
 ## [4.2.4](https://github.com/ericfong/datavan/compare/v4.2.3...v4.2.4) (2018-05-29)
 
