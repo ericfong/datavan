@@ -23,7 +23,6 @@ export const createBatchMemoizer = onSuccess => {
     const propsEqual = lastProps.hasOwnProperty(batchI) && shallowEqual(lastProps[batchI], props)
 
     if (collEqual && propsEqual) return results[batchI]
-    lastProps[batchI] = props
 
     const touchNames = {}
     // db-with-memoize
@@ -42,6 +41,7 @@ export const createBatchMemoizer = onSuccess => {
     const promise = inlineFunc(dbWithWrappedFuncs, props, ...restArgs)
     // console.log('>touchNames>>', touchNames)
     lastColls[batchI] = _.mapValues(touchNames, (v, name) => db.getLocalData(name))
+    lastProps[batchI] = props
 
     let ret
     if (promise && promise.then) {
