@@ -14,7 +14,10 @@ const markPromise = (coll, fetchKey, func) => {
   const markPromiseDone = () => {
     delete _fetchPromises[fetchKey]
     if (Object.keys(_fetchPromises).length === 0) {
-      coll.getDb().dispatch(coll.name, { fetchingAt: { $set: undefined } })
+      coll.getDb().dispatch(coll.name, {
+        fetchingAt: { $set: undefined },
+        fetchedAt: { $set: Date.now() },
+      })
     }
   }
   const promise = (_fetchPromises[fetchKey] = func()
