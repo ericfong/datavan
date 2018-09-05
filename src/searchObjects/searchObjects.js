@@ -109,7 +109,7 @@ const defaultTuneOrder = _order => _order
 
 export default function searchObjects(docs, search, conf) {
   const keywords = Array.isArray(search) ? search : tokenizeKeywords(_.trim(search).toLowerCase())
-  if (!keywords || keywords.length === 0) return docs
+  if (!keywords || keywords.length === 0) return []
 
   let hasExclude = false
   const terms = _.map(keywords, keyword => {
