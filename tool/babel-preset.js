@@ -1,6 +1,6 @@
 const envPresentOpts = {
   default: { targets: { browsers: '> 1%' }, modules: false },
-  cjs: { targets: { uglify: true } },
+  cjs: { targets: { browsers: '> 1%' } },
   test: { targets: { node: 'current' } },
 }
 
@@ -10,7 +10,7 @@ module.exports = ({ env }) => {
     presets: [
       ['@babel/preset-env', envPresentOpts[ENV] || envPresentOpts.default],
       // some test is using jsx
-      ENV === 'test' && '@babel/preset-react',
+      '@babel/preset-react',
     ].filter(Boolean),
 
     plugins: [
@@ -19,9 +19,9 @@ module.exports = ({ env }) => {
       '@babel/plugin-proposal-export-default-from',
 
       'lodash',
-      // '@babel/plugin-proposal-optional-chaining',
+      '@babel/plugin-proposal-optional-chaining',
       '@babel/plugin-proposal-nullish-coalescing-operator',
-      '@babel/plugin-proposal-pipeline-operator',
+      ['@babel/plugin-proposal-pipeline-operator', { proposal: 'minimal' }],
     ],
   }
 }

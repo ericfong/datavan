@@ -2,8 +2,7 @@
 // import 'raf/polyfill'
 import React from 'react'
 import Enzyme, { mount } from 'enzyme'
-// import Adapter from 'enzyme-adapter-react-16'
-import Adapter from '../test/ReactSixteenAdapter'
+import Adapter from 'enzyme-adapter-react-16'
 
 import { createDatavanContext, createDb } from '..'
 
@@ -13,6 +12,7 @@ class Indirection extends React.Component {
   shouldComponentUpdate() {
     return false
   }
+
   render() {
     return this.props.children
   }
@@ -27,7 +27,7 @@ test('memoize', () => {
   const App = () => (
     <Van.Provider db={globalDb}>
       <Indirection>
-        <Van observe="users">{db => <button>{db.memoize(getter)}</button>}</Van>
+        <Van observe="users">{db => <button type="button">{db.memoize(getter)}</button>}</Van>
       </Indirection>
     </Van.Provider>
   )
@@ -44,7 +44,13 @@ test('mutate and get back', () => {
   const App = () => (
     <Van.Provider>
       <Indirection>
-        <Van observe="users">{db => <button onClick={() => db.set('users', 'x', 2)}>{db.getById('users').x}</button>}</Van>
+        <Van observe="users">
+          {db => (
+            <button type="button" onClick={() => db.set('users', 'x', 2)}>
+              {db.getById('users').x}
+            </button>
+          )}
+        </Van>
       </Indirection>
     </Van.Provider>
   )

@@ -16,10 +16,7 @@ export const forkDb = parentDb => {
   // subscribe parent change to child db change
   parentDb.subscribe(parentChange => {
     // re-emit parent change event by ...
-    const subChange = _.mapValues(parentChange, (coll, name) =>
-      // create new instance and clear _cache
-      ({ ...subDb[name], _cache: {} })
-    )
+    const subChange = _.mapValues(parentChange, (coll, name) => ({ ...subDb[name], _cache: {} }))
     Object.assign(subDb, subChange)
     subDb.emit(subChange)
   })
@@ -37,7 +34,10 @@ export const forkDb = parentDb => {
         const { name, mutation } = mutSpec
         // TODO separate/handle $merge, $toggle, $unset
         if (parentDataMutation.find(key => mutation[key])) {
-          parentMuts.push({ name, mutation: _.pick(mutation, parentDataMutation) })
+          parentMuts.push({
+            name,
+            mutation: _.pick(mutation, parentDataMutation),
+          })
           return { name, mutation: _.omit(mutation, parentDataMutation) }
         }
         return mutSpec

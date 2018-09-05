@@ -1,6 +1,8 @@
 import _ from 'lodash'
 
-import { createDb, pickBy, filter, TMP_ID_PREFIX as TMP } from '..'
+import {
+  createDb, pickBy, filter, TMP_ID_PREFIX as TMP,
+} from '..'
 import { onFetchEcho, onFetchById } from './test-util'
 
 test('find in original', async () => {
@@ -57,12 +59,10 @@ test('hasFetch cache', async () => {
 })
 
 test('onFetch with $invalidate', async () => {
-  const onFetch = jest.fn(() =>
-    Promise.resolve({
-      byId: { 'id-123': undefined },
-      $invalidate: ['id-123'],
-    })
-  )
+  const onFetch = jest.fn(() => Promise.resolve({
+    byId: { 'id-123': undefined },
+    $invalidate: ['id-123'],
+  }))
   const db = createDb({ users: { onFetch } })
   db.find('users', ['id-123'])
   await db.getPending('users')

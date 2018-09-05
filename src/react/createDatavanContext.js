@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import { createElement, Component } from 'react'
-import createReactContext from 'create-react-context'
+import { createElement, Component, createContext } from 'react'
 
 import bitsObserver from './bitsObserver'
 import createDb from '../db'
@@ -8,16 +7,15 @@ import { createBatchMemoizer } from '../cache-util'
 
 export const getMemoizeHoc = VanConsumer => (propKeys, mapFunc) => {
   propKeys = _.uniq(_.compact(propKeys))
-  return BaseComponent => props =>
-    createElement(VanConsumer, props, db => {
-      const dataProps = mapFunc && db.memoize(mapFunc, _.pick(props, propKeys), props)
-      return createElement(BaseComponent, { ...props, db, ...dataProps })
-    })
+  return BaseComponent => props => createElement(VanConsumer, props, db => {
+    const dataProps = mapFunc && db.memoize(mapFunc, _.pick(props, propKeys), props)
+    return createElement(BaseComponent, { ...props, db, ...dataProps })
+  })
 }
 
 const createDatavanContext = config => {
   const { calcChangedBits, getObservedBits } = bitsObserver(config)
-  const { Provider, Consumer } = createReactContext(null, calcChangedBits)
+  const { Provider, Consumer } = createContext(null, calcChangedBits)
 
   class VanProvider extends Component {
     constructor(props) {
@@ -26,12 +24,15 @@ const createDatavanContext = config => {
       const db = props.initDb ? props.initDb(config) : props.db || createDb(config)
       this.state = db
     }
+
     componentDidMount() {
       this.unsubscribe = this.state.subscribe(change => this.setState(change))
     }
+
     componentWillUnmount() {
       this.unsubscribe()
     }
+
     render() {
       return createElement(Provider, { value: this.state }, this.props.children)
     }

@@ -34,7 +34,10 @@ function main() {
   testPackages = _.uniq(testPackages.concat(Object.keys(packageJson.peerDependencies)))
   testPackages = _.uniq(testPackages.concat(Object.keys(packageJson.devDependencies)))
 
-  testPackages = _.filter(testPackages, name => isNotUsedInPackageJsonScript(name) && _.every(SKIPPED_PACKAGES, regexp => !name.match(regexp)))
+  testPackages = _.filter(
+    testPackages,
+    name => isNotUsedInPackageJsonScript(name) && _.every(SKIPPED_PACKAGES, regexp => !name.match(regexp))
+  )
 
   const nouses = _.filter(testPackages, name => {
     const greped = gitGrepAny(name)

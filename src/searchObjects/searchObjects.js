@@ -6,7 +6,7 @@ function indexOfTerm(term, value, valueStr) {
   const type = typeof value
   if (type === 'string') {
     return value.toLowerCase().indexOf(term)
-  } else if (type === 'number' && !isNaN(term)) {
+  } if (type === 'number' && !isNaN(term)) {
     const termWithDot = term.indexOf('.')
     if (termWithDot < 0) {
       // match as integer
@@ -133,14 +133,13 @@ export default function searchObjects(docs, search, conf) {
   } else if (Array.isArray(pick)) {
     const fields = pick
     // pick = doc => _.pick(doc, fields)
-    pick = doc =>
-      _.transform(
-        fields,
-        (ret, field) => {
-          ret[field] = _.get(doc, field)
-        },
-        {}
-      )
+    pick = doc => _.transform(
+      fields,
+      (ret, field) => {
+        ret[field] = _.get(doc, field)
+      },
+      {}
+    )
   }
   if (!tuneOrder) tuneOrder = defaultTuneOrder
 

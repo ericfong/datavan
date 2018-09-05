@@ -47,7 +47,7 @@ const normalizeQueryBasic = (query, idField) => {
     if (!idFieldValue) {
       // query = { id: falsy }
       return false
-    } else if (typeof idFieldValue === 'string') {
+    } if (typeof idFieldValue === 'string') {
       // query = { id: idStr }
       fetchQuery[idField] = { $in: [idFieldValue] }
     }
@@ -65,7 +65,7 @@ const defaultGetFetchQuery = fetchQuery => {
     if (matcher) {
       if (typeof matcher === 'string' && isTmpId(matcher)) {
         return false
-      } else if (matcher.$in) {
+      } if (matcher.$in) {
         const $in = sortUniqFilter(matcher.$in)
         if ($in.length === 0) {
           return false
@@ -113,13 +113,11 @@ function doFetch(db, name, query, option) {
 
   // doFetch
   coll.fetchAts[fetchKey] = Date.now()
-  return markPromise(coll, fetchKey, () =>
-    Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
-      if (option._keepFetchResult) coll._fetchResults[fetchKey] = res
-      db.load(name, res)
-      return res
-    })
-  )
+  return markPromise(coll, fetchKey, () => Promise.resolve(coll.onFetch(fetchQuery, option, coll)).then(res => {
+    if (option._keepFetchResult) coll._fetchResults[fetchKey] = res
+    db.load(name, res)
+    return res
+  }))
 }
 
 export default {

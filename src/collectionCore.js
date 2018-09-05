@@ -1,7 +1,9 @@
 import _ from 'lodash'
 import stringify from 'fast-stable-stringify'
 
-import { genTmpId, getDeviceName, pickBy, buildIndex, flattenMutationKeys } from './collection-util'
+import {
+  genTmpId, getDeviceName, pickBy, buildIndex, flattenMutationKeys,
+} from './collection-util'
 
 // @auto-fold here
 const tryCache = (cache, key, func) => {
@@ -34,7 +36,10 @@ export default {
     return this.getFetchData(name).preloads
   },
   getById(name) {
-    return tryCache(this.getLocalData(name)._cache, 'byId', () => ({ ...this.getPreloads(name), ...this.getSubmits(name) }))
+    return tryCache(this.getLocalData(name)._cache, 'byId', () => ({
+      ...this.getPreloads(name),
+      ...this.getSubmits(name),
+    }))
   },
 
   pickInMemory(name, query) {
@@ -79,6 +84,9 @@ export default {
       }
     })
 
-    this.dispatch(name, { submits: mutSubmits, originals: { $merge: newOriginals } })
+    this.dispatch(name, {
+      submits: mutSubmits,
+      originals: { $merge: newOriginals },
+    })
   },
 }

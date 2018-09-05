@@ -73,6 +73,7 @@ rules:
   quotes:
     - warn
     - single
+  react/destructuring-assignment: off
   react/prop-types: off
   semi:
     - warn
