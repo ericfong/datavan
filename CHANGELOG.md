@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.2.8"></a>
+## [4.2.8](https://github.com/ericfong/datavan/compare/v4.2.7...v4.2.8) (2018-09-05)
+
+
+### Bug Fixes
+
+* ensure searchObject must return array ([c5312f0](https://github.com/ericfong/datavan/commit/c5312f0))
+
+
+
 <a name="4.2.7"></a>
 ## [4.2.7](https://github.com/ericfong/datavan/compare/v4.2.6...v4.2.7) (2018-09-05)
 
