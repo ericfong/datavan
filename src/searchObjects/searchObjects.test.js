@@ -27,4 +27,7 @@ test('basic', async () => {
   expect(search('S4')).toEqual(['S4何香江', 'Book S4'])
 
   expect(search('12')).toEqual(['Book S4', 'Book', 'To Wong'])
+
+  expect(searchObjects(null, '')).toEqual([])
+  expect(searchObjects(docs, '')).toEqual(docs)
 })

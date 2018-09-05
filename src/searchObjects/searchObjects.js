@@ -6,7 +6,8 @@ function indexOfTerm(term, value, valueStr) {
   const type = typeof value
   if (type === 'string') {
     return value.toLowerCase().indexOf(term)
-  } if (type === 'number' && !isNaN(term)) {
+  }
+  if (type === 'number' && !isNaN(term)) {
     const termWithDot = term.indexOf('.')
     if (termWithDot < 0) {
       // match as integer
@@ -109,7 +110,7 @@ const defaultTuneOrder = _order => _order
 
 export default function searchObjects(docs, search, conf) {
   const keywords = Array.isArray(search) ? search : tokenizeKeywords(_.trim(search).toLowerCase())
-  if (!keywords || keywords.length === 0) return []
+  if (!keywords || keywords.length === 0) return docs || []
 
   let hasExclude = false
   const terms = _.map(keywords, keyword => {
